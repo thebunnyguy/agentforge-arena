@@ -1,0 +1,38 @@
+{
+  "id": "fix-list-dedup",
+  "version": "1.0.0",
+  "title": "Fix order-losing list dedup",
+  "description": "listkit.dedup must remove duplicate elements while preserving first-occurrence order. It currently uses set() and loses order. Fix listkit/dedup.py so order is preserved. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "backend", "weight": 1.0 }
+  ],
+  "activity": "debugging-bugfix",
+  "scale": "XS",
+  "manual_difficulty": 2,
+  "timeout_s": 120,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "listkit/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

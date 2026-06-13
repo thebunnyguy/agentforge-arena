@@ -1,0 +1,18 @@
+[project]
+name = "afa-kernel"
+version = "0.1.0"
+description = "AgentForge Arena v0.1 evaluation kernel — deterministic run scoring, repeated-run aggregation, Wilson confidence, domain profiling, and LCB ranking. Pure Python stdlib."
+requires-python = ">=3.10"
+authors = [{ name = "AgentForge Arena" }]
+
+# The kernel itself depends on the standard library ONLY (math, statistics,
+# itertools, fractions). pytest is a development dependency for the test suite.
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+# Lets `import afa_kernel` resolve from the kernel/ root without an editable
+# install. Run the suite with `python -m pytest` from this directory.
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
