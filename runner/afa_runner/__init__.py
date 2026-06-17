@@ -15,6 +15,7 @@ from .grader import GradeReport, SuiteOutcome, grade
 from .pipeline import RunRecord, aggregate_group, run_group, run_once, validate_task
 from .store import RunStore, SqliteRunStore
 from .report import domain_profile, format_leaderboard, leaderboard, task_aggregate
+from .report_html import render_report
 
 __all__ = [
     "Task", "TestSuiteSpec", "DomainTag", "load_task",
@@ -27,6 +28,7 @@ __all__ = [
     "RunRecord", "run_once", "run_group", "aggregate_group", "validate_task",
     "RunStore", "SqliteRunStore",
     "leaderboard", "domain_profile", "task_aggregate", "format_leaderboard",
+    "render_report",
 ]
 
 __version__ = "0.1.0"

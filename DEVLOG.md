@@ -467,29 +467,95 @@ git-ignored auto-generated cache notes.)
 
 ---
 
+## Phase 24 — Commit v0.2 + the clean full pack evaluation
+
+**Ask.** Commit the changes and run one clean full pack evaluation.
+
+**Did.** Confirmed the suite green (309), staged everything (gitignore kept all
+`.DS_Store`/`__pycache__` out), and committed to master: **`49999df`**, **88
+files, +4,239** — both real agents, the infra-failure fix, the 9-task pack +
+manifest + CI test, the eval/diagnostic scripts, and `DEVLOG.md`. (Not pushed —
+the ask was "commit," not "push.") Then ran `eval_pack` (all 10 tasks, both
+models, n=5) with Ollama **bundled** into the one job and infra-voids tracked.
+
+**Outcome (clean — 0 voids, both agents n=50):**
+
+```
+rank  agent              n   p̂     LCB
+  1   oracle (reference) 50  1.000  0.929
+  2   qwen2.5-coder:7b   50  0.580  0.442
+  3   llama3.2           50  0.180  0.098
+  4   noop               50  0.000  0.000
+```
+
+Per-task: qwen near-perfect on diff 2–3, falls off at diff 4–5; 0/5 on
+fix-path-traversal, toposort, expression-evaluator. Backend domain: qwen
+[0.48, 0.74] vs llama [0.11, 0.33]. qwen ≈ 3× llama, cleanly separated, both
+below the perfect oracle.
+
+**Findings.** These numbers **reproduce the Phase-13 run almost exactly**
+(qwen 29/50, llama 9/50). So the earlier "contaminated" worry was an
+overcorrection — the original pack run was fine; Ollama only died *later*,
+during the Phase-14 diagnosis attempts. The diagnosis's real value was the code
+bug it caught (Phase 14) and confirming the hard tasks are legit (Phase 19), not
+rescuing these numbers. The infra-fix remains correct and necessary regardless.
+The hard tasks held: toposort/expression-evaluator 0 for both; fix-path-traversal
+~0–10% across runs (1/5 focused, 0/5 here — normal low-rate variance).
+
+---
+
+## Phase 25 — Visual reports (the observability layer, first step)
+
+**Ask.** "What else are we supposed to do?" → chose **visual reports**; smart
+scoring (v0.2 math) and more tasks/agents explicitly deferred.
+
+**Reasoning.** The engine works; the missing half of "benchmarking *and
+observability*" is a way to *see* the results. Started with the lightest useful
+form — a self-contained offline HTML report — rather than standing up
+Postgres + API + Next.js immediately.
+
+**Did.** Built `runner/afa_runner/report_html.py` — `render_report(store,
+tasks_meta)` produces one standalone `.html` (inline CSS + SVG, no server, no
+internet, no JS deps) with a leaderboard (Wilson-interval bars), a per-task
+pass-rate heatmap, per-agent cards (pass rate + no-edit/wrong-fix/voided split),
+and a domain profile. Honesty rules are rendered, not just computed: intervals
+shown, rank clusters, "provisional" (n<5) and "insufficient data" (domain <5
+tasks) labels, voids surfaced separately. Added `examples/report_pack.py`
+(reconstructs the real Phase-24 results into the report instantly — leaderboard/
+matrix/domain are exact; per-run scores synthesized 1.0/0.0, faithful for these
+binary tasks), 4 offline tests (`runner/tests/test_report_html.py`), exported
+`render_report`, and gitignored the generated `reports/` dir. Showed an inline
+preview widget in chat.
+
+**Outcome.** **313 tests pass.** `reports/leaderboard.html` generated
+(`open reports/leaderboard.html`). The renderer takes any `RunStore`, so a live
+run can produce the report directly.
+
+---
+
 ## Current state (as of this entry)
 
-**Committed (tag `v0.1-eval-slice`, commit `8eb6d4a`):** the full v0.1 slice —
-`afa_kernel`, `afa_runner`, the first task, `db/schema.sql`, all docs.
+**Committed:**
+- `8eb6d4a` (tag `v0.1-eval-slice`): the v0.1 slice — `afa_kernel`, `afa_runner`,
+  the first task, `db/schema.sql`, all docs.
+- `49999df`: the v0.2 batch — both real agents, the infra-failure fix, the 9-task
+  pack + manifest + CI test, the eval/diagnostic scripts, `DEVLOG.md`.
+- *this commit*: the visual report feature (`report_html.py` + `report_pack.py`
+  + tests) and DEVLOG Phases 24–25.
 
-**Uncommitted (v2.0-in-progress, by request):**
-- `runner/afa_runner/agents_ollama.py` — real local-LLM agent
-- `runner/afa_runner/agents_openai.py` — backend-agnostic agent
-- The infra-failure fix (`agents.py`, `pipeline.py`)
-- The 9-task pack + `tasks/manifest.json` + `runner/tests/test_task_pack.py`
-- `examples/`: `eval_ollama.py`, `eval_compare.py`, `eval_pack.py`,
-  `eval_subset.py`, `diagnose_task.py`, `probe_parse.py`
-- `runner/tests/test_agents_ollama.py`, `runner/tests/test_agents_openai.py`
-- This `DEVLOG.md`
+**Uncommitted:** none after this commit.
 
-**Repo:** private GitHub `thebunnyguy/agentforge-arena`. **Suite:** 309 passing,
-offline, pure stdlib.
+**Repo:** private GitHub `thebunnyguy/agentforge-arena`. Local master is **2
+commits ahead of `origin`** (v0.1 is pushed; the v0.2 batch + this commit are
+**not pushed**).
+**Suite:** 313 passing, offline, pure stdlib.
 
 **Open threads:**
-1. A **clean full pack re-run** (all 10 tasks, both models, infra-void-protected)
-   for a corrected leaderboard — not yet produced.
-2. Commit the v0.2 work when ready.
-3. Future v0.2: DockerSandbox, Postgres+FastAPI, Next.js dashboard, the v0.2 math.
+1. ~~Clean full pack re-run~~ — **done** (Phase 24; reproduced the earlier numbers, 0 voids).
+2. ~~Commit the v0.2 work~~ — **done**; **not yet pushed** to GitHub.
+3. The visual report is a static HTML file; the fuller observability layer
+   (Postgres + FastAPI + Next.js dashboard) is still ahead.
+4. Future v0.2 math: Jeffreys shrinkage, empirical difficulty, discrimination.
 
 ---
 
