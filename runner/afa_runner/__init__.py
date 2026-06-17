@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from .task import DomainTag, Task, TestSuiteSpec, load_task
 from .agents import Agent, AgentOutcome, MockAgent, ScriptAgent, SequenceAgent
+from .agents_ollama import OllamaAgent, ollama_generate
+from .agents_openai import OpenAICompatAgent, openai_chat_generate
 from .sandbox import CommandResult, LocalSandbox, Sandbox
 from .diffing import Diff, apply_diff, capture_diff, snapshot_tree
 from .grader import GradeReport, SuiteOutcome, grade
@@ -17,6 +19,8 @@ from .report import domain_profile, format_leaderboard, leaderboard, task_aggreg
 __all__ = [
     "Task", "TestSuiteSpec", "DomainTag", "load_task",
     "Agent", "AgentOutcome", "MockAgent", "ScriptAgent", "SequenceAgent",
+    "OllamaAgent", "ollama_generate",
+    "OpenAICompatAgent", "openai_chat_generate",
     "Sandbox", "LocalSandbox", "CommandResult",
     "Diff", "snapshot_tree", "capture_diff", "apply_diff",
     "GradeReport", "SuiteOutcome", "grade",

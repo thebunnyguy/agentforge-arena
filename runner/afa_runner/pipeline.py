@@ -102,6 +102,12 @@ def run_once(
             # gate (G=0, S=0) and is counted in n as a failure.
             status = RunStatus.TIMEOUT
             timed_out = True
+        elif outcome.infra_failed:
+            # Infrastructure failure (e.g. the model server is unreachable):
+            # VOIDED, excluded from n, never held against the agent (§1).
+            # Checked before `errored` so a transport failure is never miscounted
+            # as an agent loss.
+            status = RunStatus.INFRA_FAILURE
         elif outcome.errored:
             status = RunStatus.AGENT_ERROR
 

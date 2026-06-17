@@ -1,0 +1,39 @@
+{
+  "id": "fix-path-traversal",
+  "version": "1.0.0",
+  "title": "Fix path-traversal escape in safe_join",
+  "description": "safepath.join.safe_join(base, *parts) must join parts under base but raise ValueError if the result escapes base (via '..' or an absolute component). It currently uses a naive posixpath.join that allows escape. Fix safepath/join.py using posixpath string logic only (NO real filesystem access). Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "security", "weight": 1.0 },
+    { "domain": "backend", "weight": 0.5 }
+  ],
+  "activity": "debugging-bugfix",
+  "scale": "S",
+  "manual_difficulty": 4,
+  "timeout_s": 120,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "safepath/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "implement-lru-cache",
+  "version": "1.0.0",
+  "title": "Implement an LRU cache",
+  "description": "cachekit.lru.LRUCache(capacity) is a stub. Implement it: get(key, default=None) and put(key, value) with least-recently-used eviction on overflow, where BOTH get and put count as a use that refreshes recency. Implement LRUCache in cachekit/lru.py. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "backend", "weight": 1.0 },
+    { "domain": "api-design", "weight": 0.5 }
+  ],
+  "activity": "feature-implementation",
+  "scale": "S",
+  "manual_difficulty": 3,
+  "timeout_s": 120,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "cachekit/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

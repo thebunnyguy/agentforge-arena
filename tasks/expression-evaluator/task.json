@@ -1,0 +1,38 @@
+{
+  "id": "expression-evaluator",
+  "version": "1.0.0",
+  "title": "Implement an arithmetic expression evaluator",
+  "description": "calckit.evaluate.evaluate(expr) must parse and evaluate an arithmetic expression string supporting +, -, *, /, parentheses, correct operator precedence, unary minus, integer and float literals, and arbitrary whitespace. The current implementation is a stub. Implement a real recursive-descent (or shunting-yard) parser in calckit/evaluate.py. Do NOT use eval(). Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "backend", "weight": 1.0 }
+  ],
+  "activity": "feature-implementation",
+  "scale": "M",
+  "manual_difficulty": 5,
+  "timeout_s": 120,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "calckit/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

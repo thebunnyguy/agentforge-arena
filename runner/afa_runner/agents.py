@@ -21,14 +21,20 @@ if TYPE_CHECKING:
 class AgentOutcome:
     """What an agent run produced, for status + determinism tracking.
 
-    transcript : a stable textual record of what the agent did (commands /
-                 file writes). Hashed to detect deterministic agents.
-    errored    : True if the agent failed to produce a usable attempt
-                 (maps to RunStatus.AGENT_ERROR).
+    transcript    : a stable textual record of what the agent did (commands /
+                    file writes). Hashed to detect deterministic agents.
+    errored       : True if the agent itself failed to produce a usable attempt
+                    (maps to RunStatus.AGENT_ERROR — counts against the agent).
+    infra_failed  : True if an INFRASTRUCTURE failure prevented the attempt
+                    (e.g. the model server is unreachable). Maps to
+                    RunStatus.INFRA_FAILURE — VOIDED, excluded from n, never
+                    held against the agent (framework §1). Takes precedence over
+                    `errored` when both are set.
     """
 
     transcript: str = ""
     errored: bool = False
+    infra_failed: bool = False
 
 
 @runtime_checkable
