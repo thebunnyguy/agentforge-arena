@@ -533,6 +533,49 @@ run can produce the report directly.
 
 ---
 
+## Phase 26 — Fair 5-model comparison + the "stops" fix
+
+**Ask.** Run more tests with different models (fair: same pack, math, n). Then:
+"is it my laptop?" Then make runs survive. Then commit (no push) + update the report.
+
+**The "stops" diagnosis.** Multiple long background runs were getting killed
+mid-way. Checked the machine: 36 GB RAM / 70% free, 14 cores at ~5 load, 101 GB
+disk, swap normal, and **zero** OOM/crash lines in Ollama's log. So **not the
+laptop** — the background jobs were being reaped at turn boundaries / on a
+duration cap by the tooling that runs them. Fixes: (1) run the eval in the
+FOREGROUND within a single turn so it completes before yielding; (2) persist
+every run to a SQLite file the instant it finishes (resumable — a stop costs at
+most one run); (3) flush progress live. New: `examples/eval_persist.py`
+(resilient, resumable, per-model) and `examples/report_combined.py` (merges
+fresh DB runs with the known baselines → report). Run data lands in
+`reports/runs.sqlite` (gitignored).
+
+**Did.** Pulled 3 new models (qwen2.5-coder:3b, deepseek-coder:6.7b, gemma2:2b);
+ran them fresh through the identical harness; combined with the earlier
+qwen-7b/llama run (same conditions) + oracle/noop bookends.
+
+**Outcome (5-model leaderboard, pooled n=50, ranked by Wilson LCB):**
+
+```
+1    oracle (reference)   1.000  LCB 0.929
+2    qwen2.5-coder:7b     0.580  LCB 0.442
+3-4  qwen2.5-coder:3b     0.280  LCB 0.175
+3-5  llama3.2:3b          0.180  LCB 0.098
+4-5  deepseek-coder:6.7b  0.160  LCB 0.083
+6    gemma2:2b            0.040  LCB 0.011
+7    noop                 0.000  LCB 0.000
+```
+
+**Findings.** (1) **Bigger ≠ better:** deepseek-coder:6.7b scored *below* the
+smaller qwen2.5-coder:3b — newer/better training beats raw size, and the
+benchmark caught it. (2) An honest **tie cluster** at ranks 3–5 (qwen-3b / llama
+/ deepseek overlap; the math refuses to fake-separate them). (3) `toposort` and
+`expression-evaluator` are 0/5 for *every* model — genuinely hard. (4) The 3 new
+models are fresh real runs; qwen-7b/llama reused from the identical earlier run.
+`reports/leaderboard.html` regenerated with all five.
+
+---
+
 ## Current state (as of this entry)
 
 **Committed:**
@@ -540,14 +583,16 @@ run can produce the report directly.
   the first task, `db/schema.sql`, all docs.
 - `49999df`: the v0.2 batch — both real agents, the infra-failure fix, the 9-task
   pack + manifest + CI test, the eval/diagnostic scripts, `DEVLOG.md`.
-- *this commit*: the visual report feature (`report_html.py` + `report_pack.py`
+- `c4adac3`: the visual report feature (`report_html.py` + `report_pack.py`
   + tests) and DEVLOG Phases 24–25.
+- *this commit*: the resilient runner (`eval_persist.py`), the 5-model combined
+  report (`report_combined.py`), and DEVLOG Phase 26.
 
 **Uncommitted:** none after this commit.
 
-**Repo:** private GitHub `thebunnyguy/agentforge-arena`. Local master is **2
-commits ahead of `origin`** (v0.1 is pushed; the v0.2 batch + this commit are
-**not pushed**).
+**Repo:** private GitHub `thebunnyguy/agentforge-arena`. Local master is **3
+commits ahead of `origin`** (v0.1 is pushed; everything since is committed but
+**not pushed**, by request).
 **Suite:** 313 passing, offline, pure stdlib.
 
 **Open threads:**
