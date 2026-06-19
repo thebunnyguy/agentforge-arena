@@ -1,0 +1,39 @@
+{
+  "id": "query-builder",
+  "version": "1.0.0",
+  "title": "Implement a fluent SQL query builder",
+  "description": "qbuild.query.Query is a stub. Implement a fluent Query builder in qbuild/query.py. API contract: Query() starts an empty builder. .select(*columns) records the selected columns; .where(condition) appends a WHERE condition (it may be called multiple times); .limit(n) records a row limit. All of select/where/limit return self so calls chain. .build() returns the SQL string. Formatting rules, in this exact clause order SELECT ... [WHERE ...] [LIMIT n]: the SELECT clause is 'SELECT *' when no columns were selected, otherwise 'SELECT ' followed by the columns joined with ', ' (comma then single space); if at least one where() was called, append ' WHERE ' followed by the conditions joined with ' AND ', otherwise omit the WHERE clause entirely; if limit() was called, append ' LIMIT n', otherwise omit it. Example: Query().select('a','b').where('x=1').where('y=2').limit(10).build() returns exactly 'SELECT a, b WHERE x=1 AND y=2 LIMIT 10'. Implement Query in qbuild/query.py. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "api-design", "weight": 1.0 },
+    { "domain": "backend", "weight": 0.5 }
+  ],
+  "activity": "feature-implementation",
+  "scale": "M",
+  "manual_difficulty": 4,
+  "timeout_s": 60,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "qbuild/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

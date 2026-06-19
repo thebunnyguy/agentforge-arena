@@ -30,6 +30,12 @@ def main() -> None:
 
     manifest = json.loads((_ROOT / "tasks" / "manifest.json").read_text())
     task_ids = [m["id"] for m in manifest]
+    # Optional restriction to a comma-separated subset (e.g. only the new tasks).
+    import os
+    _filter = os.environ.get("AFA_TASK_FILTER", "").strip()
+    if _filter:
+        keep = {x.strip() for x in _filter.split(",") if x.strip()}
+        task_ids = [t for t in task_ids if t in keep]
 
     store = afa.SqliteRunStore(db)
     agent = afa.OllamaAgent(name=model, model=model, temperature=0.8, base_seed=42)

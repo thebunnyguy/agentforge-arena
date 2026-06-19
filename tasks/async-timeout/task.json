@@ -1,0 +1,38 @@
+{
+  "id": "async-timeout",
+  "version": "1.0.0",
+  "title": "Implement with_timeout that cancels on expiry",
+  "description": "Implement atimeout.timeout.with_timeout(make_coro, seconds): an async function that awaits the coroutine returned by make_coro() and returns its result if it finishes within `seconds`; otherwise it raises TimeoutError AND ensures the underlying coroutine is cancelled (does not leak a running task). The snapshot is a stub that raises NotImplementedError. Fix atimeout/timeout.py. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "async-concurrency", "weight": 1.0 }
+  ],
+  "activity": "feature-implementation",
+  "scale": "S",
+  "manual_difficulty": 3,
+  "timeout_s": 60,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "atimeout/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

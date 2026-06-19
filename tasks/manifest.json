@@ -1,24 +1,30 @@
 [
   {
-    "id": "async-gather-bounded",
-    "dir": "tasks/async-gather-bounded",
-    "domains": [["async-concurrency", 1.0], ["backend", 0.5]],
-    "activity": "feature-implementation",
-    "scale": "M",
-    "manual_difficulty": 4
-  },
-  {
-    "id": "expression-evaluator",
-    "dir": "tasks/expression-evaluator",
-    "domains": [["backend", 1.0]],
-    "activity": "feature-implementation",
-    "scale": "M",
-    "manual_difficulty": 5
+    "id": "escape-html",
+    "dir": "tasks/escape-html",
+    "domains": [
+      [
+        "security",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "debugging-bugfix",
+    "scale": "S",
+    "manual_difficulty": 2
   },
   {
     "id": "fix-binary-search",
     "dir": "tasks/fix-binary-search",
-    "domains": [["backend", 1.0]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ]
+    ],
     "activity": "debugging-bugfix",
     "scale": "XS",
     "manual_difficulty": 2
@@ -26,23 +32,55 @@
   {
     "id": "fix-list-dedup",
     "dir": "tasks/fix-list-dedup",
-    "domains": [["backend", 1.0]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ]
+    ],
     "activity": "debugging-bugfix",
     "scale": "XS",
     "manual_difficulty": 2
   },
   {
-    "id": "fix-path-traversal",
-    "dir": "tasks/fix-path-traversal",
-    "domains": [["security", 1.0], ["backend", 0.5]],
-    "activity": "debugging-bugfix",
+    "id": "async-retry",
+    "dir": "tasks/async-retry",
+    "domains": [
+      [
+        "async-concurrency",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
     "scale": "S",
-    "manual_difficulty": 4
+    "manual_difficulty": 3
+  },
+  {
+    "id": "async-timeout",
+    "dir": "tasks/async-timeout",
+    "domains": [
+      [
+        "async-concurrency",
+        1.0
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "S",
+    "manual_difficulty": 3
   },
   {
     "id": "fix-roman-numerals",
     "dir": "tasks/fix-roman-numerals",
-    "domains": [["backend", 1.0]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ]
+    ],
     "activity": "debugging-bugfix",
     "scale": "S",
     "manual_difficulty": 3
@@ -50,7 +88,29 @@
   {
     "id": "implement-lru-cache",
     "dir": "tasks/implement-lru-cache",
-    "domains": [["backend", 1.0], ["api-design", 0.5]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ],
+      [
+        "api-design",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "S",
+    "manual_difficulty": 3
+  },
+  {
+    "id": "mask-secrets",
+    "dir": "tasks/mask-secrets",
+    "domains": [
+      [
+        "security",
+        1.0
+      ]
+    ],
     "activity": "feature-implementation",
     "scale": "S",
     "manual_difficulty": 3
@@ -58,25 +118,249 @@
   {
     "id": "merge-intervals",
     "dir": "tasks/merge-intervals",
-    "domains": [["backend", 1.0], ["performance", 0.5]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ],
+      [
+        "performance",
+        0.5
+      ]
+    ],
     "activity": "feature-implementation",
     "scale": "S",
     "manual_difficulty": 3
   },
   {
+    "id": "paginator",
+    "dir": "tasks/paginator",
+    "domains": [
+      [
+        "api-design",
+        1.0
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "S",
+    "manual_difficulty": 3
+  },
+  {
+    "id": "result-type",
+    "dir": "tasks/result-type",
+    "domains": [
+      [
+        "api-design",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "S",
+    "manual_difficulty": 3
+  },
+  {
+    "id": "sanitize-filename",
+    "dir": "tasks/sanitize-filename",
+    "domains": [
+      [
+        "security",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "debugging-bugfix",
+    "scale": "S",
+    "manual_difficulty": 3
+  },
+  {
+    "id": "async-batched",
+    "dir": "tasks/async-batched",
+    "domains": [
+      [
+        "async-concurrency",
+        1.0
+      ],
+      [
+        "performance",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "async-first-success",
+    "dir": "tasks/async-first-success",
+    "domains": [
+      [
+        "async-concurrency",
+        1.0
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "async-gather-bounded",
+    "dir": "tasks/async-gather-bounded",
+    "domains": [
+      [
+        "async-concurrency",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "fix-path-traversal",
+    "dir": "tasks/fix-path-traversal",
+    "domains": [
+      [
+        "security",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "debugging-bugfix",
+    "scale": "S",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "grid-paths",
+    "dir": "tasks/grid-paths",
+    "domains": [
+      [
+        "performance",
+        1.0
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "query-builder",
+    "dir": "tasks/query-builder",
+    "domains": [
+      [
+        "api-design",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
     "id": "refactor-order-validation",
     "dir": "tasks/refactor-order-validation",
-    "domains": [["backend", 1.0], ["api-design", 0.5]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ],
+      [
+        "api-design",
+        0.5
+      ]
+    ],
     "activity": "refactoring",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "top-k-frequent",
+    "dir": "tasks/top-k-frequent",
+    "domains": [
+      [
+        "performance",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
     "scale": "M",
     "manual_difficulty": 4
   },
   {
     "id": "toposort",
     "dir": "tasks/toposort",
-    "domains": [["backend", 1.0]],
+    "domains": [
+      [
+        "backend",
+        1.0
+      ]
+    ],
     "activity": "feature-implementation",
     "scale": "M",
     "manual_difficulty": 4
+  },
+  {
+    "id": "two-sum-indices",
+    "dir": "tasks/two-sum-indices",
+    "domains": [
+      [
+        "performance",
+        1.0
+      ],
+      [
+        "backend",
+        0.5
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "validate-redirect-url",
+    "dir": "tasks/validate-redirect-url",
+    "domains": [
+      [
+        "security",
+        1.0
+      ]
+    ],
+    "activity": "debugging-bugfix",
+    "scale": "S",
+    "manual_difficulty": 4
+  },
+  {
+    "id": "expression-evaluator",
+    "dir": "tasks/expression-evaluator",
+    "domains": [
+      [
+        "backend",
+        1.0
+      ]
+    ],
+    "activity": "feature-implementation",
+    "scale": "M",
+    "manual_difficulty": 5
   }
 ]

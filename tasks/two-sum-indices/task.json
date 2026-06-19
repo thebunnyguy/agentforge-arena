@@ -1,0 +1,39 @@
+{
+  "id": "two-sum-indices",
+  "version": "1.0.0",
+  "title": "Implement an efficient two-sum index lookup",
+  "description": "twosum.two_sum(nums, target) must return a tuple (i, j) with i < j of two distinct indices whose values sum to target, or None if no such pair exists (at most one valid answer). The function is currently a stub. Implement twosum/core.py. It must be EFFICIENT: an O(n) single pass using a hash map of seen values, NOT an O(n^2) double loop — a quadratic solution is cut off by the grader timeout on the large hidden input. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "performance", "weight": 1.0 },
+    { "domain": "backend", "weight": 0.5 }
+  ],
+  "activity": "feature-implementation",
+  "scale": "M",
+  "manual_difficulty": 4,
+  "timeout_s": 20,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "twosum/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

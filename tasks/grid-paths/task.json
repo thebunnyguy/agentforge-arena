@@ -1,0 +1,38 @@
+{
+  "id": "grid-paths",
+  "version": "1.0.0",
+  "title": "Count monotonic lattice paths efficiently",
+  "description": "gridpaths.count_paths(rows, cols) must return the number of monotonic lattice paths (moves only right or down) from the top-left cell to the bottom-right cell of a rows x cols grid of cells. A 1x1 grid has exactly one path. The function is currently a stub. Implement gridpaths/core.py. It must be EFFICIENT: a dynamic-programming / memoized solution (or the closed-form binomial), NOT the naive exponential recursion count_paths(r-1, c) + count_paths(r, c-1), which is cut off by the grader timeout on the large hidden grid. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "performance", "weight": 1.0 }
+  ],
+  "activity": "feature-implementation",
+  "scale": "M",
+  "manual_difficulty": 4,
+  "timeout_s": 20,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "gridpaths/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

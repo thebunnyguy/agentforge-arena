@@ -1,0 +1,39 @@
+{
+  "id": "escape-html",
+  "version": "1.0.0",
+  "title": "Fix incomplete HTML escaping in escape",
+  "description": "htmlesc.escape.escape(s) must escape the five characters &, <, >, double-quote and single-quote to their HTML entities (&amp; &lt; &gt; &quot; &#x27;). The ampersand must be escaped FIRST so the ampersands introduced by the other replacements are not double-escaped. The snapshot is BUGGY: it escapes < and > but forgets &, so '<&>' is escaped incorrectly. Fix htmlesc/escape.py using pure string logic only. Do not modify any test files.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [
+    { "domain": "security", "weight": 1.0 },
+    { "domain": "backend", "weight": 0.5 }
+  ],
+  "activity": "debugging-bugfix",
+  "scale": "S",
+  "manual_difficulty": 2,
+  "timeout_s": 60,
+  "protected_paths": [
+    "tests_visible/**",
+    "**/test_*.py"
+  ],
+  "editable_paths": [
+    "htmlesc/**"
+  ],
+  "visible": {
+    "paths": ["tests_visible/test_visible.py"]
+  },
+  "hidden": {
+    "src": "grading",
+    "paths": ["test_hidden.py"],
+    "weights": {}
+  },
+  "regression": {
+    "src": "grading",
+    "paths": ["test_regression.py"]
+  },
+  "scoring_recipe": {
+    "hidden_weights": {}
+  }
+}

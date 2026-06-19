@@ -576,6 +576,54 @@ models are fresh real runs; qwen-7b/llama reused from the identical earlier run.
 
 ---
 
+## Phase 27 — Fill every domain (24-task pack) + evaluate the most-used models
+
+**Ask.** The report showed "insufficient data" for several domains — fill all of
+them, using the most-used models.
+
+**Why "insufficient data" (not a bug).** Framework §4 display rule: a domain needs
+≥5 tasks AND ≥25 runs before a score shows. Coverage was backend 10, api-design 2,
+async-concurrency 1, security 1, performance 1.
+
+**Did — build (offline, deterministic, no Ollama).** Authored 14 new tasks via
+four parallel domain agents, each gating every task through `validate_task`:
+- async: async-retry, async-timeout, async-batched, async-first-success
+- security: sanitize-filename, validate-redirect-url, mask-secrets, escape-html
+- performance: two-sum-indices, grid-paths, top-k-frequent (graded by a large
+  input that an O(n²)/exponential solution can't finish before the timeout — no
+  flaky wall-clock asserts; stub fails fast so validation stays quick)
+- api-design: result-type, query-builder, paginator
+**14/14 valid on the first pass.** Rebuilt `tasks/manifest.json` from all task
+dirs (24 tasks); every domain now ≥5 tasks. Suite: **341 passing** (the pack CI
+re-validates all 24).
+
+**Did — evaluate (the score-filling run).** Chose scope "current 5 models on the
+new tasks." Ran each model on the 14 new tasks with the resilient
+`eval_persist.py` (per-run SQLite persistence, resumable, live progress),
+FOREGROUND and in-turn so the tooling couldn't reap it. Added an
+`AFA_TASK_FILTER` env knob to scope a model to a task subset. New-task results:
+qwen-7b 39/70, deepseek 30/70, qwen-3b 18/70, llama 17/70, gemma2 4/70.
+
+**Outcome (all 24 tasks, n=120/model, every domain filled):**
+
+```
+1    oracle (reference)   1.000  LCB 0.969
+2    qwen2.5-coder:7b     0.567  LCB 0.477
+3-4  deepseek-coder:6.7b  0.317  LCB 0.240
+3-5  qwen2.5-coder:3b     0.267  LCB 0.196
+4-5  llama3.2:3b          0.217  LCB 0.152
+6    gemma2:2b            0.050  LCB 0.023
+```
+
+Domain profile (pass rate) now populated for all five: async is the hardest
+domain (best model 24%); deepseek is strong on security/performance but weak on
+api/backend; qwen-7b leads every domain. `report_combined.py` is now DB-first
+(reads all real runs from reports/runs.sqlite, gap-fills only qwen-7b/llama's
+original-10 + oracle/noop). `reports/leaderboard.html` regenerated with 24 tasks
+and a full domain profile; README updated.
+
+---
+
 ## Current state (as of this entry)
 
 **Committed:**
@@ -585,22 +633,27 @@ models are fresh real runs; qwen-7b/llama reused from the identical earlier run.
   pack + manifest + CI test, the eval/diagnostic scripts, `DEVLOG.md`.
 - `c4adac3`: the visual report feature (`report_html.py` + `report_pack.py`
   + tests) and DEVLOG Phases 24–25.
-- *this commit*: the resilient runner (`eval_persist.py`), the 5-model combined
+- `2a1344b`: the resilient runner (`eval_persist.py`), the 5-model combined
   report (`report_combined.py`), and DEVLOG Phase 26.
 
-**Uncommitted:** none after this commit.
+**Uncommitted (Phase 27):** the 14 new task directories, the rebuilt
+`tasks/manifest.json` (24 tasks), the `eval_persist.py` AFA_TASK_FILTER knob, the
+DB-first `report_combined.py`, and the README + DEVLOG Phase 27 updates. Generated
+run data (`reports/runs.sqlite`, `leaderboard.html`) stays gitignored.
 
 **Repo:** private GitHub `thebunnyguy/agentforge-arena`. Local master is **3
 commits ahead of `origin`** (v0.1 is pushed; everything since is committed but
-**not pushed**, by request).
-**Suite:** 313 passing, offline, pure stdlib.
+**not pushed**, by request); Phase 27 is not yet committed.
+**Suite:** 341 passing, offline, pure stdlib.
 
 **Open threads:**
-1. ~~Clean full pack re-run~~ — **done** (Phase 24; reproduced the earlier numbers, 0 voids).
-2. ~~Commit the v0.2 work~~ — **done**; **not yet pushed** to GitHub.
-3. The visual report is a static HTML file; the fuller observability layer
+1. ~~Clean full pack re-run~~ — **done** (Phase 24).
+2. ~~Fill every domain to the display threshold~~ — **done** (Phase 27; 24 tasks, all 5 domains scored).
+3. **Commit Phase 27** (14 tasks + manifest + scripts + docs) — pending; nothing pushed to GitHub yet.
+4. Optional: push toward the "meaningful" tier (≥8 tasks/domain) and add more "most-used" models (llama3.1, mistral).
+5. The visual report is a static HTML file; the fuller observability layer
    (Postgres + FastAPI + Next.js dashboard) is still ahead.
-4. Future v0.2 math: Jeffreys shrinkage, empirical difficulty, discrimination.
+6. Future v0.2 math: Jeffreys shrinkage, empirical difficulty, discrimination.
 
 ---
 
