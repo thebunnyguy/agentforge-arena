@@ -77,7 +77,9 @@ def path_is_always_protected(relpath: str) -> bool:
     agent must never be able to introduce them into the clean room. Matched by
     basename (conftest.py in ANY directory) or suffix (*.pth anywhere).
     """
-    base = relpath.rsplit("/", 1)[-1]
+    # Normalize separators and Unicode-aware casing so the rule is identical on
+    # case-sensitive Linux, default macOS, and Windows-style input paths.
+    base = relpath.replace("\\", "/").rsplit("/", 1)[-1].casefold()
     if base in ALWAYS_PROTECTED_BASENAMES:
         return True
     dot = base.rfind(".")
@@ -95,9 +97,22 @@ def snapshot_tree(root: Path) -> dict[str, str]:
     root = Path(root)
     tree: dict[str, str] = {}
     for path in sorted(root.rglob("*")):
+        rel = path.relative_to(root)
+        # Never dereference a symlink (file or directory). Besides keeping the
+        # snapshot hermetic, checking every path component also protects against
+        # platform/pathlib differences in whether recursive globs traverse a
+        # symlinked directory.
+        current = root
+        contains_symlink = False
+        for part in rel.parts:
+            current = current / part
+            if current.is_symlink():
+                contains_symlink = True
+                break
+        if contains_symlink:
+            continue
         if not path.is_file():
             continue
-        rel = path.relative_to(root)
         # Skip anything inside an ignored directory (at any depth).
         if any(part in IGNORE_DIRS for part in rel.parts):
             continue

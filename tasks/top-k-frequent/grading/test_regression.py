@@ -27,3 +27,10 @@ def test_single_is_sorted():
 
 def test_equal_elements_are_sorted_desc():
     assert is_sorted_desc([7, 7, 7]) is True
+
+
+def test_input_is_not_mutated_by_sortedness_check():
+    values = [5, 3, 3, 1]
+    before = list(values)
+    assert is_sorted_desc(values) is True
+    assert values == before

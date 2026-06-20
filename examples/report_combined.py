@@ -35,6 +35,18 @@ ORACLE = "oracle (synthetic baseline)"
 NOOP = "noop (synthetic baseline)"
 
 
+def _current_task_version(item: dict, manifest_path: str | Path) -> str:
+    """Read the current task version, with a manifest-only test fallback."""
+    if "version" in item:
+        return str(item["version"])
+    task_dir = item.get("dir")
+    if task_dir:
+        candidate = Path(manifest_path).resolve().parent.parent / task_dir / "task.json"
+        if candidate.is_file():
+            return str(json.loads(candidate.read_text()).get("version", "1.0.0"))
+    return "1.0.0"
+
+
 def _baseline_score(passed: bool, *, no_edit: bool = False) -> RunScore:
     if passed:
         return RunScore(RunStatus.VALID, 1, 1.0, 1.0, {}, 1.0, True, False)
@@ -85,11 +97,15 @@ def build_report(
     """Build HTML plus its in-memory aggregate store from persisted DB rows."""
     manifest = json.loads(Path(manifest_path).read_text())
     meta = {item["id"]: item for item in manifest}
+    current_versions = {
+        item["id"]: _current_task_version(item, manifest_path) for item in manifest
+    }
     task_ids = list(meta)
     tasks_meta = {
         item["id"]: {
             "difficulty": item.get("manual_difficulty", 0),
             "domains": [tuple(domain) for domain in item.get("domains", [])],
+            "current_version": current_versions[item["id"]],
         }
         for item in manifest
     }
@@ -97,18 +113,39 @@ def build_report(
     store = afa.SqliteRunStore(":memory:")
     disk = afa.SqliteRunStore(str(db_path))
     real_counts: dict[str, tuple[int, int]] = {}
+    evaluated_versions: dict[str, set[str]] = {task_id: set() for task_id in task_ids}
+    cell_versions: dict[tuple[str, str], set[str]] = {}
     try:
+        observability = disk.summary()
+        agent_observability = {agent: disk.summary(agent) for agent in MODELS}
         for agent in MODELS:
             records = disk.load_runs(agent=agent)
             real_counts[agent] = (len(records), len({record.task_id for record in records}))
             for record in records:
+                evaluated_versions.setdefault(record.task_id, set()).add(record.task_version)
+                cell_versions.setdefault((agent, record.task_id), set()).add(
+                    record.task_version
+                )
                 store.save_run(record)
     finally:
         disk.close()
 
+    mixed_cells = {
+        cell: sorted(versions)
+        for cell, versions in cell_versions.items()
+        if len(versions) > 1
+    }
+    if mixed_cells:
+        store.close()
+        details = "; ".join(
+            f"{agent}/{task}: {','.join(versions)}"
+            for (agent, task), versions in sorted(mixed_cells.items())
+        )
+        raise ValueError(f"refusing to pool multiple task versions: {details}")
+
     # These are deterministic comparison bookends, not measured model runs.
     for task_id in task_ids:
-        version = meta[task_id].get("version", "1.0.0")
+        version = current_versions[task_id]
         _add_synthetic_baseline(store, ORACLE, task_id, version, passed=True)
         _add_synthetic_baseline(store, NOOP, task_id, version, passed=False)
 
@@ -116,15 +153,34 @@ def build_report(
         f"{agent} {n_runs} runs/{n_tasks} tasks"
         for agent, (n_runs, n_tasks) in real_counts.items()
     )
+    mismatches = []
+    for task_id in task_ids:
+        stored = evaluated_versions.get(task_id, set())
+        tasks_meta[task_id]["evaluated_versions"] = sorted(stored)
+        if stored and stored != {current_versions[task_id]}:
+            mismatches.append(
+                f"{task_id} evaluated v{','.join(sorted(stored))} → current "
+                f"v{current_versions[task_id]}"
+            )
+    version_notice = (
+        " Strengthened task versions awaiting reevaluation: "
+        + "; ".join(mismatches)
+        + ". Leaderboard values remain frozen to the stored task versions."
+        if mismatches
+        else ""
+    )
     subtitle = (
         f"Persisted DB data only: {persisted}. "
         "Oracle and noop are explicitly synthetic baselines."
+        + version_notice
     )
     html = afa.render_report(
         store,
         tasks_meta,
         title=f"AgentForge Arena — 5-Model Report ({len(task_ids)}-task pack)",
         subtitle=subtitle,
+        observability=observability,
+        agent_observability=agent_observability,
     )
     return html, store, real_counts
 

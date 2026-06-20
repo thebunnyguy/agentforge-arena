@@ -48,6 +48,10 @@ def test_k_zero_returns_empty():
     assert most_common([1, 1, 2], 0) == []
 
 
+def test_negative_k_returns_empty():
+    assert most_common([1, 1, 2], -5) == []
+
+
 def test_single_distinct_item():
     assert most_common([9, 9, 9, 9], 1) == [9]
 
@@ -56,6 +60,55 @@ def test_partial_top_k_with_distinct_frequencies():
     # Frequencies: 5->4, 6->3, 7->2, 8->1. Top 2 are 5 then 6.
     items = [5, 5, 5, 5, 6, 6, 6, 7, 7, 8]
     assert most_common(items, 2) == [5, 6]
+
+
+def test_input_sequence_is_not_mutated():
+    items = [3, 1, 3, 2, 1, 3]
+    before = list(items)
+    assert most_common(items, 2) == [3, 1]
+    assert items == before
+
+
+def test_custom_hashable_values_keep_first_appearance_tiebreak():
+    class Token:
+        def __init__(self, value):
+            self.value = value
+
+        def __hash__(self):
+            return hash(self.value)
+
+        def __eq__(self, other):
+            return isinstance(other, Token) and self.value == other.value
+
+    second = Token("second")
+    first = Token("first")
+    items = [second, first, Token("second"), Token("first")]
+    result = most_common(items, 2)
+    assert [token.value for token in result] == ["second", "first"]
+    assert result[0] is second
+    assert result[1] is first
+
+
+def test_distinct_items_do_not_trigger_quadratic_equality_scans():
+    class Probe:
+        comparisons = 0
+
+        def __init__(self, value):
+            self.value = value
+
+        def __hash__(self):
+            return self.value
+
+        def __eq__(self, other):
+            Probe.comparisons += 1
+            return isinstance(other, Probe) and self.value == other.value
+
+    items = [Probe(value) for value in range(250)]
+    result = most_common(items, 5)
+    assert [item.value for item in result] == [0, 1, 2, 3, 4]
+    # A list.count-per-item implementation performs ~62k comparisons here;
+    # dict/Counter counting with distinct hashes stays comfortably below this.
+    assert Probe.comparisons < 2000
 
 
 def test_large_input_requires_linear_counting():

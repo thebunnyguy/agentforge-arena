@@ -357,6 +357,29 @@ def test_domain_profile_one_task_two_domains_sorted():
         store.close()
 
 
+def test_domain_profile_does_not_count_tagged_zero_run_tasks():
+    store = SqliteRunStore(":memory:")
+    try:
+        seed(store, runs("a", "with-runs", [True, True, False, False, False]))
+        profiles = domain_profile(
+            store,
+            "a",
+            {
+                "with-runs": [("backend", 1.0)],
+                "tagged-but-empty": [("backend", 1.0)],
+                "entirely-empty": [("security", 1.0)],
+            },
+        )
+        by_domain = {score.domain: score for score in profiles}
+        assert by_domain["backend"].n_tasks == 1
+        assert by_domain["backend"].n_runs == 5
+        assert by_domain["security"].n_tasks == 0
+        assert by_domain["security"].n_runs == 0
+        assert by_domain["security"].displayable is False
+    finally:
+        store.close()
+
+
 def test_domain_profile_pools_multiple_tasks_with_weights():
     """Pooled rate weights each task's (c, n) by its tag weight. Two backend
     tasks: primary 1.0 with 2/5, tertiary 0.25 with 4/5 ->

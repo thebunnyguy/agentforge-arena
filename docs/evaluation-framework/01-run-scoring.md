@@ -64,16 +64,18 @@ Symbols: L_new = max(0, lint error count on the patched tree minus lint error co
 Diff parsimony:
 
 ```
-A   = lines added + lines removed in the agent's normalized diff (non-ignored paths)
-R   = same count for the task's reference solution (stored in the recipe)
+A   = lines added in the agent's normalized diff (non-ignored paths)
+R   = lines added by the task's reference solution (stored in the recipe)
 rho = A / max(R, 10)
 
-q_pars = 1                    if rho <= 4
-q_pars = (10 - rho) / 6       if 4 < rho < 10
-q_pars = 0                    if rho >= 10
+q_pars = 1                    if rho <= 2
+q_pars = (8 - rho) / 6        if 2 < rho < 8
+q_pars = 0                    if rho >= 8
 ```
 
-The flat region up to 4x the reference size avoids penalizing legitimate alternative implementations; the penalty is deliberately one-sided and tolerant because R comes from a reference solution the agent never sees (Section 8.1) and therefore cannot calibrate against — a correct solution that adds input validation, error handling, or defensive code the reference omitted is never penalized inside the flat region, and only egregious bloat (10x the reference) zeroes the component. The floor max(R, 10) avoids hair-trigger ratios on tiny tasks. Crucially, **parsimony cannot reward tiny non-solutions**: q_pars caps at 1, and multiplicatively a one-line stub with perfect Q scores S = T_hidden * 1.0 — near 0 for a non-solution. Small diffs earn nothing; only non-bloated *correct* diffs avoid losing up to 15%.
+The flat region up to 2x the reference's added lines avoids penalizing legitimate alternative implementations; the penalty is deliberately one-sided and tolerant because R comes from a reference solution the agent never sees (Section 8.1) and therefore cannot calibrate against — a correct solution can add validation or defensive code without penalty inside the flat region, and only egregious 8x added-line growth zeroes the component. Removed lines are excluded because deleting obsolete code should not be treated as bloat. The floor max(R, 10) avoids hair-trigger ratios on tiny tasks. Crucially, **parsimony cannot reward tiny non-solutions**: q_pars caps at 1, and multiplicatively a one-line stub with perfect Q scores S = T_hidden * 1.0 — near 0 for a non-solution. Small diffs earn nothing; only non-bloated *correct* diffs avoid losing up to 15%.
+
+**v0.1 compatibility note.** This 2x/8x, added-lines-only curve is the behavior implemented and covered by the canonical numeric anchors. Earlier prose describing a 4x/10x added+removed curve was documentation drift. The committed offline evaluation has Q=1.0 for every stored run, so correcting this text changes no score or leaderboard value.
 
 **Availability renormalization (decision):** if a component cannot be computed — no typechecker for the language, baseline already failing lint/typecheck, no reference solution for q_pars — it is dropped and the remaining weights renormalize to sum 1. If *every* component is unavailable, the formula's denominator is 0; in that case Q := 1 (the multiplier collapses to 1 — no quality evidence must not penalize). The grader report records which components were active, so Q is never silently computed over different bases without a flag.
 

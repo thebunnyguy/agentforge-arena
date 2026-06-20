@@ -22,6 +22,12 @@ def test_chunk_size_larger_than_seq():
     assert chunk([1, 2], 5) == [[1, 2]]
 
 
+def test_chunk_accepts_tuple_without_mutating_input():
+    values = (1, 2, 3, 4, 5)
+    assert chunk(values, 2) == [[1, 2], [3, 4], [5]]
+    assert values == (1, 2, 3, 4, 5)
+
+
 def test_chunk_empty_seq():
     assert chunk([], 3) == []
 

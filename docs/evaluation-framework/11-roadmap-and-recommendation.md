@@ -18,6 +18,12 @@ Each stage is shippable on its own, uses only the data already being collected, 
 
 ### v0.2 — Reliability and task quality (after ~3–5 agents × ~30+ tasks of data)
 
+- **Domain-balance TODO:** the current 24-task pack is backend-heavy (17 tagged,
+  8 primary) while api-design and performance have only 3 primary tasks each.
+  Before expanding backend further, add primary api-design/performance tasks and
+  publish tagged/primary task counts beside every domain profile. Existing
+  weighted scores remain valid but must not be described as balanced evidence.
+
 - Jeffreys/Beta-Binomial shrinkage: posterior Beta(c+0.5, n−c+0.5); shrunk point estimate (c+0.5)/(n+1); equal-tailed 95% credible intervals.
 - Bootstrap percentile CIs (B = 2000) for continuous scores, labeled approximate below n = 10.
 - Empirical difficulty with Laplace shrinkage: `d_t = 1 − (c_pool+1)/(n_pool+2)`.

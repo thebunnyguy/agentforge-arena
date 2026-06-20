@@ -8,6 +8,7 @@ adds them. They also confirm that ``process_order`` still returns the same
 totals (behavior unchanged) and is wired through the new helpers."""
 
 import pytest
+import importlib
 
 from orderkit.process import (
     validate_items,
@@ -53,6 +54,15 @@ def test_validate_items_rejects_missing_keys():
         validate_items([{"name": "a", "price": 1.0}])
 
 
+def test_validate_items_rejects_non_dict_and_boolean_numbers():
+    with pytest.raises(ValueError):
+        validate_items(["not-a-dict"])
+    with pytest.raises(ValueError):
+        validate_items([{"name": "a", "price": True, "qty": 1}])
+    with pytest.raises(ValueError):
+        validate_items([{"name": "a", "price": 1.0, "qty": True}])
+
+
 # --- subtotal ---------------------------------------------------------------
 
 def test_subtotal_single_item():
@@ -71,6 +81,14 @@ def test_subtotal_returns_int_cents():
     out = subtotal([{"name": "a", "price": 2.5, "qty": 4}])
     assert isinstance(out, int)
     assert out == 1000
+
+
+def test_subtotal_uses_per_item_cent_rounding():
+    items = [
+        {"name": "a", "price": 1.005, "qty": 1},
+        {"name": "b", "price": 2.675, "qty": 1},
+    ]
+    assert subtotal(items) == 100 + 268
 
 
 # --- apply_coupon -----------------------------------------------------------
@@ -122,3 +140,36 @@ def test_process_order_total_unchanged_flat_coupon():
 def test_process_order_still_validates():
     with pytest.raises(ValueError):
         process_order([])
+
+
+def test_process_order_delegates_through_all_extracted_helpers(monkeypatch):
+    module = importlib.import_module("orderkit.process")
+    calls = []
+    items = [{"name": "a", "price": 1.0, "qty": 1}]
+    coupon = {"type": "flat", "value": 1}
+
+    def fake_validate(received):
+        calls.append(("validate", received))
+
+    def fake_subtotal(received):
+        calls.append(("subtotal", received))
+        return 777
+
+    def fake_apply(amount, received_coupon):
+        calls.append(("coupon", amount, received_coupon))
+        return 666
+
+    monkeypatch.setattr(module, "validate_items", fake_validate)
+    monkeypatch.setattr(module, "subtotal", fake_subtotal)
+    monkeypatch.setattr(module, "apply_coupon", fake_apply)
+
+    assert module.process_order(items, coupon) == {
+        "item_count": 1,
+        "subtotal": 777,
+        "total": 666,
+    }
+    assert calls == [
+        ("validate", items),
+        ("subtotal", items),
+        ("coupon", 777, coupon),
+    ]

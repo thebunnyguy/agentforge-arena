@@ -9,6 +9,7 @@ production Postgres store implements the same RunStore Protocol.
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -16,6 +17,18 @@ from afa_kernel.types import RunScore, RunStatus
 
 from .grader import GradeReport
 from .pipeline import RunRecord
+
+
+@dataclass(frozen=True)
+class RunStoreSummary:
+    """Persisted-run provenance for static report observability."""
+
+    total_runs: int
+    first_created_at: str | None
+    last_created_at: str | None
+    runs_with_patch: int
+    runs_with_test_results: int
+    test_result_rows: int
 
 
 @runtime_checkable
@@ -26,6 +39,7 @@ class RunStore(Protocol):
     ) -> list[RunRecord]: ...
     def agents(self) -> list[str]: ...
     def task_ids(self) -> list[str]: ...
+    def summary(self, agent: str | None = None) -> RunStoreSummary: ...
     def close(self) -> None: ...
 
 
@@ -263,6 +277,36 @@ class SqliteRunStore:
             "SELECT DISTINCT task_id FROM runs ORDER BY task_id"
         ).fetchall()
         return [row["task_id"] for row in rows]
+
+    def summary(self, agent: str | None = None) -> RunStoreSummary:
+        """Return timestamp and artifact coverage, optionally for one agent."""
+        where = ""
+        params: list[object] = []
+        if agent is not None:
+            where = "WHERE r.agent = ?"
+            params.append(agent)
+        row = self._conn.execute(
+            "SELECT COUNT(*) AS total_runs, "
+            "MIN(r.created_at) AS first_created_at, "
+            "MAX(r.created_at) AS last_created_at, "
+            "COALESCE(SUM(CASE WHEN d.patch_text IS NOT NULL THEN 1 ELSE 0 END), 0) "
+            "AS runs_with_patch, "
+            "COALESCE(SUM(CASE WHEN EXISTS ("
+            "SELECT 1 FROM test_results tr WHERE tr.run_id = r.id"
+            ") THEN 1 ELSE 0 END), 0) AS runs_with_test_results, "
+            "COALESCE(SUM((SELECT COUNT(*) FROM test_results tr2 "
+            "WHERE tr2.run_id = r.id)), 0) AS test_result_rows "
+            "FROM runs r JOIN diffs d ON d.run_id = r.id " + where,
+            params,
+        ).fetchone()
+        return RunStoreSummary(
+            total_runs=int(row["total_runs"]),
+            first_created_at=row["first_created_at"],
+            last_created_at=row["last_created_at"],
+            runs_with_patch=int(row["runs_with_patch"]),
+            runs_with_test_results=int(row["runs_with_test_results"]),
+            test_result_rows=int(row["test_result_rows"]),
+        )
 
     def close(self) -> None:
         self._conn.close()

@@ -56,6 +56,27 @@ def compute_t_hidden(run: RunInput) -> float:
     return _clamp01(passed_weight / total_weight)
 
 
+def baseline_adjusted_t_hidden(observed: float, snapshot_baseline: float) -> float:
+    """Proposed baseline-relative hidden score, not used by ``score_run`` yet.
+
+    Map snapshot-equivalent behavior to zero while preserving a full hidden pass
+    at one: ``max(0, (observed - baseline) / (1 - baseline))``. Both inputs are
+    clamped to [0, 1]. A baseline that already passes every hidden test is an
+    invalid benchmark under the §8 task invariant and therefore returns zero.
+
+    Wiring this into ``score_run`` would change stored continuous scores and
+    requires a new formula version plus a recompute. The binary functional pass
+    and Wilson leaderboard would not change, so v0.1 keeps the helper opt-in.
+    """
+    observed = _clamp01(observed)
+    snapshot_baseline = _clamp01(snapshot_baseline)
+    if snapshot_baseline >= 1.0:
+        return 0.0
+    return _clamp01(
+        max(0.0, (observed - snapshot_baseline) / (1.0 - snapshot_baseline))
+    )
+
+
 def compute_quality(q: QualityInputs) -> tuple[float, dict[str, float]]:
     """Bounded quality modifier Q and the per-component values used.
 

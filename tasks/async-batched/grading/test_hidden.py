@@ -11,6 +11,8 @@ decrements. A correct batched scheduler never lets the peak exceed
 
 import asyncio
 
+import pytest
+
 from abatch import run_in_batches
 
 
@@ -77,3 +79,60 @@ def test_batch_size_greater_than_or_equal_to_length():
     result2 = asyncio.run(run_in_batches(factories2, batch_size=10))
     assert result2 == [7, 8, 9]
     assert tracker2.peak <= 3
+
+
+@pytest.mark.parametrize("batch_size", [0, -1, -100])
+def test_nonpositive_batch_size_rejected(batch_size):
+    with pytest.raises(ValueError):
+        asyncio.run(run_in_batches([], batch_size=batch_size))
+
+
+def test_factory_iterable_is_materialized_once():
+    tracker = Tracker()
+    factories = (_factory(tracker, value) for value in range(5))
+    assert asyncio.run(run_in_batches(factories, batch_size=2)) == list(range(5))
+
+
+def test_later_batch_factories_are_not_created_early():
+    completed = set()
+
+    def factory(index):
+        def make():
+            completed_before_creation = index // 2 * 2
+            assert set(range(completed_before_creation)) <= completed
+
+            async def run():
+                await asyncio.sleep(0)
+                completed.add(index)
+                return index
+
+            return run()
+
+        return make
+
+    factories = [factory(index) for index in range(6)]
+    assert asyncio.run(run_in_batches(factories, batch_size=2)) == list(range(6))
+
+
+def test_failed_batch_does_not_start_later_batch():
+    created = []
+
+    def failing_factory():
+        created.append("failing")
+
+        async def run():
+            raise RuntimeError("boom")
+
+        return run()
+
+    def later_factory():
+        created.append("later")
+
+        async def run():
+            return 2
+
+        return run()
+
+    with pytest.raises(RuntimeError, match="boom"):
+        asyncio.run(run_in_batches([failing_factory, later_factory], batch_size=1))
+    assert created == ["failing"]

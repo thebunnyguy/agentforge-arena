@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from afa_runner.diffing import (
     Diff,
     apply_diff,
@@ -63,6 +65,37 @@ def test_snapshot_tree_skips_undecodable_files(tmp_path):
     tree = snapshot_tree(tmp_path)
 
     assert set(tree) == {"text.txt"}
+
+
+def test_snapshot_tree_ignores_file_symlink_to_out_of_tree_content(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    outside = tmp_path / "secret.txt"
+    outside.write_text("OUT-OF-TREE SECRET\n", encoding="utf-8")
+    _write(root, "normal.py", "safe = True\n")
+    try:
+        (root / "leak.txt").symlink_to(outside)
+    except OSError as exc:
+        pytest.skip(f"symlinks unavailable on this platform: {exc}")
+
+    assert snapshot_tree(root) == {"normal.py": "safe = True\n"}
+
+
+def test_snapshot_tree_ignores_symlinked_directory_but_keeps_normal_tree(tmp_path):
+    root = tmp_path / "root"
+    external = tmp_path / "external"
+    root.mkdir()
+    external.mkdir()
+    _write(root, "pkg/real.py", "REAL = 1\n")
+    _write(external, "captured.py", "SECRET = 1\n")
+    try:
+        (root / "linked").symlink_to(external, target_is_directory=True)
+    except OSError as exc:
+        pytest.skip(f"directory symlinks unavailable on this platform: {exc}")
+
+    tree = snapshot_tree(root)
+    assert tree == {"pkg/real.py": "REAL = 1\n"}
+    assert all("captured" not in path for path in tree)
 
 
 # --------------------------------------------------------------------------
@@ -304,11 +337,32 @@ def test_path_is_always_protected_flags_auto_executed_files():
         "pyproject.toml",
         "evil.pth",
         "site-packages/inject.pth",
+        "Conftest.py",
+        "CONFTEST.PY",
+        "pkg\\Conftest.py",
+        "SiteCustomize.py",
+        "USERCUSTOMIZE.PY",
+        "PyTest.InI",
+        "EVIL.PTH",
+        "site-packages/inject.PtH",
     ]:
         assert path_is_always_protected(p), p
     # Ordinary source/test files are NOT always-protected.
     for p in ["listkit/dedup.py", "test_hidden.py", "tests_visible/test_visible.py", "README.md"]:
         assert not path_is_always_protected(p), p
+
+
+@pytest.mark.parametrize("name", ["Conftest.py", "CONFTEST.PY", "SiteCustomize.py", "hook.PTH"])
+def test_capture_diff_case_variants_are_scope_violations(tmp_path, name):
+    snap = tmp_path / "snap"
+    mod = tmp_path / "mod"
+    _write(snap, "pkg/core.py", "old\n")
+    _write(mod, "pkg/core.py", "new\n")
+    _write(mod, name, "malicious\n")
+
+    diff = capture_diff(snap, mod, protected_globs=())
+    assert name in diff.changed
+    assert diff.touched_protected is True
 
 
 def test_capture_diff_marks_conftest_injection_as_scope_violation(tmp_path):
@@ -383,12 +437,14 @@ def test_apply_diff_refuses_auto_executed_files(tmp_path):
     diff = Diff(
         changed={
             "conftest.py": "import listkit\n",
+            "Conftest.py": "import listkit\n",
             "evil.pth": "import os\n",
+            "HOOK.PTH": "import os\n",
             "listkit/dedup.py": "fixed\n",
         },
         deleted=("sitecustomize.py",),
-        files_changed=4,
-        lines_added=3,
+        files_changed=6,
+        lines_added=5,
         lines_removed=1,
         touched_protected=True,
         patch_text="",
@@ -403,6 +459,8 @@ def test_apply_diff_refuses_auto_executed_files(tmp_path):
     assert (target / "listkit/dedup.py").read_text() == "fixed\n"
     # The auto-executed config files were NOT written into the clean room.
     assert not (target / "conftest.py").exists()
+    assert not (target / "Conftest.py").exists()
     assert not (target / "evil.pth").exists()
+    assert not (target / "HOOK.PTH").exists()
     # The protected deletion was refused (pristine file preserved).
     assert (target / "sitecustomize.py").read_text() == "pristine\n"

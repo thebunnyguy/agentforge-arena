@@ -1,6 +1,6 @@
 {
   "id": "async-batched",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "Implement run_in_batches with bounded batch concurrency",
   "description": "Implement abatch.batch.run_in_batches(make_coros, batch_size): an async function that runs the given coroutine factories in SEQUENTIAL batches of size `batch_size`. Within a single batch the coroutines run concurrently, but one batch fully completes before the next starts. Results are returned in INPUT order. The snapshot is a stub that raises NotImplementedError. Fix abatch/batch.py. Do not modify any test files.",
   "snapshot_dir": "snapshot",

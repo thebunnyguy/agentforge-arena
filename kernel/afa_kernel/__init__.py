@@ -28,7 +28,7 @@ from .confidence import (
     wilson_interval,
     wilson_lower_bound,
 )
-from .scoring import QUALITY_WEIGHTS, score_run
+from .scoring import QUALITY_WEIGHTS, baseline_adjusted_t_hidden, score_run
 from .aggregate import aggregate_runs
 from .domains import domain_score, macro_overall
 from .ranking import rank_by_lcb
@@ -44,7 +44,7 @@ __all__ = [
     "wilson_interval", "wilson_lower_bound", "pass_at_k",
     "t_critical_one_sided_95", "stability",
     # scoring
-    "score_run", "QUALITY_WEIGHTS",
+    "score_run", "baseline_adjusted_t_hidden", "QUALITY_WEIGHTS",
     # aggregate
     "aggregate_runs",
     # domains

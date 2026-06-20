@@ -94,6 +94,11 @@ def domain_profile(store: RunStore, agent: str, task_domains: dict[str, list]) -
         contributions: list[TaskDomainContribution] = []
         for task_id, weight in by_domain[domain]:
             agg = _agg(task_id)
+            # Coverage counts only tasks that contributed real valid-run mass for
+            # this agent. Tagged zero-run tasks must not inflate n_tasks or make a
+            # sparse domain appear displayable.
+            if agg.n_valid == 0:
+                continue
             contributions.append(
                 TaskDomainContribution(
                     weight=weight,

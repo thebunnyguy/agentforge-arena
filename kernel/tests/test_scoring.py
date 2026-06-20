@@ -11,6 +11,7 @@ import pytest
 
 from afa_kernel.scoring import (
     QUALITY_WEIGHTS,
+    baseline_adjusted_t_hidden,
     compute_quality,
     compute_t_hidden,
     score_run,
@@ -278,6 +279,47 @@ def test_parsimony_requires_both_inputs():
     # reference_lines present but lines_added None -> parsimony unavailable.
     _, comps_b = compute_quality(QualityInputs(reference_lines=40))
     assert "parsimony" not in comps_b
+
+
+def test_documented_parsimony_only_q_and_score_anchor():
+    """The chosen v0.1 curve is added-lines-only with 2x/8x anchors.
+
+    At rho=5, parsimony is the only available Q component, so Q=0.5 after
+    availability renormalization and an otherwise-correct run scores 0.925.
+    """
+    run = RunInput(
+        status=RunStatus.VALID,
+        gates=all_pass_gates(),
+        hidden=make_hidden(4, 4),
+        quality=QualityInputs(lines_added=50, reference_lines=10),
+    )
+    score = score_run(run)
+    assert score.q_components == {"parsimony": pytest.approx(0.5, abs=TOL)}
+    assert score.q == pytest.approx(0.5, abs=TOL)
+    assert score.final_score == pytest.approx(0.85 + 0.15 * 0.5, abs=TOL)
+    assert score.functional_pass is True
+
+
+def test_baseline_adjusted_t_hidden_removes_snapshot_equivalent_credit():
+    baseline = 1 / 3
+    assert baseline_adjusted_t_hidden(baseline, baseline) == pytest.approx(0.0)
+    assert baseline_adjusted_t_hidden(0.0, baseline) == pytest.approx(0.0)
+    assert baseline_adjusted_t_hidden(2 / 3, baseline) == pytest.approx(0.5)
+    assert baseline_adjusted_t_hidden(1.0, baseline) == pytest.approx(1.0)
+
+
+def test_baseline_adjustment_is_proposal_not_silently_wired_into_v01_score():
+    """Demonstrate P3-3 while freezing current formula-version behavior."""
+    run = RunInput(
+        status=RunStatus.VALID,
+        gates=all_pass_gates(),
+        hidden=make_hidden(1, 3),
+        quality=QualityInputs(),
+    )
+    score = score_run(run)
+    assert score.t_hidden == pytest.approx(1 / 3)
+    assert score.final_score == pytest.approx(1 / 3)
+    assert baseline_adjusted_t_hidden(score.t_hidden, 1 / 3) == pytest.approx(0.0)
 
 
 # --------------------------------------------------------------------------- #

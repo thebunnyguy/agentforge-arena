@@ -33,6 +33,14 @@ for real-agent evaluation). Tested on Python 3.13.
 | performance | 5 (merge-intervals, two-sum, grid-paths, top-k, async-batched) — graded by large-input timeout, not wall-clock |
 | api-design | 5 (lru-cache, refactor, result-type, query-builder, paginator) |
 
+**Coverage caveat:** this pack is intentionally usable but backend-heavy:
+backend tags touch 17/24 tasks (8 primary), while api-design and performance
+have only 3 primary tasks each and reach five via weighted secondary tags.
+Domain profiles use tag weights 1.0/0.5/0.25; their evidence mass is therefore
+not balanced even though every domain clears the display threshold. **TODO:**
+the next task-bank expansion should add primary api-design/performance tasks
+before adding more backend tasks.
+
 Every task passes the §8 benchmark CI (`validate_task`): the reference fix scores
 1.0 three times identically; the unmodified snapshot fails hidden but passes
 regression. Difficulty spans 2–5.
@@ -71,6 +79,11 @@ unreachable) are voided, never counted against an agent.
 The two P0 completion runs used Ollama 0.17.4, temperature 0.8, base seed 42,
 `qwen2.5-coder:7b` digest `dae161e27b0e`, and the exact DB tag
 `llama3.2:latest` digest `a80c4f17acd5`.
+
+The committed leaderboard remains frozen to task version 1.0.0. This P2/P3
+sprint strengthens hidden/visible/regression coverage for `async-batched`,
+`top-k-frequent`, and `refactor-order-validation` as task version 1.0.1 without
+rerunning models; the static report flags that version fork explicitly.
 
 ## Quickstart
 

@@ -255,6 +255,41 @@ def test_agents_and_task_ids_distinct_sorted():
         store.close()
 
 
+def test_summary_reports_time_window_and_artifact_coverage():
+    store = SqliteRunStore(":memory:")
+    try:
+        with_report = store.save_run(
+            make_record(agent="alpha", idx=0),
+            report=make_report(),
+        )
+        store.save_run(make_record(agent="alpha", idx=1))
+        store.save_run(make_record(agent="beta", idx=0))
+        store._conn.execute(
+            "UPDATE runs SET created_at = ? WHERE id = ?", ("2026-01-01 00:00:00", with_report)
+        )
+        store._conn.commit()
+
+        overall = store.summary()
+        assert overall.total_runs == 3
+        assert overall.first_created_at == "2026-01-01 00:00:00"
+        assert overall.last_created_at is not None
+        assert overall.runs_with_patch == 1
+        assert overall.runs_with_test_results == 1
+        assert overall.test_result_rows == 3
+
+        alpha = store.summary("alpha")
+        assert alpha.total_runs == 2
+        assert alpha.runs_with_patch == 1
+        assert alpha.runs_with_test_results == 1
+
+        missing = store.summary("missing")
+        assert missing.total_runs == 0
+        assert missing.first_created_at is None
+        assert missing.last_created_at is None
+    finally:
+        store.close()
+
+
 # --------------------------------------------------------------------------- #
 # Voided / status round-trip
 # --------------------------------------------------------------------------- #

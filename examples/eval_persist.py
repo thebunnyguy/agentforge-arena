@@ -4,9 +4,9 @@ resumable — if the job is stopped, re-running it picks up exactly where it lef
 off (already-completed runs are skipped). Progress is flushed live so you can
 watch it work.
 
-    python examples/eval_persist.py <model> [n=5] [db=reports/runs.sqlite]
+    python3 examples/eval_persist.py <model> [n=5] [db=reports/runs.sqlite]
 
-Run it once per model. Then render the combined report with report_pack.py.
+Run it once per model. Then render the combined report with report_combined.py.
 """
 
 from __future__ import annotations
@@ -20,6 +20,15 @@ sys.path[:0] = [str(_ROOT / "kernel"), str(_ROOT / "runner")]
 
 import afa_runner as afa  # noqa: E402
 from afa_kernel.types import RunStatus  # noqa: E402
+
+
+def completed_indices(store, *, task_id: str, task_version: str, agent: str) -> set[int]:
+    """Resume only runs from the exact immutable task version being evaluated."""
+    return {
+        record.idx
+        for record in store.load_runs(task_id=task_id, agent=agent)
+        if record.task_version == task_version
+    }
 
 
 def main() -> None:
@@ -40,17 +49,23 @@ def main() -> None:
     store = afa.SqliteRunStore(db)
     agent = afa.OllamaAgent(name=model, model=model, temperature=0.8, base_seed=42)
     sandbox = afa.LocalSandbox()
+    tasks = {task_id: afa.load_task(_ROOT / "tasks" / task_id) for task_id in task_ids}
 
-    # Resume: which (task, idx) are already recorded for this model.
+    # Resume: which (task version, idx) are already recorded for this model.
     done: dict[str, set[int]] = {}
     for t in task_ids:
-        done[t] = {r.idx for r in store.load_runs(task_id=t, agent=model)}
+        done[t] = completed_indices(
+            store,
+            task_id=t,
+            task_version=tasks[t].version,
+            agent=model,
+        )
     total = len(task_ids) * n
     completed = sum(len(s) for s in done.values())
     print(f"{model}: {completed}/{total} runs already saved; resuming", flush=True)
 
     for t in task_ids:
-        task = afa.load_task(_ROOT / "tasks" / t)
+        task = tasks[t]
         for i in range(n):
             if i in done[t]:
                 continue
@@ -70,6 +85,8 @@ def main() -> None:
     c = nv = 0
     for t in task_ids:
         for r in store.load_runs(task_id=t, agent=model):
+            if r.task_version != tasks[t].version:
+                continue
             if r.status is RunStatus.INFRA_FAILURE:
                 continue
             nv += 1

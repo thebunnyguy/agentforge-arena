@@ -234,10 +234,13 @@ their own gate + `T_hidden` evidence and need no cross-model prop.
    `eval_persist.py` and the pipeline now pass the `GradeReport` into
    `SqliteRunStore.save_run`; the 100 completion runs persist real patches and
    available regression/hidden test outcomes.
-2. **[scoring]** Over-generous partial credit when a "fix" merely matches the
-   do-nothing baseline (qwen2.5-coder:3b binary-search #2: `S=0.333` for a no-op).
-   Consider flooring `T_hidden` against the snapshot baseline so a change that
-   doesn't beat "do nothing" earns 0 on `S`. (`p_hat` is already immune.)
+2. **[scoring, investigated]** Over-generous partial credit when a "fix" merely
+   matches the do-nothing baseline (qwen2.5-coder:3b binary-search #2:
+   `S=0.333` for a no-op). The kernel now exposes and tests the proposed
+   `baseline_adjusted_t_hidden` transform: `(observed-baseline)/(1-baseline)`,
+   floored at zero. It is deliberately **not wired into v0.1 `score_run`**:
+   doing so changes stored continuous scores and requires a new formula version
+   plus recomputation. Binary `p_hat` and the committed leaderboard are immune.
 3. **[reporting]** Present toposort/expr partial credit as *progress toward* the
    contract, not partial correctness *of* it — the domain-profile mean can read as
    "close" when zero runs actually satisfy the full spec.

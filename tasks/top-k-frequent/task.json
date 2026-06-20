@@ -1,6 +1,6 @@
 {
   "id": "top-k-frequent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "Implement an efficient top-k frequent items",
   "description": "topk.most_common(items, k) must return a list of the k most frequent items, most frequent first, with ties broken by FIRST appearance in items. If k exceeds the number of distinct items, return all of them; an empty input returns []. The function is currently a stub. Implement topk/core.py. It must be EFFICIENT: roughly O(n) using a single counting pass (e.g. collections.Counter or a dict), NOT an O(n^2) approach such as calling items.count(x) for every element — a quadratic solution is cut off by the grader timeout on the large hidden input. Do not modify any test files.",
   "snapshot_dir": "snapshot",

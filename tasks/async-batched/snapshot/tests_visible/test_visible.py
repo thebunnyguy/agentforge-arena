@@ -1,8 +1,7 @@
 """Visible tests: the agent's feedback signal (NOT scored).
 
-These are deliberately weak — they only check a trivial run and the empty input
-— to demonstrate why the hidden tests, which assert input ordering and the
-per-batch concurrency bound, are what actually grade.
+These give useful contract feedback without exposing the hidden concurrency and
+batch-boundary probes that provide the real grading signal.
 """
 
 import asyncio
@@ -25,8 +24,12 @@ def test_runs_and_returns_values():
     result = asyncio.run(
         run_in_batches([_factory(1), _factory(2), _factory(3)], batch_size=2)
     )
-    assert sorted(result) == [1, 2, 3]
+    assert result == [1, 2, 3]
 
 
 def test_empty_input_returns_empty_list():
     assert asyncio.run(run_in_batches([], batch_size=3)) == []
+
+
+def test_single_factory_result():
+    assert asyncio.run(run_in_batches([_factory("ok")], batch_size=1)) == ["ok"]
