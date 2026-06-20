@@ -104,6 +104,10 @@ class SqliteRunStore:
         in a single transaction. Return the new runs.id. Implements §10 raw layer."""
         conn = self._conn
         score = record.score
+        # Every record produced by run_once/run_group carries its GradeReport.
+        # Keep the explicit argument for callers that construct RunRecords
+        # themselves and for backwards compatibility with the public API.
+        report = report if report is not None else record.grade_report
         try:
             cur = conn.execute(
                 "INSERT INTO runs "

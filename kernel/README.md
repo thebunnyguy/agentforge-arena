@@ -25,8 +25,8 @@ kernel/
 
 ```bash
 cd kernel
-python -m pip install pytest      # dev-only dependency
-python -m pytest
+python3 -m pip install pytest      # dev-only dependency
+python3 -m pytest
 ```
 
 ## Canonical anchors (must always hold)

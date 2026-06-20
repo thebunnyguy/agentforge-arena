@@ -241,9 +241,10 @@ def run_pytest_suite(
     Determinism hardening (framework §9): an *errored* suite (collection failure,
     zero tests collected, or a pytest crash — as opposed to tests that ran and
     FAILED) is retried up to PYTEST_ERROR_RETRIES times before being accepted as
-    a real error. Transient collection failures under CI parallelism otherwise
-    flip a deterministic perfect run to S=0. A suite that ran with genuine test
-    failures is returned immediately and never retried.
+    a real error. A wall-clock timeout is definitive and is never retried; doing
+    so only repeats the same bounded-resource failure. Transient collection
+    failures under CI parallelism otherwise flip a deterministic perfect run to
+    S=0. A suite that ran with genuine test failures is also returned immediately.
     """
     workspace = Path(workspace)
 
@@ -256,7 +257,11 @@ def run_pytest_suite(
 
     outcome = _run_pytest_once(sandbox, workspace, test_files, weights, timeout_s)
     attempts = 0
-    while outcome.errored and attempts < PYTEST_ERROR_RETRIES:
+    while (
+        outcome.errored
+        and not outcome.notes.startswith("pytest timed out")
+        and attempts < PYTEST_ERROR_RETRIES
+    ):
         attempts += 1
         outcome = _run_pytest_once(
             sandbox, workspace, test_files, weights, timeout_s

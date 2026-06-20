@@ -278,6 +278,10 @@ def test_clean_room_workspace_isolation(task, sandbox, reference_text):
     # The run still graded correctly (the probe applied the real fix).
     assert record.score.functional_pass is True
     assert record.score.final_score == 1.0
+    assert record.grade_report is not None
+    assert record.grade_report.diff.patch_text
+    assert record.grade_report.hidden.results
+    assert record.grade_report.regression.results
 
     # The agent workspace temp dir was torn down after the run (framework §9).
     assert probe.workspace is not None

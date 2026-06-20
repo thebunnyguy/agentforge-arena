@@ -351,6 +351,37 @@ def test_patch_text_persisted_from_report():
         store.close()
 
 
+def test_pipeline_grade_report_is_persisted_without_parallel_argument():
+    store = SqliteRunStore(":memory:")
+    try:
+        report = make_report(patch_text="EMBEDDED-PIPELINE-PATCH")
+        record = make_record()
+        record = RunRecord(
+            task_id=record.task_id,
+            task_version=record.task_version,
+            agent=record.agent,
+            idx=record.idx,
+            status=record.status,
+            score=record.score,
+            files_changed=record.files_changed,
+            lines_added=record.lines_added,
+            lines_removed=record.lines_removed,
+            transcript_hash=record.transcript_hash,
+            duration_ms=record.duration_ms,
+            grade_report=report,
+        )
+
+        run_id = store.save_run(record)
+
+        diff = store._conn.execute(
+            "SELECT patch_text FROM diffs WHERE run_id = ?", (run_id,)
+        ).fetchone()
+        assert diff["patch_text"] == "EMBEDDED-PIPELINE-PATCH"
+        assert len(_query_test_results(store, run_id)) == 3
+    finally:
+        store.close()
+
+
 def test_no_test_results_without_report():
     store = SqliteRunStore(":memory:")
     try:

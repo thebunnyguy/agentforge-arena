@@ -55,7 +55,8 @@ def main() -> None:
             if i in done[t]:
                 continue
             rec = afa.run_once(agent, task, sandbox=sandbox, idx=i)
-            store.save_run(rec)             # persisted immediately
+            # Persist the score, full patch, and per-test outcomes atomically.
+            store.save_run(rec, report=rec.grade_report)
             completed += 1
             if rec.status is RunStatus.INFRA_FAILURE:
                 mark = "VOID(infra)"

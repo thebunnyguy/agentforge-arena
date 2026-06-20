@@ -5,7 +5,7 @@ agents. The core value is the **evaluation system** — deterministic, statistic
 honest, explainable scoring — not the agents. No paid LLM APIs, no LLM-as-judge
 in the core path, runs fully offline.
 
-## Status — v0.2 in progress (offline, executable, 341 tests)
+## Status — v0.2.0 (offline and executable)
 
 ```
 docs/EVALUATION_FRAMEWORK.md   # the complete mathematical framework (design)
@@ -15,7 +15,8 @@ runner/afa_runner/             # tasks, agents, sandbox, clean-room grader, stor
 tasks/                         # 24 benchmark tasks across 5 domains (+ manifest.json)
 db/schema.sql                  # production PostgreSQL raw-layer schema
 examples/                      # run_demo, eval_pack, eval_persist, report_combined, ...
-reports/leaderboard.html       # generated visual report (gitignored)
+reports/runs.sqlite            # persisted raw evaluation rows and grading artifacts
+reports/leaderboard.html       # reproducible HTML projection of runs.sqlite
 DEVLOG.md                      # full phase-by-phase development log
 ```
 
@@ -43,16 +44,22 @@ regression. Difficulty spans 2–5.
 - `OpenAICompatAgent` — talks to any OpenAI-compatible server (LM Studio, llama.cpp,
   vLLM, Ollama's `/v1`). No lock-in to one backend.
 
-## Latest evaluation (5 local models, 24 tasks, n=5 each → 120 runs/model)
+## Latest evaluation
+
+The DB contains 600 real model runs: all five local models have exactly 5 runs
+on each of 24 tasks (120 persisted rows/model). Oracle and noop are generated
+only as explicitly labeled synthetic comparison baselines; no model cells are
+gap-filled or reconstructed.
 
 ```
-rank  agent                 p_hat   Wilson LCB
-  1   oracle (reference)    1.000     0.969
-  2   qwen2.5-coder:7b      0.567     0.477
- 3-4  deepseek-coder:6.7b   0.317     0.240
- 3-5  qwen2.5-coder:3b      0.267     0.196
- 4-5  llama3.2:3b           0.217     0.152
-  6   gemma2:2b             0.050     0.023
+rank  agent                          n  p_hat   Wilson LCB
+  1   oracle (synthetic baseline)  120  1.000     0.969
+  2   qwen2.5-coder:7b             120  0.567     0.477
+ 3-4  deepseek-coder:6.7b          120  0.317     0.240
+ 3-5  qwen2.5-coder:3b             120  0.267     0.196
+ 4-5  llama3.2:latest              120  0.217     0.152
+  6   gemma2:2b                    120  0.050     0.023
+  7   noop (synthetic baseline)    120  0.000     0.000
 ```
 
 Honest behaviors on display: ranks 3–5 cluster (overlapping intervals — the math
@@ -61,15 +68,21 @@ weak on api/backend (domain scoring surfaces what one number hides); a stronger,
 newer model can beat a larger older one. Infrastructure failures (model server
 unreachable) are voided, never counted against an agent.
 
+The two P0 completion runs used Ollama 0.17.4, temperature 0.8, base seed 42,
+`qwen2.5-coder:7b` digest `dae161e27b0e`, and the exact DB tag
+`llama3.2:latest` digest `a80c4f17acd5`.
+
 ## Quickstart
 
 ```bash
-python -m pytest                                         # full suite (kernel + runner)
-PYTHONPATH="kernel:runner" python examples/run_demo.py   # deterministic end-to-end demo
+python3 -m pytest                                         # full suite (kernel + runner)
+PYTHONPATH="kernel:runner" python3 examples/run_demo.py   # deterministic end-to-end demo
 
 # Real-agent evaluation (needs a local Ollama with the model pulled):
-PYTHONPATH="kernel:runner" python examples/eval_persist.py <model> 5   # one model, resumable
-python examples/report_combined.py                       # build reports/leaderboard.html
+ollama pull qwen2.5-coder:7b
+ollama pull llama3.2:latest
+PYTHONPATH="kernel:runner" python3 examples/eval_persist.py <model> 5  # resumable
+python3 examples/report_combined.py                       # build reports/leaderboard.html
 open reports/leaderboard.html                            # the visual report
 ```
 
@@ -81,7 +94,8 @@ agent edits a fresh copy of the task snapshot
   -> CLEAN ROOM: apply ONLY the diff to a pristine snapshot, run regression then
      hidden tests (pytest JUnit XML), build gates + hidden results
   -> kernel.score_run:  S = G · T_hidden · (0.85 + 0.15·Q),  X = functional pass
-  -> persist (SQLite raw layer) ; aggregate n runs ; rank by Wilson lower bound
+  -> persist score + patch + per-test outcomes (SQLite raw layer)
+  -> aggregate n runs ; rank by Wilson lower bound
 ```
 
 The clean room is security-critical: the agent's environment never touches

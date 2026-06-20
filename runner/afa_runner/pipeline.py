@@ -20,7 +20,7 @@ from afa_kernel.types import AggregateResult, RunScore, RunStatus
 
 from .agents import Agent, AgentOutcome
 from .diffing import Diff, capture_diff
-from .grader import grade
+from .grader import GradeReport, grade
 from .sandbox import LocalSandbox, Sandbox
 from .task import Task
 
@@ -40,6 +40,10 @@ class RunRecord:
     lines_removed: int
     transcript_hash: str
     duration_ms: int
+    # Pipeline-created records retain their full grading artifact so any
+    # RunStore can persist the patch and per-test outcomes without callers
+    # having to re-run the grader or maintain a parallel object list.
+    grade_report: GradeReport | None = None
 
 
 def transcript_hash(transcript: str, patch_text: str) -> str:
@@ -67,7 +71,8 @@ def run_once(
        (timed_out gate). (LocalSandbox enforces per-command timeouts too.)
     3. capture_diff(snapshot, workspace, task.protected_paths).
     4. grade(...) in a clean room -> RunInput; score_run -> RunScore.
-    5. Build RunRecord (transcript_hash from agent transcript + diff.patch_text).
+    5. Build RunRecord (transcript_hash from agent transcript + diff.patch_text),
+       retaining the GradeReport for atomic persistence by RunStore.
     Always tear down the workspace. Default sandbox is LocalSandbox().
     Implements framework §9.
     """
@@ -153,6 +158,7 @@ def run_once(
             lines_removed=diff.lines_removed,
             transcript_hash=thash,
             duration_ms=duration_ms,
+            grade_report=report,
         )
     finally:
         # Always tear down the agent workspace (framework §9 reproducibility).

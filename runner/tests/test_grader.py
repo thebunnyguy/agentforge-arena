@@ -607,6 +607,34 @@ def test_run_pytest_suite_retries_transient_error(tmp_path):
     assert flaky.calls >= 2  # at least one retry happened
 
 
+def test_run_pytest_suite_does_not_retry_timeout(tmp_path):
+    """A resource timeout is a definitive failure, not a transient collection
+    error, so repeating it cannot improve the grading evidence."""
+    from afa_runner.sandbox import CommandResult
+
+    class _TimeoutSandbox:
+        def __init__(self):
+            self.calls = 0
+
+        def run(self, cmd, cwd, timeout_s, env=None):
+            self.calls += 1
+            return CommandResult(
+                cmd="(forced timeout)",
+                exit_code=-1,
+                stdout="",
+                stderr="",
+                duration_ms=timeout_s * 1000,
+                timed_out=True,
+            )
+
+    sandbox = _TimeoutSandbox()
+    outcome = run_pytest_suite(sandbox, tmp_path, ["test_hidden.py"], {}, 1)
+
+    assert outcome.errored is True
+    assert outcome.notes.startswith("pytest timed out")
+    assert sandbox.calls == 1
+
+
 def test_run_pytest_suite_errored_outcome_carries_notes(tmp_path):
     """A persistently-errored suite surfaces pytest diagnostics in notes so the
     flake is diagnosable (framework §9)."""

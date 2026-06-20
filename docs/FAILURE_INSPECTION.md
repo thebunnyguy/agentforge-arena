@@ -1,9 +1,9 @@
 # Failure Inspection — four suspicious cells
 
-A forensic look at the four most suspicious (agent × task) cells in the v0.2
-run (24 tasks × 5 models, `reports/runs.sqlite`, 500 runs). The point of this
-report is honesty: explain *why* each cell scored what it did, confirm the
-scoring did the right thing, and flag where it could be sharper.
+A forensic look at the four most suspicious (agent × task) cells in the initial
+v0.2 data snapshot (24 tasks × 5 models, 500 runs at inspection time). The DB
+now contains 600 model runs; this document preserves the evidence available
+when the inspection was performed.
 
 Each cell was inspected by an agent and then **adversarially re-verified** by an
 independent skeptic that re-pulled the raw data and tried to refute the
@@ -13,13 +13,12 @@ diagnosis. All four verdicts survived. Provenance is at the bottom.
 
 ## Read this first — what the data does and doesn't contain
 
-`reports/runs.sqlite` persisted **only aggregate metrics** per run: `status`,
+The first 500 legacy rows persisted **only aggregate metrics** per run: `status`,
 the gate product `G`, `t_hidden`, the final score `S`, `functional_pass` (`X`),
-`files_changed`, and lines added/removed. It did **not** persist the agent's
-patch (`diffs.patch_text` is NULL for all 500 rows) or per-test results
-(`test_results` is empty). The store *schema* supports both — `eval_persist.py`
-simply called `save_run` without a `GradeReport`. **This is itself a finding**
-(see [Recommendations](#findings--recommendations)).
+`files_changed`, and lines added/removed. Those rows did **not** persist the
+agent's patch or per-test results. This was fixed before the final 100 P0 runs:
+pipeline records now carry their `GradeReport`, and `eval_persist.py` passes it
+to the store so new rows include patch and per-test artifacts.
 
 Consequently the per-run diagnoses below are **inferences from the aggregate
 signals**, cross-checked against (a) the snapshot/reference baselines re-measured
@@ -231,11 +230,10 @@ their own gate + `T_hidden` evidence and need no cross-model prop.
 
 ## Findings / recommendations
 
-1. **[data gap]** `eval_persist.py` stores aggregates only — `patch_text` is NULL
-   and `test_results` empty across all 500 runs. Pass the `GradeReport` into
-   `SqliteRunStore.save_run` so future forensics can quote the patch and name the
-   failing assertion. The schema already has the columns; this is a one-line
-   wiring change at the call site.
+1. **[resolved data gap]** The first 500 rows lack patch/per-test artifacts.
+   `eval_persist.py` and the pipeline now pass the `GradeReport` into
+   `SqliteRunStore.save_run`; the 100 completion runs persist real patches and
+   available regression/hidden test outcomes.
 2. **[scoring]** Over-generous partial credit when a "fix" merely matches the
    do-nothing baseline (qwen2.5-coder:3b binary-search #2: `S=0.333` for a no-op).
    Consider flooring `T_hidden` against the snapshot baseline so a change that

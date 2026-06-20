@@ -1,4 +1,4 @@
-"""AgentForge Arena v0.1 runner — task loading, agents, sandboxing, clean-room
+"""AgentForge Arena v0.2 runner — task loading, agents, sandboxing, clean-room
 grading, run orchestration, persistence, and reporting. Builds on afa_kernel.
 Pure stdlib, offline.
 """
@@ -31,4 +31,4 @@ __all__ = [
     "render_report",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
