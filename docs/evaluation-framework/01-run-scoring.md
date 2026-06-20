@@ -125,7 +125,7 @@ INFRA_FAILURE runs are **voided**: excluded from n, auto-retried up to 2 times w
 
 ### 1.6 Worked example, end to end
 
-Run: all five gates pass (G = 1). Hidden suite: 10 tests, equal weights, 7 pass. Quality inputs: lint clean with no added suppressions (L_new = 0), typecheck **fails** on the patched tree, static analysis W_base = 12, W_post = 12, security scan V_new = 0, diff A = 200 changed lines vs reference R = 40.
+Run: all five gates pass (G = 1). Hidden suite: 10 tests, equal weights, 7 pass. Quality inputs: lint clean with no added suppressions (L_new = 0), typecheck **fails** on the patched tree, static analysis W_base = 12, W_post = 12, security scan V_new = 0, diff A = 200 added lines vs reference R = 40.
 
 ```
 T_hidden = 7/10 = 0.7
@@ -135,16 +135,16 @@ q_type   = 0                        (typecheck failed)
 q_static = min(1, max(0, 1 - 0/10)) = 1
 q_sec    = max(0, 1 - 0/3)          = 1
 rho      = 200 / max(40,10) = 5
-q_pars   = (10 - 5)/6 = 5/6         = 0.8333
+q_pars   = (8 - 5)/6 = 3/6          = 0.5
 
-Q = 0.20*1 + 0.25*0 + 0.20*1 + 0.20*1 + 0.15*0.8333
-  = 0.20 + 0 + 0.20 + 0.20 + 0.125 = 0.725
+Q = 0.20*1 + 0.25*0 + 0.20*1 + 0.20*1 + 0.15*0.5
+  = 0.20 + 0 + 0.20 + 0.20 + 0.075 = 0.675
 
-S = 1 * 0.7 * (0.85 + 0.15*0.725) = 0.7 * 0.9588 = 0.6711
+S = 1 * 0.7 * (0.85 + 0.15*0.675) = 0.7 * 0.95125 = 0.6659
 X = 0   (3 hidden tests failed)
 ```
 
-Status VALID; the run contributes X = 0 to c and S = 0.6711 to the diagnostic distribution.
+Status VALID; the run contributes X = 0 to c and S = 0.6659 to the diagnostic distribution.
 
 ### 1.7 Gameability analysis
 
@@ -155,7 +155,7 @@ Status VALID; the run contributes X = 0 to c and S = 0.6711 to the diagnostic di
 | q_lint / q_type | Add suppression directives instead of fixing | Each added suppression counts in L_new; typecheck is binary on the real tree. Worst case bounded: all of Q moves at most 15% of S. |
 | q_static / q_sec | Mass-fix unrelated warnings to bank credit | Deltas cap at 1; improvements earn nothing beyond the cap. |
 | q_pars | Submit a minimal stub diff | Multiplicative structure: stub fails hidden tests, T_hidden ~ 0, so S ~ 0 regardless of q_pars = 1. |
-| q_pars | Golf a correct solution into dense one-liners | Parsimony counts changed lines, not characters; the flat region to 4x R leaves no incentive below it. |
+| q_pars | Golf a correct solution into dense one-liners | Parsimony counts added lines, not characters; the flat region to 2x R leaves no incentive below it. |
 | no_timeout | Bail early with garbage to dodge the gate | Early garbage scores ~0 anyway; the gate punishes only non-termination. |
 | setup_ok | Self-report success | Gates are computed by the harness and grader from exit codes and differential reruns, never from agent claims. |
 
@@ -163,7 +163,7 @@ The structural defense is uniform: every exploitable surface is either (a) measu
 
 ### Limitations
 
-- **Parsimony depends on a reference solution the agent cannot see.** rho is anchored to R, so an unusually verbose or golfed reference skews q_pars for everyone, and because the reference is private (Section 8.1) the penalty onset is unpredictable from the agent's side — a correct-and-thorough solution beyond 4x R loses up to 2.25% of S for defensiveness the reference omitted. The wide flat region and the 10x zero-point bound this, and tasks without a reference drop the component, so Q's basis varies across tasks. Remaining mitigation is procedural (reference-diff review at authoring), not mathematical.
+- **Parsimony depends on a reference solution the agent cannot see.** rho is anchored to R, so an unusually verbose or golfed reference skews q_pars for everyone, and because the reference is private (Section 8.1) the penalty onset is unpredictable from the agent's side — a correct-and-thorough solution beyond 2x R loses up to 2.25% of S for defensiveness the reference omitted. The wide flat region and the 8x zero-point bound this, and tasks without a reference drop the component, so Q's basis varies across tasks. Remaining mitigation is procedural (reference-diff review at authoring), not mathematical.
 - **Setup attribution is a pattern table plus a differential rerun.** Novel infra failure modes that reproduce deterministically with the diff applied get misclassified as agent faults until the pattern table catches up; the alert-after-retries rule limits but does not eliminate this.
 - **Q's weights (0.20/0.25/0.20/0.20/0.15) are uncalibrated judgment calls** at v0.1 data volumes. Miscalibration is bounded by the 15% band but real; any later re-weighting must recompute historical S from the append-only raw signals.
 - **Per-test weights w_j make T_hidden task-local.** Acceptable because cross-task aggregation runs on X, not S — but averaging S across tasks mixes units.

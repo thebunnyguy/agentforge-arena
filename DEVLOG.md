@@ -6,9 +6,8 @@ bugs found and fixed, and the answers given along the way. Newest work is added
 at the bottom. This is a narrative companion to the code and the design doc —
 when you want to know *why* something is the way it is, look here.
 
-**Compiled:** 2026-06-18 (stated session date). Note: artifact timestamps in the
-repo vary (git commit, file mtimes, the `~/.claude` backup dir `20260617`), so
-this log is organized by **phase**, not wall-clock time.
+**Compiled:** 2026-06-20 (latest update). Note: artifact timestamps in the repo
+vary, so this log is organized by **phase**, not wall-clock time.
 
 **How to read it:** each phase is one request-and-response cycle. "Ask" = what
 was requested. "Reasoning" = why I chose the approach. "Did" = the concrete
@@ -26,6 +25,9 @@ actions. "Outcome" = results/numbers. "Findings" = anything notable discovered.
 | Task pack built | **304** | 9 new tasks + pack CI test |
 | Infra-failure fix | **305** | connection errors void instead of counting as losses |
 | OpenAI-compat adapter | **309** | backend-agnostic agent (LM Studio / llama.cpp / vLLM / Ollama-v1) |
+| v0.2 full pack (24 tasks) | **341** | 14 new tasks across all 5 domains + 24-task pack CI |
+| Post-P0 integrity repair | **344** | 600 real persisted runs, DB-first report, future artifact persistence |
+| P2/P3 closure sprint | **366** | edge-case hardening, stronger task/report integration tests |
 
 All suites are pure-stdlib + pytest, fully offline.
 
@@ -679,7 +681,7 @@ schema already supports both; wiring the `GradeReport` through is a one-line fix
 
 ---
 
-## Current state (as of this entry)
+## Current state after Phase 29 (historical; superseded by Phase 34 below)
 
 **Committed:**
 - `8eb6d4a` (tag `v0.1-eval-slice`): the v0.1 slice — `afa_kernel`, `afa_runner`,
@@ -730,7 +732,13 @@ synced with `origin`** — all five commits pushed (`8eb6d4a`, `49999df`, `c4ada
 | 7 | bug | `OllamaAgent` parser | model puts `# FILE:` inside the code block | detect in-block path marker |
 | 8 | **integrity** | `OllamaAgent`/pipeline | connection errors scored as agent failures (contaminated an eval) | `infra_failed` → `INFRA_FAILURE` (voided) |
 | 9 | bug | `eval_pack` | crashed reading a stale `.pyc` in `reference/` | skip bytecode in the reference reader |
-| 10 | data-gap | `eval_persist.py` / `store` | `save_run` called without a `GradeReport`, so `diffs.patch_text` is NULL (×500) and `test_results` is empty — no patch/per-test forensics | open thread #4: thread the `GradeReport` through (schema already supports it) |
+| 10 | data-gap | `eval_persist.py` / `store` | `save_run` called without a `GradeReport`, so `diffs.patch_text` is NULL (×500) and `test_results` is empty — no patch/per-test forensics | fixed for all future runs by threading the embedded report through; the first 500 rows remain irrecoverable without rerunning |
+| 11 | **integrity** | `report_combined.py` | `KNOWN_OLD` reconstructed missing model cells and presented a complete matrix | completed the real evaluations, removed gap-fill, and made all model rows DB-first; only labeled oracle/noop baselines are synthetic |
+| 12 | security | `diffing.py` | protected basenames were case-sensitive and separator-dependent | normalize POSIX/Windows separators and compare basenames/suffixes with `casefold()` |
+| 13 | security | `snapshot_tree` | file and directory symlinks could expose out-of-tree content | skip any path containing a symlink component before capture |
+| 14 | reporting | `domain_profile` | `n_tasks` counted tagged tasks even when they contributed zero valid runs | count a task only when its aggregate has at least one valid run |
+| 15 | resumability | `eval_persist.py` | rows from an older task version could incorrectly mark a strengthened task complete | match completed rows by exact task ID and version; reject mixed-version report cells |
+| 16 | doc-accuracy | framework `01-run-scoring` | parsimony prose drift: the formula block was corrected to the 2x/8x added-only curve, but the §1.6 worked example (S=0.6711) and the gameability/limitations prose still cited the old 4x/10x added+removed curve | reconciled the worked example to S=0.6659 and the prose to 2x/8x added-only (Phase 34) |
 
 ---
 
@@ -749,3 +757,312 @@ synced with `origin`** — all five commits pushed (`8eb6d4a`, `49999df`, `c4ada
 - **Ollama operational lesson:** start it *bundled* with the eval (one job:
   `serve → wait ready → run`), or run it as a persistent app outside the
   automation. Don't start it in a throwaway subshell.
+
+---
+
+## Phase 30 — External hardcore audit (read-only, 53/100)
+
+**Ask.** Act as a strict external auditor (not a developer): perform a full
+technical, mathematical, evaluation-quality, reporting, reproducibility, and
+anti-gaming audit of the repo as it stood at `036cde4`. Back every claim with
+evidence; do not fix anything; do not commit.
+
+**Did.** Verified the load-bearing facts first-hand — `341 passed`, all 24 tasks
+pass the §8 `validate_task` invariants, and every published Wilson LCB recomputes
+exactly — then fanned out a 33-agent deep-audit workflow (24 per-task audits + 9
+specialists: test quality, failure forensics, report, domains, reproducibility,
+downtime timeline, security, scoring math, product/docs) and reconciled its
+findings against the first-hand evidence.
+
+**Outcome — 53/100.** Strengths confirmed: the scoring kernel is mathematically
+correct, the clean-room grader's anti-gaming defenses are real and adversarially
+tested, and the DEVLOG/FAILURE_INSPECTION are honest. But the audit surfaced a
+**P0 integrity defect**: `examples/report_combined.py` hardcoded 50 synthetic
+"runs" each for `qwen2.5-coder:7b` and `llama3.2` (the `KNOWN_OLD` gap-fill) plus
+synthetic oracle/noop, while the README/report presented every agent as
+`24 tasks · n=5 · n=120` with no disclosure — and the committed DB (then
+gitignored) could not reproduce the leaderboard. Finding inventory: **3 P0,
+5 P1, 7 P2, 4 P3**, plus 24 per-task quality scores (mean 7.1/10).
+
+**Honesty nuance the audit established.** The gap-fill values were not invented
+and not contaminated — they equal the Phase-24 clean re-run (qwen 29/50, llama
+9/50), i.e. real measurements that were simply never persisted to the committed
+DB. The defect was undisclosed reconstruction + non-reproducibility, not fraud.
+
+**Deliverables (untracked).** `AUDIT_REPORT.md`, `AUDIT_SCORECARD.md`,
+`AUDIT_FINDINGS.json`, and `audit_summary.html` were written and left local; they
+were later rewritten by the post-P0 re-audit (Phase 32). Nothing was committed in
+this phase.
+
+---
+
+## Phase 31 — P0 audit data-integrity closure
+
+**Ask.** Fix the audit's P0 findings first: replace reconstructed/gap-filled
+model cells with real persisted runs, remove `KNOWN_OLD`, make the combined
+report DB-first, persist full grading artifacts for future runs, correct README
+and version labels, regenerate the leaderboard, and avoid unrelated product or
+benchmark expansion.
+
+**Reasoning.** The published leaderboard had to become a projection of committed
+evidence before any dashboard, new model, new task, or new math could be trusted.
+The repair therefore kept the benchmark formula and task matrix fixed and
+focused on provenance, persistence, and truthful labels.
+
+**Did.**
+
+- Completed the missing qwen2.5-coder:7b and llama3.2 evaluations through the
+  resumable `eval_persist.py` path. The database now contains five real models ×
+  24 tasks × five repetitions = **600 real model runs**, exactly **120 rows per
+  model**.
+- Removed the `KNOWN_OLD` reconstruction/gap-fill path from
+  `examples/report_combined.py`. Model rows now come only from SQLite; oracle and
+  noop are generated only for display and explicitly named synthetic baselines.
+- Threaded `GradeReport` through the pipeline/store path. Future persisted runs
+  now retain patch text and per-test results. The 100-run completion cohort has
+  100 patch artifacts and 1,218 test-result rows across 99 runs; one timeout
+  produced no pytest testcase rows.
+- Corrected documentation and metadata: `llama3.2:latest` instead of the false
+  `llama3.2:3b` label, `python3` quickstarts, honest run counts, and v0.2.0
+  metadata.
+- Began tracking `reports/runs.sqlite` and `reports/leaderboard.html`, making the
+  published static report reproducible from the repository itself.
+- Added exact combined-report, persistence, grader-timeout, and end-to-end
+  regression coverage.
+
+**Outcome.** P0-1, P0-2, and P0-3 closed. `reports/runs.sqlite` contains no
+oracle/noop rows, no reconstructed transcript hashes, no duplicates, and no
+voided rows. The committed model results are:
+
+| Model | Rows | Passes | Pass rate |
+|---|---:|---:|---:|
+| qwen2.5-coder:7b | 120 | 68 | 0.567 |
+| deepseek-coder:6.7b | 120 | 38 | 0.317 |
+| qwen2.5-coder:3b | 120 | 32 | 0.267 |
+| llama3.2:latest | 120 | 26 | 0.217 |
+| gemma2:2b | 120 | 6 | 0.050 |
+
+The focused P0/P1 suite passed **69 tests** and the full suite passed **344
+tests**. The repair was committed as **`f70eb6d`** (`Fix P0 audit data integrity
+issues`), merged to `master`, and pushed to GitHub.
+
+**Remaining limitation.** The first 500 legacy rows predate full artifact
+persistence and therefore still have no patch text or per-test results. Those
+artifacts cannot be reconstructed honestly without rerunning the evaluations.
+
+---
+
+## Phase 32 — Focused post-P0 re-audit
+
+**Ask.** Re-run the audit against current `master`, verify the P0/P1 evidence,
+separate closed/partially-closed/open findings, and recalculate the score rather
+than reusing the old 53/100 result.
+
+**Did.** Verified `master` and `origin/master` at `f70eb6d`, the 600-row/five-model
+matrix, 120 rows and 24 tasks per model, absence of `KNOWN_OLD` and reconstructed
+model hashes, explicit synthetic baseline labels, tracked DB/HTML artifacts,
+DB-first report generation, SQLite integrity, focused tests, the full suite, and
+byte-identical report regeneration.
+
+**Outcome.** The current-state audit recalculated the project at **75/100**, up
+from 53/100 because the three data-integrity P0s were genuinely closed. It
+classified six findings closed, two partially closed, and eleven still open.
+The generated `AUDIT_REPORT.md`, `AUDIT_SCORECARD.md`, `AUDIT_FINDINGS.json`, and
+`audit_summary.html` remain local/untracked; they were not folded into the P2/P3
+implementation commit.
+
+**Still-open headline risks after the re-audit:**
+
+1. `LocalSandbox` is not untrusted-agent isolation; `DockerSandbox` remains
+   unimplemented.
+2. There is no dashboard/API/product surface.
+3. The first 500 legacy rows lack full patch/test artifacts.
+4. Several P2/P3 scoring, filesystem, task-quality, report, and domain-accounting
+   findings remained for a bounded follow-up sprint.
+
+---
+
+## Phase 33 — P2/P3 closure sprint
+
+**Ask.** Close or reduce only the remaining P2/P3 findings. Do not add adapters,
+Docker isolation, FastAPI/Next.js, models, or tasks; do not rerun model
+evaluations or silently change leaderboard values.
+
+**Reasoning.** The safe boundary was to harden deterministic behavior and
+coverage without changing the published evidence. Where a scoring change could
+alter historical results, the sprint documented and tested a proposed function
+instead of silently changing formula v0.1.
+
+### P2-1 — Scoring/spec drift: closed (completed in Phase 34)
+
+The documentation now matches the implemented added-lines-only parsimony curve:
+`rho = 1` through two added lines, decaying to zero at eight. A regression test
+proves that `Q=0.5` yields `S=0.925` when hidden tests fully pass. The committed
+leaderboard is unaffected because all 600 stored rows have `Q=1.0`.
+
+*Follow-up (Phase 34):* this sprint corrected only the formula block; the §1.6
+worked example and the gameability/limitations prose still cited the old 4x/10x
+added+removed curve (S=0.6711). Phase 34 reconciled those to the shipped 2x/8x
+added-only curve (S=0.6659), so the document is now internally consistent.
+
+### P2-2 — Protected basename casing: closed
+
+Protected filename checks now normalize both `/` and `\\` separators and use
+Unicode `casefold()`. Tests cover `Conftest.py`, `CONFTEST.PY`,
+`SiteCustomize.py`, `USERCUSTOMIZE.PY`, mixed-case `pytest.ini`, and `.PTH`
+variants across POSIX- and Windows-style paths.
+
+### P2-3 — Symlink snapshot capture: closed
+
+`snapshot_tree` now ignores paths containing any symlink component before file
+inspection. Tests prove that file and directory symlinks cannot capture
+out-of-tree content while ordinary task snapshots continue to work.
+
+### P2-4 — Report/integration gaps: closed for the requested scope
+
+Report tests now independently assert rendered Wilson values, overlapping rank
+ranges, domain task/run counts, exact numeric summaries, and `Q<1` behavior. A
+new cross-domain integration test executes reference fixes end to end across
+security, async-concurrency, and API-design tasks and verifies scores and stored
+artifacts.
+
+### P2-5 / P3-1 — Weak target task cells and visible tests: reduced
+
+Strengthened only the requested existing cells:
+
+- `async-batched`: generator inputs, invalid batch size, batch sequencing,
+  failure short-circuiting, tuple/no-mutation regression, and a meaningful
+  visible ordering/factory test.
+- `top-k-frequent`: negative `k`, input immutability, custom hashable identity
+  and tie behavior, a deterministic comparison-count performance probe, and
+  stronger visible tie/oversized-`k` cases.
+- `refactor-order-validation`: invalid shapes and booleans, cents rounding,
+  helper-delegation checks, invalid/unknown-coupon regression cases, and stronger
+  visible output/empty-order checks.
+
+The three tasks moved from v1.0.0 to **v1.0.1**. Each still satisfies the §8
+invariants: the reference fix scores 1.0 deterministically; the unmodified
+snapshot passes regression and fails hidden tests. No model evaluations were
+rerun, so the committed leaderboard remains explicitly frozen to stored v1.0.0
+evidence and the report displays the version mismatch.
+
+### P2-6 — Domain skew: reduced and disclosed
+
+README, framework docs, and the static report now state that the pack is
+backend-heavy: backend tags touch 17/24 tasks and have eight primary tasks,
+while API-design and performance have only three primary tasks each. The report
+shows tag weights (1.0 primary, 0.5 secondary, 0.25 tertiary), contributing task
+counts, and a coverage caveat. A roadmap TODO records future domain balancing;
+no tasks were added in this sprint.
+
+### P3-2 — Static report observability: reduced
+
+The existing static HTML report now shows the persisted run window, patch/test
+artifact coverage, per-model mean `S` and `Q`, failure counts, exact task-cell
+pass counts and Wilson intervals, benchmark composition, and evaluated/current
+task-version badges. Oracle/noop remain clearly labeled as non-persisted
+synthetic baselines. No dashboard or API was introduced.
+
+### P3-3 — Baseline-equivalent partial credit: partially closed
+
+Added and tested `baseline_adjusted_t_hidden(observed, baseline)`, which floors
+baseline-equivalent behavior at zero and rescales improvement above the
+snapshot. Tests demonstrate both the existing v0.1 issue and the proposed fix.
+The helper is deliberately not wired into `score_run`; doing so requires an
+explicit formula-version bump and leaderboard recomputation.
+
+### P3-4 — Zero-run domain overcount: closed
+
+`domain_profile.n_tasks` now counts only tasks that contribute valid runs.
+Tests cover tagged tasks with zero contribution and entirely empty domains;
+full matrices remain displayable and accurate.
+
+### Supporting version/provenance guards
+
+`eval_persist.py` now resumes only rows matching the exact task version, so old
+v1.0.0 rows cannot cause a v1.0.1 task run to be skipped. The combined report
+rejects mixed task versions in one agent/task cell instead of silently pooling
+them.
+
+**Verification.**
+
+- Focused scoring/report/sandbox/task suite: **182 passed**.
+- Full pytest suite: **366 passed in 146.49s**.
+- Full task-pack invariant suite: **51 passed**.
+- SQLite remained **600 rows**, five real models × 120, 24 tasks, with unchanged
+  pass totals and `Q=1.0` throughout.
+- `reports/runs.sqlite` SHA-256 remained
+  `519bee8a30ae81b456071e2e4215948706b03282733d04bfb53d6c3d4ee8b663`.
+- Deterministically regenerated `reports/leaderboard.html` SHA-256:
+  `87ca6c776d02977fde5e273f321982938bc5fed18ca06da3fb433e7aeb301574`.
+
+**Outcome.** Committed as **`4505bad`** (`Close P2/P3 audit gaps`) and pushed to
+`origin/codex/p2-p3-closure-sprint`. No PR or merge was created in this phase.
+
+---
+
+## Phase 34 — Audit-trail backfill + P2-1 doc completion
+
+**Ask.** Update `DEVLOG.md` with everything done since Phase 29, fix what the
+re-verification found missing, then commit and push.
+
+**Did.**
+- Backfilled **Phase 30** (the external hardcore audit) — the log previously
+  jumped from Phase 29 straight to "fix the audit's P0 findings" with no record
+  of the audit that produced them, the 53/100, or the 3 P0 / 5 P1 / 7 P2 / 4 P3
+  inventory. Renumbered the P0-closure / re-audit / P2-P3 phases to 31 / 32 / 33.
+- Added the missing **341** row to the test-count timeline (the Phase-27 24-task
+  pack milestone the table skipped between 309 and 344).
+- **Completed P2-1.** The Phase-33 sprint marked parsimony spec-drift "closed"
+  but had fixed only the formula block; the §1.6 worked example still computed
+  `q_pars = (10-5)/6 = 0.8333 → S = 0.6711` and the gameability/limitations prose
+  still cited 4x/10x added+removed. Reconciled them to the shipped 2x/8x
+  added-only curve (`q_pars = (8-5)/6 = 0.5 → S = 0.6659`); added bug-table row 16.
+- Corrected the stale branch description below (`master` had advanced to
+  `4505bad`).
+
+**Verification.** Doc/log-only changes; no code or tests touched. Full suite
+re-run: **366 passed in 136.70s**. `reports/runs.sqlite` SHA-256 unchanged
+(`519bee8a…e8b663`); the leaderboard is unchanged. The four `AUDIT_*`
+deliverables remain untracked by request.
+
+**Outcome.** Committed to `master` and pushed to `origin/master`.
+
+---
+
+## Current state after Phase 34
+
+**Branch state:** the P2/P3 closure sprint (`4505bad`) was merged into `master`;
+this Phase-34 audit-trail / doc-reconciliation commit sits on top, and `master`
+is pushed to `origin/master`.
+
+**Benchmark evidence:** 600 real persisted model runs, 120 per model over 24
+tasks. Oracle/noop are render-only synthetic baselines. The published model
+numbers are unchanged by the P2/P3 sprint.
+
+**Suite:** 366 passing, offline. The focused closure slice is 182 passing.
+
+**Finding disposition after the sprint:**
+
+| Finding | Status | Remaining limitation |
+|---|---|---|
+| P2-1 | Closed | None; current leaderboard has Q=1 throughout |
+| P2-2 | Closed | None |
+| P2-3 | Closed | Symlinks are ignored rather than admitted |
+| P2-4 | Closed for sprint scope | Coverage is not exhaustive across every task |
+| P2-5 | Reduced | Empirical discrimination of v1.0.1 awaits future evaluations |
+| P2-6 | Reduced | Structural backend skew remains |
+| P3-1 | Reduced | Only the three targeted weak visible suites changed |
+| P3-2 | Reduced | Static report only; no per-run UI/API |
+| P3-3 | Partially closed | Proposed floor is tested but not active in formula v0.1 |
+| P3-4 | Closed | None |
+
+**Deliberately still open:**
+
+1. Real untrusted-agent isolation (`DockerSandbox` or equivalent).
+2. Dashboard/API/product surface and contributor workflow.
+3. Full patch/test forensics for the first 500 legacy rows.
+4. A versioned decision and recomputation for baseline-adjusted continuous
+   scoring.
+5. Future domain balancing with additional primary API-design/performance tasks;
+   no such tasks were added here.
