@@ -624,6 +624,21 @@ and a full domain profile; README updated.
 
 ---
 
+## Phase 28 — Commit + push the all-domains-filled milestone ("push it")
+
+**Ask.** Commit the Phase 27 work and push it.
+
+**Did.** Staged the 14 new task dirs, the rebuilt `tasks/manifest.json`, the
+`eval_persist.py`/`report_combined.py` changes, and the README + DEVLOG updates —
+verified nothing junk was staged (`reports/`, `*.sqlite`, `.DS_Store` all
+gitignored). Committed as `d481116` ("Fill all 5 domains (24-task pack) + evaluate
+5 most-used models", 117 files) and pushed: `8eb6d4a..d481116 master -> master`.
+
+**Verified.** After `git fetch`: 0 commits ahead of `origin/master`, working tree
+clean. The private remote now holds all five commits. Suite: **341 passing**.
+
+---
+
 ## Current state (as of this entry)
 
 **Committed:**
@@ -635,21 +650,20 @@ and a full domain profile; README updated.
   + tests) and DEVLOG Phases 24–25.
 - `2a1344b`: the resilient runner (`eval_persist.py`), the 5-model combined
   report (`report_combined.py`), and DEVLOG Phase 26.
+- `d481116` (Phase 27): the 14 new task directories, the rebuilt
+  `tasks/manifest.json` (24 tasks), the `eval_persist.py` AFA_TASK_FILTER knob, the
+  DB-first `report_combined.py`, and the README + DEVLOG Phase 27 updates. Generated
+  run data (`reports/runs.sqlite`, `leaderboard.html`) stays gitignored.
 
-**Uncommitted (Phase 27):** the 14 new task directories, the rebuilt
-`tasks/manifest.json` (24 tasks), the `eval_persist.py` AFA_TASK_FILTER knob, the
-DB-first `report_combined.py`, and the README + DEVLOG Phase 27 updates. Generated
-run data (`reports/runs.sqlite`, `leaderboard.html`) stays gitignored.
-
-**Repo:** private GitHub `thebunnyguy/agentforge-arena`. Local master is **3
-commits ahead of `origin`** (v0.1 is pushed; everything since is committed but
-**not pushed**, by request); Phase 27 is not yet committed.
+**Repo:** private GitHub `thebunnyguy/agentforge-arena`. Local master is **fully
+synced with `origin`** — all five commits pushed (`8eb6d4a`, `49999df`, `c4adac3`,
+`2a1344b`, `d481116`), working tree clean, 0 commits ahead.
 **Suite:** 341 passing, offline, pure stdlib.
 
 **Open threads:**
 1. ~~Clean full pack re-run~~ — **done** (Phase 24).
 2. ~~Fill every domain to the display threshold~~ — **done** (Phase 27; 24 tasks, all 5 domains scored).
-3. **Commit Phase 27** (14 tasks + manifest + scripts + docs) — pending; nothing pushed to GitHub yet.
+3. ~~Commit + push Phase 27~~ — **done** (Phase 28; `d481116` committed and pushed).
 4. Optional: push toward the "meaningful" tier (≥8 tasks/domain) and add more "most-used" models (llama3.1, mistral).
 5. The visual report is a static HTML file; the fuller observability layer
    (Postgres + FastAPI + Next.js dashboard) is still ahead.
