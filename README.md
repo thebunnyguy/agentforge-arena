@@ -9,6 +9,7 @@ in the core path, runs fully offline.
 
 ```
 docs/EVALUATION_FRAMEWORK.md   # the complete mathematical framework (design)
+docs/FAILURE_INSPECTION.md     # forensic write-up of the most suspicious result cells
 kernel/afa_kernel/             # the math: scoring, aggregation, confidence, domains, ranking
 runner/afa_runner/             # tasks, agents, sandbox, clean-room grader, store, report
 tasks/                         # 24 benchmark tasks across 5 domains (+ manifest.json)

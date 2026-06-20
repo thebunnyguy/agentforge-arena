@@ -639,6 +639,46 @@ clean. The private remote now holds all five commits. Suite: **341 passing**.
 
 ---
 
+## Phase 29 — Failure-inspection report for the most suspicious cells
+
+**Ask.** Add a failure-inspection report for binary-search failures, toposort
+0/5, expression-evaluator 0/5, and Gemma top-k 4/5.
+
+**Did.** Ran a `failure-inspection` workflow (8 agents: 4 forensic inspectors +
+4 adversarial verifiers, one pair per cell), each re-pulling the raw run DB and
+the task source. Re-measured the snapshot/reference baselines directly, and built
+the per-cell run tables deterministically from `reports/runs.sqlite`. Wrote
+[`docs/FAILURE_INSPECTION.md`](docs/FAILURE_INSPECTION.md).
+
+**Findings (all four cell verdicts held under adversarial verification):**
+- **binary-search** — mixed, not all-fail. The recurring `T_hidden=0.333` is a
+  baseline coincidence (the unmodified buggy snapshot passes 3/9 hidden tests);
+  the `diff_exists` gate zeroes those no-diff runs so they never reach `p_hat`.
+  One genuine pass (qwen-3b #4, `+1/−6` = the reference fix). One over-generous
+  partial-credit run (qwen-3b #2: `S=0.333` for a behavioural no-op).
+- **toposort 0/5** — real: 10/15 runs are valid-but-non-deterministic sorts
+  (partial `T_hidden` up to 0.5) that miss the lexicographic-tiebreak and cycle
+  tests; none satisfy all 12, so 0 functional passes. Partial credit is
+  "progress," not contract-correctness, and never moves `p_hat`.
+- **expression-evaluator 0/5** — genuinely hard (difficulty 5), not mis-specified;
+  reference passes 10/10, snapshot 0/10, no baseline channel. Small models emit
+  +59…+77-line parsers that pass regression but fail every precedence test.
+- **gemma top-k 4/5** — legitimate. The 4 passes have both `G=1` and
+  `T_hidden=1.0`, so they cleared the `no_timeout` hard gate on the 300k-element
+  input — `Counter.most_common` is an O(n) idiom whose stable sort also honors the
+  first-appearance tiebreak. Per-task pass rate is not monotonic in overall model
+  strength. (Verifier caught + removed an overstated "stronger models pass too"
+  claim — qwen-7b passes only 1/5 on top-k.)
+
+**Surfaced a real data gap (bug #10 below).** The run DB persisted **only
+aggregate metrics** — `diffs.patch_text` is NULL for all 500 rows and
+`test_results` is empty — because `eval_persist.py` calls `save_run` without a
+`GradeReport`. So the per-run diagnoses are inferences from `G`/`T_hidden`/line
+deltas cross-checked against the recomputed baselines, not raw patch reads. The
+schema already supports both; wiring the `GradeReport` through is a one-line fix.
+
+---
+
 ## Current state (as of this entry)
 
 **Committed:**
@@ -664,10 +704,16 @@ synced with `origin`** — all five commits pushed (`8eb6d4a`, `49999df`, `c4ada
 1. ~~Clean full pack re-run~~ — **done** (Phase 24).
 2. ~~Fill every domain to the display threshold~~ — **done** (Phase 27; 24 tasks, all 5 domains scored).
 3. ~~Commit + push Phase 27~~ — **done** (Phase 28; `d481116` committed and pushed).
-4. Optional: push toward the "meaningful" tier (≥8 tasks/domain) and add more "most-used" models (llama3.1, mistral).
-5. The visual report is a static HTML file; the fuller observability layer
+4. **[new, from Phase 29] Persist the full `GradeReport` in `eval_persist.py`** so
+   `diffs.patch_text` and `test_results` are populated (schema already supports
+   it) — enables per-assertion, patch-level forensics next time.
+5. **[new, from Phase 29] Floor `T_hidden` against the snapshot baseline** so a
+   "fix" that merely matches the do-nothing score earns `S=0` (the binary-search
+   qwen-3b #2 no-op case). `p_hat` is already immune; this only sharpens `S`.
+6. Optional: push toward the "meaningful" tier (≥8 tasks/domain) and add more "most-used" models (llama3.1, mistral).
+7. The visual report is a static HTML file; the fuller observability layer
    (Postgres + FastAPI + Next.js dashboard) is still ahead.
-6. Future v0.2 math: Jeffreys shrinkage, empirical difficulty, discrimination.
+8. Future v0.2 math: Jeffreys shrinkage, empirical difficulty, discrimination.
 
 ---
 
@@ -684,6 +730,7 @@ synced with `origin`** — all five commits pushed (`8eb6d4a`, `49999df`, `c4ada
 | 7 | bug | `OllamaAgent` parser | model puts `# FILE:` inside the code block | detect in-block path marker |
 | 8 | **integrity** | `OllamaAgent`/pipeline | connection errors scored as agent failures (contaminated an eval) | `infra_failed` → `INFRA_FAILURE` (voided) |
 | 9 | bug | `eval_pack` | crashed reading a stale `.pyc` in `reference/` | skip bytecode in the reference reader |
+| 10 | data-gap | `eval_persist.py` / `store` | `save_run` called without a `GradeReport`, so `diffs.patch_text` is NULL (×500) and `test_results` is empty — no patch/per-test forensics | open thread #4: thread the `GradeReport` through (schema already supports it) |
 
 ---
 
