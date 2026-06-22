@@ -1,14 +1,20 @@
 {
   "id": "sanitize-filename",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "Reject unsafe filenames in safe_name",
   "description": "safename.name.safe_name(name) must return a safe single-component filename, returning the name unchanged when it is safe but raising ValueError when name is empty, '.', '..', contains a path separator ('/' or '\\\\'), contains a null byte, or contains any '..' path component. The snapshot is BUGGY: it returns the name unchanged and performs no rejection. Fix safename/name.py using pure string/stdlib logic only (NO real filesystem access). Do not modify any test files.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],
   "domains": [
-    { "domain": "security", "weight": 1.0 },
-    { "domain": "backend", "weight": 0.5 }
+    {
+      "domain": "security",
+      "weight": 1.0
+    },
+    {
+      "domain": "backend",
+      "weight": 0.5
+    }
   ],
   "activity": "debugging-bugfix",
   "scale": "S",
@@ -22,16 +28,22 @@
     "safename/**"
   ],
   "visible": {
-    "paths": ["tests_visible/test_visible.py"]
+    "paths": [
+      "tests_visible/test_visible.py"
+    ]
   },
   "hidden": {
     "src": "grading",
-    "paths": ["test_hidden.py"],
+    "paths": [
+      "test_hidden.py"
+    ],
     "weights": {}
   },
   "regression": {
     "src": "grading",
-    "paths": ["test_regression.py"]
+    "paths": [
+      "test_regression.py"
+    ]
   },
   "scoring_recipe": {
     "hidden_weights": {}

@@ -50,3 +50,11 @@ def test_err_map_stays_err_without_calling_fn():
     assert r.is_ok is False
     assert calls == []
     assert r.unwrap_or("fallback") == "fallback"
+
+
+def test_ok_with_falsy_value_unwraps_to_that_value():
+    # unwrap_or must branch on ok-ness, not on the truthiness of the value:
+    # ok(0)/ok(None)/ok(False) are successes and must return the stored value.
+    assert Result.ok(0).unwrap_or(99) == 0
+    assert Result.ok(None).unwrap() is None
+    assert Result.ok(False).unwrap_or("default") is False

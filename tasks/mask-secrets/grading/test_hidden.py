@@ -42,3 +42,9 @@ def test_short_sk_prefix_not_masked():
     # "sk-" followed by fewer than 20 alphanumerics is not an API key.
     text = "sk-tooshort here"
     assert mask(text) == text
+
+
+def test_masks_whole_bearer_credential_not_just_token():
+    # The "Bearer" keyword must be redacted together with the token, not left
+    # visible (an impl that masks only the token portion would fail this).
+    assert mask("Authorization: Bearer abcdefgh1234") == "Authorization: [REDACTED]"

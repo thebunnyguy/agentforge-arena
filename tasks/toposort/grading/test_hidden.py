@@ -91,3 +91,13 @@ def test_implicit_dependency_in_cycle_is_still_a_cycle():
     graph = {"b": ["a"], "a": ["b"]}
     with pytest.raises(CycleError):
         toposort(graph)
+
+
+def test_multiple_implicit_dependencies():
+    # Both "lib" and "core" appear only as dependencies (no key of their own); an
+    # impl that registers only the FIRST implicit dep of each list misses "core".
+    graph = {"app": ["lib", "core"]}
+    order = toposort(graph)
+    assert sorted(order) == ["app", "core", "lib"]
+    assert _before(order, "lib", "app")
+    assert _before(order, "core", "app")

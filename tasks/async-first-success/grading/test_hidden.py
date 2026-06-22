@@ -104,3 +104,30 @@ def test_single_failure_raises():
     with pytest.raises(ValueError) as excinfo:
         asyncio.run(first_success([_failer("solo")]))
     assert str(excinfo.value) == "solo"
+
+
+def test_all_fail_propagates_input_order_last_not_temporally_last():
+    # The input-order-LAST factory fails FIRST (no hops); earlier factories fail
+    # later. The contract raises the LAST factory's exception (input order); an
+    # impl that keeps the temporally-last exception would propagate an earlier one.
+    def slow_failer(message, hops):
+        def make():
+            async def run():
+                for _ in range(hops):
+                    await asyncio.sleep(0)
+                raise ValueError(message)
+            return run()
+        return make
+
+    def fast_failer(message):
+        def make():
+            async def run():
+                raise ValueError(message)
+            return run()
+        return make
+
+    with pytest.raises(ValueError) as excinfo:
+        asyncio.run(
+            first_success([slow_failer("early1", 5), slow_failer("early2", 5), fast_failer("inputlast")])
+        )
+    assert str(excinfo.value) == "inputlast"

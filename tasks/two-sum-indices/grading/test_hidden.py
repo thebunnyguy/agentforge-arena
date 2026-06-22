@@ -69,3 +69,9 @@ def test_large_input_no_solution_requires_linear():
     nums = list(range(0, 2 * n, 2))  # 0, 2, 4, ..., even numbers
     target = 7  # odd -> impossible from a sum of two even numbers
     assert two_sum(nums, target) is None
+
+
+def test_both_addends_negative():
+    # A pair whose two elements are both negative must still be found.
+    assert two_sum([-3, -5], -8) == (0, 1)
+    assert two_sum([-10, 3, -7], -17) == (0, 2)

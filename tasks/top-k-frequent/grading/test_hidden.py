@@ -140,3 +140,9 @@ def test_large_input_full_ranking_is_truncated_correctly():
     items += [14] * 100
     items += list(range(1000, 1000 + 300000))
     assert most_common(items, 3) == [10, 11, 12]
+
+
+def test_tie_uses_first_not_last_appearance():
+    # "b" and "a" both occur twice; first-appearance order puts "b" first. A
+    # last-appearance tiebreak would return ["a", "b"].
+    assert most_common(["b", "a", "a", "b"], 2) == ["b", "a"]

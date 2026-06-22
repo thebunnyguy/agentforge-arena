@@ -173,3 +173,10 @@ def test_process_order_delegates_through_all_extracted_helpers(monkeypatch):
         ("subtotal", items),
         ("coupon", 777, coupon),
     ]
+
+
+def test_flat_coupon_rounds_fractional_value():
+    # A fractional flat-coupon value must be rounded to the nearest cent, not
+    # truncated (int() truncation would give 999 / 998 here).
+    assert apply_coupon(1000, {"type": "flat", "value": 1.5}) == 998
+    assert apply_coupon(1000, {"type": "flat", "value": 2.6}) == 997

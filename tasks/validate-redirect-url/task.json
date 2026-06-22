@@ -1,13 +1,16 @@
 {
   "id": "validate-redirect-url",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "Reject open-redirect targets in safe_redirect",
   "description": "saferedirect.redirect.safe_redirect(target, allowed_host) must return target only when it is a safe local redirect: a relative path beginning with a single '/' , or an absolute URL whose host equals allowed_host. It must raise ValueError for external absolute URLs (host != allowed_host), protocol-relative targets like '//evil.com', and dangerous schemes such as 'javascript:' or 'data:'. The snapshot is BUGGY: it returns any target unchanged (naive open redirect). Fix saferedirect/redirect.py using urllib.parse.urlparse and pure string logic only (NO network access). Do not modify any test files.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],
   "domains": [
-    { "domain": "security", "weight": 1.0 }
+    {
+      "domain": "security",
+      "weight": 1.0
+    }
   ],
   "activity": "debugging-bugfix",
   "scale": "S",
@@ -21,16 +24,22 @@
     "saferedirect/**"
   ],
   "visible": {
-    "paths": ["tests_visible/test_visible.py"]
+    "paths": [
+      "tests_visible/test_visible.py"
+    ]
   },
   "hidden": {
     "src": "grading",
-    "paths": ["test_hidden.py"],
+    "paths": [
+      "test_hidden.py"
+    ],
     "weights": {}
   },
   "regression": {
     "src": "grading",
-    "paths": ["test_regression.py"]
+    "paths": [
+      "test_regression.py"
+    ]
   },
   "scoring_recipe": {
     "hidden_weights": {}

@@ -101,3 +101,13 @@ def test_does_not_retry_after_success():
     )
     assert result == 7
     assert calls[0] == 2
+
+
+def test_zero_attempts_raises_value_error():
+    # attempts must be a positive integer; attempts=0 must raise ValueError, not a
+    # TypeError from re-raising a None "last exception".
+    async def make():
+        return "unused"
+
+    with pytest.raises(ValueError):
+        asyncio.run(retry_call(make, 0))

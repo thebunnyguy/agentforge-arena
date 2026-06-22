@@ -53,3 +53,12 @@ def test_large_input_alternating_gaps():
     intervals.reverse()
     expected = [(2 * i, 2 * i + 1) for i in range(1000)]
     assert merge(intervals) == expected
+
+
+def test_standalone_point_interval_preserved():
+    # A zero-length (point) interval must be kept, not silently dropped.
+    assert [tuple(x) for x in merge([(3, 3)])] == [(3, 3)]
+
+
+def test_point_interval_between_disjoint_kept():
+    assert [tuple(x) for x in merge([(1, 5), (5, 5), (7, 9)])] == [(1, 5), (7, 9)]

@@ -44,3 +44,27 @@ def test_float_literal_multiplication():
 
 def test_unary_minus_in_parens():
     assert evaluate("3*(-2)") == -6.0
+
+
+def test_left_associative_subtraction():
+    # (10-2)-3 = 5, NOT 10-(2-3) = 11. Catches a right-folding parser.
+    assert evaluate("10-2-3") == 5.0
+
+
+def test_left_associative_division():
+    # (8/2)/2 = 2, NOT 8/(2/2) = 8. Catches a right-folding parser.
+    assert evaluate("8/2/2") == 2.0
+
+
+def test_chained_subtraction():
+    assert evaluate("2-3-4") == -5.0
+
+
+def test_unary_minus_after_operator():
+    # division by a negative literal: 6/(-2) = -3.
+    assert evaluate("6/-2") == -3.0
+
+
+def test_unary_minus_after_binary_minus():
+    # 2 - (-3) = 5.
+    assert evaluate("2--3") == 5.0

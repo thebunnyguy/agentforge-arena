@@ -45,3 +45,11 @@ def test_empty_collection_has_no_pages():
     assert p.num_pages == 0
     with pytest.raises(ValueError):
         p.page(1)
+
+
+def test_middle_page_flags():
+    # A middle page has BOTH a previous and a next page (catches an off-by-one
+    # has_next computed only correctly at the first/last page).
+    p = Paginator(25, 10).page(2)   # page 2 of 3
+    assert p.has_next is True
+    assert p.has_previous is True

@@ -50,3 +50,22 @@ def test_get_missing_returns_provided_default():
     assert c.get("missing", "fallback") == "fallback"
     c.put("a", 1)
     assert c.get("a", "fallback") == 1
+
+
+def test_capacity_three_evicts_true_lru():
+    # Frequency-based (LFU) eviction is wrong: "a" is the least-recently-used
+    # because "b" and "c" were inserted AFTER "a"'s last access.
+    c = LRUCache(3)
+    c.put("a", 1); c.get("a"); c.get("a"); c.get("a")
+    c.put("b", 2); c.put("c", 3); c.put("d", 4)
+    assert c.get("a") is None
+    assert c.get("b") == 2 and c.get("c") == 3 and c.get("d") == 4
+
+
+def test_capacity_three_get_refreshes_recency():
+    c = LRUCache(3)
+    c.put("a", 1); c.put("b", 2); c.put("c", 3)
+    c.get("a")          # "a" becomes most-recently-used; "b" is now LRU
+    c.put("d", 4)       # evicts "b"
+    assert c.get("b") is None
+    assert c.get("a") == 1 and c.get("c") == 3 and c.get("d") == 4

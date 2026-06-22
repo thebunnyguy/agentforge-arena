@@ -1,13 +1,16 @@
 {
   "id": "async-first-success",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "Implement first_success that cancels the losers",
   "description": "Implement afirst.first.first_success(make_coros): an async function that runs all the given coroutine factories concurrently, returns the result of the FIRST one to succeed, and cancels the remaining coroutines. If every coroutine fails, raise the last exception (the exception from the last factory in input order). The snapshot is a stub that raises NotImplementedError. Fix afirst/first.py. Do not modify any test files.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],
   "domains": [
-    { "domain": "async-concurrency", "weight": 1.0 }
+    {
+      "domain": "async-concurrency",
+      "weight": 1.0
+    }
   ],
   "activity": "feature-implementation",
   "scale": "M",
@@ -21,16 +24,22 @@
     "afirst/**"
   ],
   "visible": {
-    "paths": ["tests_visible/test_visible.py"]
+    "paths": [
+      "tests_visible/test_visible.py"
+    ]
   },
   "hidden": {
     "src": "grading",
-    "paths": ["test_hidden.py"],
+    "paths": [
+      "test_hidden.py"
+    ],
     "weights": {}
   },
   "regression": {
     "src": "grading",
-    "paths": ["test_regression.py"]
+    "paths": [
+      "test_regression.py"
+    ]
   },
   "scoring_recipe": {
     "hidden_weights": {}

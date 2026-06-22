@@ -23,3 +23,11 @@ def test_empty_list():
 
 def test_already_unique_preserved():
     assert dedup([10, 20, 30]) == [10, 20, 30]
+
+
+def test_element_appearing_three_or_more_times():
+    # A "skip the 2nd occurrence only" bug passes the at-most-twice cases but
+    # lets a 3rd occurrence through.
+    assert dedup([1, 2, 1, 2, 1]) == [1, 2]
+    assert dedup([1, 1, 1]) == [1]
+    assert dedup([1, 2, 1, 3, 1]) == [1, 2, 3]

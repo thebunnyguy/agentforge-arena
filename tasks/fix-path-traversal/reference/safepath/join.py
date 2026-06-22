@@ -27,7 +27,11 @@ def safe_join(base, *parts):
     joined = posixpath.join(norm_base, *parts)
     norm_joined = posixpath.normpath(joined)
 
-    if norm_joined != norm_base and not norm_joined.startswith(norm_base + "/"):
+    # Use the base itself as the separator-prefix when base is root ("/"),
+    # otherwise base + "/". This keeps "/srv/data-other" out of "/srv/data"
+    # while still allowing every absolute path under base "/".
+    sep_prefix = norm_base if norm_base == "/" else norm_base + "/"
+    if norm_joined != norm_base and not norm_joined.startswith(sep_prefix):
         raise ValueError(
             "joined path %r escapes base %r" % (norm_joined, norm_base)
         )

@@ -1,13 +1,16 @@
 {
   "id": "mask-secrets",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "Implement secret masking in mask",
   "description": "maskkit.mask.mask(text) must return text with secrets replaced by the literal '[REDACTED]'. It must redact: an API key matching 'sk-' followed by 20 or more alphanumeric characters, a bearer token of the form 'Bearer <token>' where the token is 8 or more characters, and email addresses. Ordinary text must be left untouched. The snapshot is a STUB that raises NotImplementedError. Implement maskkit/mask.py using the re module only (NO network access). Do not modify any test files.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],
   "domains": [
-    { "domain": "security", "weight": 1.0 }
+    {
+      "domain": "security",
+      "weight": 1.0
+    }
   ],
   "activity": "feature-implementation",
   "scale": "S",
@@ -21,16 +24,22 @@
     "maskkit/**"
   ],
   "visible": {
-    "paths": ["tests_visible/test_visible.py"]
+    "paths": [
+      "tests_visible/test_visible.py"
+    ]
   },
   "hidden": {
     "src": "grading",
-    "paths": ["test_hidden.py"],
+    "paths": [
+      "test_hidden.py"
+    ],
     "weights": {}
   },
   "regression": {
     "src": "grading",
-    "paths": ["test_regression.py"]
+    "paths": [
+      "test_regression.py"
+    ]
   },
   "scoring_recipe": {
     "hidden_weights": {}

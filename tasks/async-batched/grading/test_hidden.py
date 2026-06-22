@@ -136,3 +136,13 @@ def test_failed_batch_does_not_start_later_batch():
     with pytest.raises(RuntimeError, match="boom"):
         asyncio.run(run_in_batches([failing_factory, later_factory], batch_size=1))
     assert created == ["failing"]
+
+
+def test_batch_runs_concurrently_not_serially():
+    # Coroutines within a batch must overlap; a serial (one-by-one) impl keeps the
+    # peak at 1, which an upper-bound-only check would not catch.
+    tracker = Tracker()
+    factories = [_factory(tracker, v) for v in range(6)]
+    result = asyncio.run(run_in_batches(factories, batch_size=3))
+    assert result == list(range(6))
+    assert tracker.peak >= 2

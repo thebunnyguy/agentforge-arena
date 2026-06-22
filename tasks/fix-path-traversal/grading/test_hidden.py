@@ -45,3 +45,17 @@ def test_result_is_always_under_base():
     norm_base = posixpath.normpath(base)
     norm_result = posixpath.normpath(result)
     assert norm_result == norm_base or norm_result.startswith(norm_base + "/")
+
+
+def test_prefix_collision_sibling_raises():
+    # A sibling directory sharing a name prefix ("/srv/data-other") is NOT under
+    # "/srv/data". A startswith(base) check WITHOUT a trailing separator is the
+    # bug this catches.
+    with pytest.raises(ValueError):
+        safe_join("/srv/data", "x", "..", "..", "data-other", "file.txt")
+
+
+def test_root_base_allows_absolute_descendants():
+    # base "/" contains every absolute path; joining under it must not raise.
+    assert safe_join("/", "usr", "local", "bin") == "/usr/local/bin"
+    assert safe_join("/", "etc", "passwd") == "/etc/passwd"

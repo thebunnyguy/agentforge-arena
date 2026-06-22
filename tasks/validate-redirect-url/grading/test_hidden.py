@@ -40,3 +40,28 @@ def test_javascript_scheme_raises():
 def test_data_scheme_raises():
     with pytest.raises(ValueError):
         safe_redirect("data:text/html,<script>alert(1)</script>", ALLOWED)
+
+
+def test_hosted_javascript_scheme_raises():
+    # "javascript://host/..." parses with a non-empty netloc; the "//host" is a
+    # JS line-comment and the payload after %0a (newline) executes. Must reject
+    # even though the host equals the allowed host.
+    with pytest.raises(ValueError):
+        safe_redirect("javascript://app.example.com/%0aalert(1)", ALLOWED)
+
+
+def test_hosted_data_scheme_raises():
+    with pytest.raises(ValueError):
+        safe_redirect("data://app.example.com/x", ALLOWED)
+
+
+def test_non_http_scheme_to_allowed_host_raises():
+    # An ftp:// (or any non-http(s)) URL to the allowed host is still not a
+    # valid web redirect target.
+    with pytest.raises(ValueError):
+        safe_redirect("ftp://app.example.com/file", ALLOWED)
+
+
+def test_http_same_host_absolute_ok():
+    url = "http://app.example.com/x"
+    assert safe_redirect(url, ALLOWED) == url

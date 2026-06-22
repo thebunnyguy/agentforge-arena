@@ -91,3 +91,16 @@ def test_limit_greater_than_length():
     result = asyncio.run(gather_bounded(factories, limit=10))
     assert result == [7, 8, 9]
     assert tracker.peak <= 3
+
+
+def test_results_input_order_with_varied_speeds():
+    # Mixed completion speeds: a collector that appends in COMPLETION order would
+    # reorder these; the result must follow INPUT order.
+    tracker = Tracker()
+    factories = [
+        _factory(tracker, 100, hops=5),
+        _factory(tracker, 1, hops=1),
+        _factory(tracker, 50, hops=3),
+    ]
+    result = asyncio.run(gather_bounded(factories, limit=3))
+    assert result == [100, 1, 50]

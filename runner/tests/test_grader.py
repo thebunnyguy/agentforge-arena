@@ -265,7 +265,7 @@ def test_reference_overlay_scores_perfect(tmp_path):
     assert gates.product() == 1
 
     # Hidden results carried into the RunInput must be the actual graded tests.
-    assert len(report.run_input.hidden) == 5
+    assert len(report.run_input.hidden) == 6
     assert all(t.passed for t in report.run_input.hidden)
 
     score = score_run(report.run_input)
@@ -486,7 +486,7 @@ def test_grade_ignores_stale_snapshot_bytecode(tmp_path):
 
         assert report.hidden.all_passed is True
         assert report.hidden.errored is False
-        assert len(report.run_input.hidden) == 5
+        assert len(report.run_input.hidden) == 6
         assert score_run(report.run_input).final_score == 1.0
     finally:
         # Never leave compiled artifacts in the committed task fixture.

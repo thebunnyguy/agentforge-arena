@@ -32,3 +32,16 @@ def test_empty_string():
 
 def test_combined_attribute_value():
     assert escape('a&b<c>"d\'') == "a&amp;b&lt;c&gt;&quot;d&#x27;"
+
+
+def test_escapes_repeated_occurrences():
+    # Every occurrence of a special character must be escaped, not just the first
+    # (a str.replace(..., 1) variant would pass the single-occurrence tests).
+    assert escape("a<b>c<d>") == "a&lt;b&gt;c&lt;d&gt;"
+
+
+def test_escapes_repeated_ampersands_and_brackets():
+    assert escape("<<") == "&lt;&lt;"
+    assert escape("&&") == "&amp;&amp;"
+    assert escape("''") == "&#x27;&#x27;"
+    assert escape('""') == "&quot;&quot;"

@@ -38,3 +38,8 @@ def test_methods_return_self_for_chaining():
     assert q.select("a") is q
     assert q.where("x=1") is q
     assert q.limit(3) is q
+
+
+def test_select_star_still_appends_where_and_limit():
+    # The default "SELECT *" branch must not drop accumulated WHERE/LIMIT clauses.
+    assert Query().where("a=1").limit(5).build() == "SELECT * WHERE a=1 LIMIT 5"
