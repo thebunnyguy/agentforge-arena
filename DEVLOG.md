@@ -681,7 +681,7 @@ schema already supports both; wiring the `GradeReport` through is a one-line fix
 
 ---
 
-## Current state after Phase 29 (historical; superseded by Phase 34 below)
+## Current state after Phase 29 (historical; superseded by Phase 35 below)
 
 **Committed:**
 - `8eb6d4a` (tag `v0.1-eval-slice`): the v0.1 slice — `afa_kernel`, `afa_runner`,
@@ -902,8 +902,12 @@ leaderboard is unaffected because all 600 stored rows have `Q=1.0`.
 
 *Follow-up (Phase 34):* this sprint corrected only the formula block; the §1.6
 worked example and the gameability/limitations prose still cited the old 4x/10x
-added+removed curve (S=0.6711). Phase 34 reconciled those to the shipped 2x/8x
-added-only curve (S=0.6659), so the document is now internally consistent.
+added+removed curve (S=0.6711). Phase 34 reconciled those in the sharded copy
+(`docs/evaluation-framework/01-run-scoring.md`) to the shipped 2x/8x added-only
+curve (S=0.6659), making that copy internally consistent. The monolithic
+`docs/EVALUATION_FRAMEWORK.md` was missed and retained the stale
+4x/10x / S=0.6711 numbers until a later doc pass reconciled it to match; only
+after that is the framework consistent across both copies.
 
 ### P2-2 — Protected basename casing: closed
 
@@ -1030,17 +1034,79 @@ deliverables remain untracked by request.
 
 ---
 
-## Current state after Phase 34
+## Phase 35 — Audit-2, codex cross-check, oracle hardening + full re-grade
 
-**Branch state:** the P2/P3 closure sprint (`4505bad`) was merged into `master`;
-this Phase-34 audit-trail / doc-reconciliation commit sits on top, and `master`
-is pushed to `origin/master`.
+**Ask.** Re-audit the project, compare against an independent codex audit, then
+fix the oracle defects surfaced (strengthen weak hidden suites, correct buggy
+references) and re-grade — ensuring no errors.
+
+**Did — re-audit + cross-check.** A fresh 13-agent adversarial re-audit scored
+the project **75/100** (up from audit-1's 53) at `798a5b3`: all three P0s
+genuinely closed, data real and byte-reproducible, forensic cohort
+100%-consistent (`claude_audit/audit-2/`). An independent **codex** audit scored
+**66/100**; reconciling the gap showed it was ~half calibration and ~half
+*substance* — codex's deeper task-oracle analysis found two real defects the
+closure-focused re-audit missed, both verified here by execution:
+1. a qwen `expression-evaluator` run stored as a PASS was arithmetically wrong
+   (`10-2-3` → 11; the hidden suite had no left-associativity test);
+2. the `validate-redirect-url` REFERENCE itself accepted hosted
+   `javascript://host/` / `data://host/` URLs its description says to reject.
+
+**Did — full oracle sweep.** A 22-agent audit of the remaining oracles. To gauge
+impact before a heavy re-grade, the 100-run patch cohort was reconstructed and
+re-graded against stronger oracles: **3/24 passes were false (12.5%)** —
+including BOTH of qwen-7b's `fix-path-traversal` "passes" (prefix-collision +
+filesystem-touching code on a SECURITY task) and a llama LFU-as-LRU pass. A
+security task reporting vulnerable code as passing is app-changing for a public
+deploy, so chose full hardening.
+
+**Did — harden + fix.** Strengthened **20 of 24 task hidden suites** and fixed
+**2 references** (redirect scheme whitelist; path-traversal root-base). Every new
+assertion was verified against the real reference before being added; async tests
+use deterministic counters (no timing flakiness). All 24 tasks still pass §8
+`validate_task`; full suite **366**. Skipped only debatable/non-bugs (fix-roman
+"IC", async-timeout's contrived cancel-swallow edge) and two already-clean tasks.
+
+**Did — re-grade.** Re-ran the 20 changed tasks across all 5 local models
+(500 runs) into a throwaway DB copy (canonical DB untouched until an atomic
+swap), then regenerated the report.
+
+**Outcome.** The leaderboard moved materially against the corrected oracles:
+
+| model | before | after |
+|---|---|---|
+| qwen2.5-coder:7b | 0.567 | 0.558 |
+| deepseek-coder:6.7b | 0.317 | 0.233 |
+| llama3.2:latest | 0.217 | 0.183 |
+| qwen2.5-coder:3b | 0.267 | 0.150 |
+| gemma2:2b | 0.050 | 0.033 |
+
+Ranking changed — **qwen2.5-coder:3b fell below llama3.2** (ranks 3-5 cluster).
+Confirmed false passes are gone (qwen path-traversal 2→0, llama lru 1→0, qwen
+expression now a genuine 1/5). The re-grade also persisted full artifacts:
+**520/600 runs now carry patches + 6,322 per-test rows** (up from 100), closing
+most of the legacy forensic gap. Report regenerates byte-identically. Committed
+as **`970e580`** and pushed to `origin/master`.
+
+**Remaining limitation.** The re-grade is a fresh n=5 sample, so the drops mix
+real oracle corrections with re-sampling variance (the Wilson intervals carry
+that uncertainty); the 4 unchanged tasks keep their earlier valid sample.
+
+---
+
+## Current state after Phase 35
+
+**Branch state:** `master` is at `970e580` (oracle hardening + full re-grade),
+pushed to `origin/master`.
 
 **Benchmark evidence:** 600 real persisted model runs, 120 per model over 24
-tasks. Oracle/noop are render-only synthetic baselines. The published model
-numbers are unchanged by the P2/P3 sprint.
+tasks, now graded against the corrected/strengthened oracles. Oracle/noop are
+render-only synthetic baselines. Leaderboard (Wilson LCB): qwen2.5-coder:7b
+0.558 (.469) > deepseek-coder:6.7b 0.233 (.167) ≈ llama3.2 0.183 (.124) ≈
+qwen2.5-coder:3b 0.150 (.097) > gemma2 0.033 (.013); ranks 3-5 cluster. 520/600
+runs persist patches + per-test results.
 
-**Suite:** 366 passing, offline. The focused closure slice is 182 passing.
+**Suite:** 366 passing, offline.
 
 **Finding disposition after the sprint:**
 
