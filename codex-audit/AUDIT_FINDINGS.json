@@ -1,0 +1,393 @@
+{
+  "audit": {
+    "title": "AgentForge Arena Hardcore Evaluation Report",
+    "date": "2026-06-20",
+    "commit": "798a5b3d7aba74c3a95e51119983b2d75091161c",
+    "branch": "master",
+    "origin": "https://github.com/thebunnyguy/agentforge-arena.git",
+    "origin_visibility": "PRIVATE",
+    "ahead": 0,
+    "behind": 0,
+    "overall_score": 66,
+    "maturity": "research tool",
+    "scope": "Technical, mathematical, task, real-evaluation, domain, report, reproducibility, security, incident-timeline, and product audit",
+    "code_modified": false,
+    "committed": false
+  },
+  "scorecard": {
+    "scoring_math_correctness": 7.5,
+    "test_suite_quality": 8.5,
+    "task_pack_quality": 7.0,
+    "clean_room_security": 5.0,
+    "real_agent_evaluation_validity": 7.0,
+    "domain_coverage": 6.0,
+    "report_quality": 7.0,
+    "reproducibility": 6.5,
+    "product_usability": 4.5,
+    "documentation_accuracy": 7.0,
+    "total": 66.0
+  },
+  "verification": {
+    "literal_requested_test_command": {
+      "command": "python -m pytest",
+      "status": "FAIL",
+      "reason": "python executable not found"
+    },
+    "actual_test_run": {
+      "command": "python3 -m pytest -ra --durations=20 -W default",
+      "collected": 366,
+      "passed": 366,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 7,
+      "runtime_seconds": 147.69,
+      "warning_summary": "ResourceWarning: unclosed SQLite connections"
+    },
+    "task_validation": {
+      "tasks": 24,
+      "status": "PASS against current test suites",
+      "reference_repetitions": 3,
+      "caveat": "validate_task checks tests/reference consistency, not semantic conformance to task descriptions"
+    },
+    "database": {
+      "path": "reports/runs.sqlite",
+      "sha256": "519bee8a30ae81b456071e2e4215948706b03282733d04bfb53d6c3d4ee8b663",
+      "integrity_check": "ok",
+      "foreign_key_check_rows": 0,
+      "real_model_rows": 600,
+      "models": 5,
+      "tasks_per_model": 24,
+      "rows_per_model": 120,
+      "duplicate_agent_task_version_idx_keys": 0,
+      "infra_rows": 0,
+      "reconstructed_hashes": 0,
+      "synthetic_rows": 0,
+      "q_not_one_rows": 0,
+      "rows_with_patch": 100,
+      "rows_with_test_results": 99,
+      "test_result_rows": 1218
+    },
+    "report": {
+      "path": "reports/leaderboard.html",
+      "sha256": "87ca6c776d02977fde5e273f321982938bc5fed18ca06da3fb433e7aeb301574",
+      "regeneration": "PASS: before, after, and HEAD hashes identical",
+      "visual_rendering": "UNVERIFIED: local file browser target blocked by audit environment"
+    },
+    "quickstart": {
+      "demo": "PASS",
+      "report_generation": "PASS",
+      "ollama_version": "0.17.4",
+      "python_version": "3.13.2",
+      "pytest_version": "9.0.2"
+    }
+  },
+  "leaderboard": [
+    {
+      "rank": "1",
+      "agent": "oracle (synthetic baseline)",
+      "source": "generated synthetic baseline",
+      "n": 120,
+      "passes": 120,
+      "pass_rate": 1.0,
+      "wilson_low": 0.9689797289,
+      "wilson_high": 1.0
+    },
+    {
+      "rank": "2",
+      "agent": "qwen2.5-coder:7b",
+      "source": "persisted DB",
+      "n": 120,
+      "passes": 68,
+      "pass_rate": 0.5666666667,
+      "wilson_low": 0.4772975799,
+      "wilson_high": 0.6518997173,
+      "contract_valid_passes_max_verified": 67,
+      "contract_contamination": "At least one stored expression-evaluator pass is nonconforming"
+    },
+    {
+      "rank": "3-4",
+      "agent": "deepseek-coder:6.7b",
+      "source": "persisted DB",
+      "n": 120,
+      "passes": 38,
+      "pass_rate": 0.3166666667,
+      "wilson_low": 0.2402270793,
+      "wilson_high": 0.4044803535
+    },
+    {
+      "rank": "3-5",
+      "agent": "qwen2.5-coder:3b",
+      "source": "persisted DB",
+      "n": 120,
+      "passes": 32,
+      "pass_rate": 0.2666666667,
+      "wilson_low": 0.1956834035,
+      "wilson_high": 0.3521260563
+    },
+    {
+      "rank": "4-5",
+      "agent": "llama3.2:latest",
+      "source": "persisted DB",
+      "n": 120,
+      "passes": 26,
+      "pass_rate": 0.2166666667,
+      "wilson_low": 0.1523662284,
+      "wilson_high": 0.2985452585
+    },
+    {
+      "rank": "6",
+      "agent": "gemma2:2b",
+      "source": "persisted DB",
+      "n": 120,
+      "passes": 6,
+      "pass_rate": 0.05,
+      "wilson_low": 0.0231140493,
+      "wilson_high": 0.1048041946
+    },
+    {
+      "rank": "7",
+      "agent": "noop (synthetic baseline)",
+      "source": "generated synthetic baseline",
+      "n": 120,
+      "passes": 0,
+      "pass_rate": 0.0,
+      "wilson_low": 0.0,
+      "wilson_high": 0.0310202711
+    }
+  ],
+  "model_failure_counts": [
+    {
+      "agent": "qwen2.5-coder:7b",
+      "total": 120,
+      "valid": 120,
+      "passed": 68,
+      "failed": 52,
+      "voided": 0,
+      "no_edit": 0,
+      "hidden_miss_after_gates": 49,
+      "changed_gate_fail": 3,
+      "parser_failures": null,
+      "timeout_failures": null
+    },
+    {
+      "agent": "deepseek-coder:6.7b",
+      "total": 120,
+      "valid": 120,
+      "passed": 38,
+      "failed": 82,
+      "voided": 0,
+      "no_edit": 16,
+      "hidden_miss_after_gates": 41,
+      "changed_gate_fail": 25,
+      "parser_failures": null,
+      "timeout_failures": null
+    },
+    {
+      "agent": "qwen2.5-coder:3b",
+      "total": 120,
+      "valid": 120,
+      "passed": 32,
+      "failed": 88,
+      "voided": 0,
+      "no_edit": 47,
+      "hidden_miss_after_gates": 33,
+      "changed_gate_fail": 8,
+      "parser_failures": null,
+      "timeout_failures": null
+    },
+    {
+      "agent": "llama3.2:latest",
+      "total": 120,
+      "valid": 120,
+      "passed": 26,
+      "failed": 94,
+      "voided": 0,
+      "no_edit": 21,
+      "hidden_miss_after_gates": 48,
+      "changed_gate_fail": 25,
+      "parser_failures": null,
+      "timeout_failures": null
+    },
+    {
+      "agent": "gemma2:2b",
+      "total": 120,
+      "valid": 120,
+      "passed": 6,
+      "failed": 114,
+      "voided": 0,
+      "no_edit": 12,
+      "hidden_miss_after_gates": 53,
+      "changed_gate_fail": 49,
+      "parser_failures": null,
+      "timeout_failures": null
+    }
+  ],
+  "domain_composition": [
+    {
+      "domain": "api-design",
+      "tagged_tasks": 5,
+      "primary_tasks": 3,
+      "raw_runs_per_model": 25,
+      "n_eff": 22.857143,
+      "threshold_met": true
+    },
+    {
+      "domain": "async-concurrency",
+      "tagged_tasks": 5,
+      "primary_tasks": 5,
+      "raw_runs_per_model": 25,
+      "n_eff": 25.0,
+      "threshold_met": true
+    },
+    {
+      "domain": "backend",
+      "tagged_tasks": 17,
+      "primary_tasks": 8,
+      "raw_runs_per_model": 85,
+      "n_eff": 76.219512,
+      "threshold_met": true
+    },
+    {
+      "domain": "performance",
+      "tagged_tasks": 5,
+      "primary_tasks": 3,
+      "raw_runs_per_model": 25,
+      "n_eff": 22.857143,
+      "threshold_met": true
+    },
+    {
+      "domain": "security",
+      "tagged_tasks": 5,
+      "primary_tasks": 5,
+      "raw_runs_per_model": 25,
+      "n_eff": 25.0,
+      "threshold_met": true
+    }
+  ],
+  "domain_scores": {
+    "qwen2.5-coder:7b": {
+      "api-design": {"rate": 0.70, "low": 0.495028427, "high": 0.847416804},
+      "async-concurrency": {"rate": 0.20, "low": 0.088604541, "high": 0.391313355},
+      "backend": {"rate": 0.608, "low": 0.495752334, "high": 0.709883264},
+      "performance": {"rate": 0.50, "low": 0.310337850, "high": 0.689662150},
+      "security": {"rate": 0.76, "low": 0.565699400, "high": 0.885038423}
+    },
+    "qwen2.5-coder:3b": {
+      "api-design": {"rate": 0.30, "low": 0.152583196, "high": 0.504971573},
+      "async-concurrency": {"rate": 0.0, "low": 0.0, "high": 0.133196494},
+      "backend": {"rate": 0.328, "low": 0.233081379, "high": 0.439424892},
+      "performance": {"rate": 0.225, "low": 0.101302310, "high": 0.427835498},
+      "security": {"rate": 0.40, "low": 0.234030577, "high": 0.592608722}
+    },
+    "deepseek-coder:6.7b": {
+      "api-design": {"rate": 0.25, "low": 0.117826663, "high": 0.454116799},
+      "async-concurrency": {"rate": 0.24, "low": 0.114961577, "high": 0.434300600},
+      "backend": {"rate": 0.272, "low": 0.184852700, "high": 0.381027705},
+      "performance": {"rate": 0.45, "low": 0.268345803, "high": 0.646042890},
+      "security": {"rate": 0.52, "low": 0.334982180, "high": 0.699689961}
+    },
+    "llama3.2:latest": {
+      "api-design": {"rate": 0.125, "low": 0.042396055, "high": 0.315519138},
+      "async-concurrency": {"rate": 0.04, "low": 0.007096050, "high": 0.195444724},
+      "backend": {"rate": 0.24, "low": 0.158094504, "high": 0.346856836},
+      "performance": {"rate": 0.50, "low": 0.310337850, "high": 0.689662150},
+      "security": {"rate": 0.24, "low": 0.114961577, "high": 0.434300600}
+    },
+    "gemma2:2b": {
+      "api-design": {"rate": 0.0, "low": 0.0, "high": 0.143886925},
+      "async-concurrency": {"rate": 0.0, "low": 0.0, "high": 0.133196494},
+      "backend": {"rate": 0.064, "low": 0.027370138, "high": 0.142471339},
+      "performance": {"rate": 0.20, "low": 0.085415584, "high": 0.400916571},
+      "security": {"rate": 0.0, "low": 0.0, "high": 0.133196494}
+    }
+  },
+  "task_audit": [
+    {"task_id": "escape-html", "difficulty": 2, "domains": ["security", "backend"], "validation": "PASS", "risk": "low", "quality": 7.5, "notes": "Clear; comprehensive for its toy five-character contract."},
+    {"task_id": "fix-binary-search", "difficulty": 2, "domains": ["backend"], "validation": "PASS", "risk": "medium", "quality": 8.0, "notes": "Strong edges; snapshot baseline passes 3/9 hidden and can inflate continuous partial S."},
+    {"task_id": "fix-list-dedup", "difficulty": 2, "domains": ["backend"], "validation": "PASS", "risk": "medium", "quality": 6.5, "notes": "Hashability is unspecified although reference uses a set."},
+    {"task_id": "async-retry", "difficulty": 3, "domains": ["async-concurrency", "backend"], "validation": "PASS", "risk": "medium", "quality": 7.5, "notes": "Useful retry and exception tests; thin visible/type edges."},
+    {"task_id": "async-timeout", "difficulty": 3, "domains": ["async-concurrency"], "validation": "PASS", "risk": "medium", "quality": 7.5, "notes": "Cancellation tested; timing is host-sensitive."},
+    {"task_id": "fix-roman-numerals", "difficulty": 3, "domains": ["backend"], "validation": "PASS", "risk": "low", "quality": 7.5, "notes": "Good subtractive coverage; numeral validation intentionally absent."},
+    {"task_id": "implement-lru-cache", "difficulty": 3, "domains": ["backend", "api-design"], "validation": "PASS", "risk": "medium", "quality": 7.0, "notes": "Core recency covered; nonpositive capacity undefined."},
+    {"task_id": "mask-secrets", "difficulty": 3, "domains": ["security"], "validation": "PASS", "risk": "medium", "quality": 6.5, "notes": "Regex grammar is partly ambiguous and tests are narrow."},
+    {"task_id": "merge-intervals", "difficulty": 3, "domains": ["backend", "performance"], "validation": "PASS", "risk": "low", "quality": 8.0, "notes": "Strong behavior; performance tag is not strongly enforced."},
+    {"task_id": "paginator", "difficulty": 3, "domains": ["api-design"], "validation": "PASS", "risk": "medium", "quality": 7.5, "notes": "Precise API; invalid constructor inputs unspecified."},
+    {"task_id": "result-type", "difficulty": 3, "domains": ["api-design", "backend"], "validation": "PASS", "risk": "low", "quality": 8.0, "notes": "Coherent exact API and meaningful map no-call test."},
+    {"task_id": "sanitize-filename", "difficulty": 3, "domains": ["security", "backend"], "validation": "PASS", "risk": "medium", "quality": 7.5, "notes": "Good stated checks; not a general platform filename policy."},
+    {"task_id": "async-batched", "difficulty": 4, "domains": ["async-concurrency", "performance"], "validation": "PASS v1.0.1", "risk": "high-evaluation", "quality": 8.5, "notes": "Strong current suite; all published rows are v1.0.0."},
+    {"task_id": "async-first-success", "difficulty": 4, "domains": ["async-concurrency"], "validation": "PASS", "risk": "medium", "quality": 8.0, "notes": "Cancellation and last-input exception contract are explicit."},
+    {"task_id": "async-gather-bounded", "difficulty": 4, "domains": ["async-concurrency", "backend"], "validation": "PASS", "risk": "medium", "quality": 6.5, "notes": "Invalid limit and exception cleanup coverage are weak."},
+    {"task_id": "fix-path-traversal", "difficulty": 4, "domains": ["security", "backend"], "validation": "PASS", "risk": "medium", "quality": 7.0, "notes": "Solid POSIX core; root/base edge semantics thin."},
+    {"task_id": "grid-paths", "difficulty": 4, "domains": ["performance"], "validation": "PASS", "risk": "medium", "quality": 8.0, "notes": "Good large discriminator; standard task may be difficulty 3."},
+    {"task_id": "query-builder", "difficulty": 4, "domains": ["api-design", "backend"], "validation": "PASS", "risk": "high", "quality": 6.0, "notes": "Simple task with 1/25 result; likely adapter/output confound and difficulty inflation."},
+    {"task_id": "refactor-order-validation", "difficulty": 4, "domains": ["backend", "api-design"], "validation": "PASS v1.0.1", "risk": "high-evaluation", "quality": 8.5, "notes": "Strong current delegation suite; all published rows are v1.0.0."},
+    {"task_id": "top-k-frequent", "difficulty": 4, "domains": ["performance", "backend"], "validation": "PASS v1.0.1", "risk": "high-evaluation", "quality": 8.5, "notes": "Strong current probes; published gemma outlier is on v1.0.0."},
+    {"task_id": "toposort", "difficulty": 4, "domains": ["backend"], "validation": "PASS", "risk": "medium-high", "quality": 8.5, "notes": "Clear and strong; 0/25 requires a stronger-agent calibration anchor."},
+    {"task_id": "two-sum-indices", "difficulty": 4, "domains": ["performance", "backend"], "validation": "PASS", "risk": "low-medium", "quality": 8.0, "notes": "Good scale tests; canonical idiom makes d4 slightly high."},
+    {"task_id": "validate-redirect-url", "difficulty": 4, "domains": ["security"], "validation": "FAIL contract despite passing tests", "risk": "critical", "quality": 4.5, "notes": "Reference accepts hosted javascript/data/ftp schemes contrary to description."},
+    {"task_id": "expression-evaluator", "difficulty": 5, "domains": ["backend"], "validation": "FAIL coverage despite passing tests", "risk": "critical", "quality": 5.0, "notes": "Hidden suite awards a parser with wrong associativity/unary-minus behavior; eval prohibition unenforced."}
+  ],
+  "findings": [
+    {"id": "P0-1", "severity": "P0", "title": "Published qwen score contains a demonstrated task-contract false positive", "status": "open", "evidence": "DB id 550; persisted expression parser returns 9 for 10-3-2, 4 for 8/4/2, and crashes on 1+-2 and 1/-2"},
+    {"id": "P1-1", "severity": "P1", "title": "Redirect reference/hidden suite violate the security contract", "status": "open", "evidence": "Reference accepts javascript://app.example.com and data://app.example.com"},
+    {"id": "P1-2", "severity": "P1", "title": "Arbitrary agents can read hidden/reference paths", "status": "open", "evidence": "run_once passes full Task with absolute task_dir/reference_dir to agent.act"},
+    {"id": "P1-3", "severity": "P1", "title": "No host security or dependency isolation", "status": "open", "evidence": "LocalSandbox warning; persisted qwen patch imports host NetworkX 3.4.2"},
+    {"id": "P1-4", "severity": "P1", "title": "75 published rows use obsolete task versions", "status": "open-disclosed", "evidence": "Three tasks current 1.0.1 vs stored 1.0.0, 25 rows each"},
+    {"id": "P1-5", "severity": "P1", "title": "Per-run model/config/seed provenance is insufficient", "status": "open", "evidence": "DB lacks digest/config/transcript/seed; resume resets call counter"},
+    {"id": "P1-6", "severity": "P1", "title": "Executable leaderboard is micro-pooled while framework specifies macro-domain", "status": "open", "evidence": "report.py leaderboard counts all runs; framework domain/ranking sections require macro"},
+    {"id": "P1-7", "severity": "P1", "title": "Timeout and infra gates do not behave as documented end to end", "status": "open", "evidence": "run_once cannot kill hung in-process agent; grader timeouts remain VALID losses"},
+    {"id": "P2-1", "severity": "P2", "title": "Legacy forensic artifacts missing", "status": "open", "evidence": "500/600 rows lack patches/tests; all rows lack transcript text"},
+    {"id": "P2-2", "severity": "P2", "title": "Real evaluation primarily benchmarks a single-shot prompt/parser adapter", "status": "open", "evidence": "OllamaAgent never runs visible tests and only parses fenced complete-file blocks"},
+    {"id": "P2-3", "severity": "P2", "title": "Report wrong-fix category conflates hidden misses and gate failures", "status": "open", "evidence": "Changed nonpasses are labeled wrong-fix without gate/status distinction"},
+    {"id": "P2-4", "severity": "P2", "title": "Q=1 is unmeasured but displayed as perfect", "status": "open", "evidence": "All 600 q values are 1; no quality toolchain executes"},
+    {"id": "P2-5", "severity": "P2", "title": "Deterministic evidence policy is not implemented", "status": "open", "evidence": "Determinism detected but repeats still count; synthetic baselines get Wilson n=120"},
+    {"id": "P2-6", "severity": "P2", "title": "Run identity uniqueness and formula-version selection are unenforced", "status": "open", "evidence": "No unique agent/task/version/idx constraint; load join does not filter formula_version"},
+    {"id": "P2-7", "severity": "P2", "title": "Domain evidence is backend-heavy and overlapping", "status": "open", "evidence": "backend 17/24 tasks; API/performance only three primary tasks"},
+    {"id": "P2-8", "severity": "P2", "title": "Task difficulty/discrimination is uneven", "status": "open", "evidence": "query-builder d4 qwen7 0/5; gemma top-k 4/5; toposort 0/25"},
+    {"id": "P2-9", "severity": "P2", "title": "Visible tests are weak and unused by the real adapter", "status": "open", "evidence": "Many one/two-test visible suites; OllamaAgent does not execute them"},
+    {"id": "P2-10", "severity": "P2", "title": "Performance gates are host-dependent", "status": "open", "evidence": "20-second whole-suite timeouts with no pinned CPU/container"},
+    {"id": "P2-11", "severity": "P2", "title": "Rank ranges are heuristic, not simultaneous confidence ranks", "status": "open-known", "evidence": "LCB_a > p_hat_b one-sided rule, no family-wise correction"},
+    {"id": "P2-12", "severity": "P2", "title": "Full suite emits SQLite ResourceWarnings", "status": "open", "evidence": "Seven unclosed-connection ResourceWarnings"},
+    {"id": "P2-13", "severity": "P2", "title": "Product surface is absent", "status": "open", "evidence": "No FastAPI/Next.js/dashboard/product CLI/run viewer/contributor guide"},
+    {"id": "P3-1", "severity": "P3", "title": "Literal python command unavailable", "status": "environmental", "evidence": "python command not found; README correctly uses python3"},
+    {"id": "P3-2", "severity": "P3", "title": "Pre-existing audit artifacts were stale and untracked", "status": "resolved-artifact-only", "evidence": "Old audit commit f70eb6d was superseded; current artifacts are grouped under codex-audit/ and the historical HTML is explicitly labeled legacy"},
+    {"id": "P3-3", "severity": "P3", "title": "Report detail relies on hover-only title text", "status": "open", "evidence": "Task/domain intervals encoded in title attributes"},
+    {"id": "P3-4", "severity": "P3", "title": "Editable allow-lists are package-wide rather than target-file-specific", "status": "open", "evidence": "Every task uses package/**"},
+    {"id": "P3-5", "severity": "P3", "title": "Weights and task metadata lack schema validation", "status": "open", "evidence": "load_task accepts unchecked weights/difficulties/path suite details"}
+  ],
+  "severity_counts": {
+    "P0": 1,
+    "P1": 7,
+    "P2": 13,
+    "P3": 5
+  },
+  "reproducibility_checklist": {
+    "readme_test_quickstart": "PASS",
+    "demo": "PASS",
+    "dependencies_documented": "PARTIAL",
+    "python_version": "PASS",
+    "model_server_requirement": "PASS",
+    "model_names_tags": "PASS",
+    "exact_model_digests": "FAIL",
+    "run_command_and_n": "PASS",
+    "database_location": "PASS",
+    "report_generation": "PASS",
+    "manifest_determinism": "PASS as committed artifact",
+    "generated_files_gitignore": "PASS",
+    "temperature_seed": "PARTIAL",
+    "resumability": "PARTIAL",
+    "infra_separation": "PARTIAL",
+    "full_patch_test_artifacts": "FAIL",
+    "transcript_prompt_command_logs": "FAIL",
+    "run_timestamps": "PARTIAL",
+    "current_task_versions_evaluated": "FAIL",
+    "environment_manifest": "FAIL"
+  },
+  "mandatory_next_steps": [
+    "Fix/quarantine expression-evaluator and validate-redirect-url, then rerun affected cells",
+    "Version and reconcile macro/micro ranking, timeout/infra, deterministic evidence, Q semantics, and continuous scoring",
+    "Implement pinned network-disabled agent/grader isolation with a sanitized public task view",
+    "Rerun all five models on current task versions with stable derived seeds and full forensic/config artifacts",
+    "Add run-identity uniqueness, formula-version selection, and evaluation configuration persistence"
+  ]
+}

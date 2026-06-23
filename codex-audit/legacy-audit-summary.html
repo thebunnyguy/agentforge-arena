@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentForge Arena — Legacy External Audit Summary</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1d212c; --ink:#e6e9ef; --muted:#9aa3b2;
+    --line:#2a2f3c; --good:#3fb950; --warn:#d29922; --bad:#f85149; --accent:#58a6ff;
+    --p0:#f85149; --p1:#db6d28; --p2:#d29922; --p3:#8b949e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:32px 20px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px} h2{font-size:17px;margin:30px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:13px}
+  .grade{display:flex;gap:22px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:14px 0}
+  .gnum{font-size:46px;font-weight:700;line-height:1} .gnum small{font-size:18px;color:var(--muted);font-weight:400}
+  .gtext{flex:1} .gtext b{color:var(--accent)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;color:#0b0d12}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:8px 0}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+  th{background:var(--panel2);color:var(--muted);font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .bar{height:9px;border-radius:5px;background:var(--line);overflow:hidden;min-width:90px}
+  .bar>span{display:block;height:100%}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+  .sev{font-weight:700;font-size:11px;padding:1px 6px;border-radius:4px;color:#0b0d12}
+  .sP0{background:var(--p0)} .sP1{background:var(--p1)} .sP2{background:var(--p2)} .sP3{background:var(--p3)}
+  .fin{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:11px 14px;margin:8px 0}
+  .fin.P0{border-left-color:var(--p0)} .fin.P1{border-left-color:var(--p1)} .fin.P2{border-left-color:var(--p2)}
+  .fin b{font-size:13.5px} .fin p{margin:5px 0 0;color:var(--muted);font-size:12.5px}
+  .pill{font-size:11px;padding:1px 6px;border-radius:10px;border:1px solid var(--line);color:var(--muted)}
+  .ok{color:var(--good)} .no{color:var(--bad)} .mid{color:var(--warn)}
+  footer{color:var(--muted);font-size:12px;margin-top:34px;border-top:1px solid var(--line);padding-top:12px}
+  .note{background:#1b1410;border:1px solid #5a3a17;border-radius:8px;padding:10px 13px;color:#f0c890;font-size:12.5px;margin:10px 0}
+</style>
+</head>
+<body>
+<div style="max-width:980px;margin:0 auto 18px;padding:12px 14px;border:2px solid #f85149;border-radius:8px;background:#2a1517;color:#ffd8d5"><strong>LEGACY — SUPERSEDED:</strong> This historical summary is preserved for audit provenance only. Its grade and findings are not the current audit. Open <span class="mono">audit_summary.html</span> in this folder for the authoritative analysis.</div>
+<div class="wrap">
+  <h1>AgentForge Arena — External Audit Summary</h1>
+  <p class="sub">Read-only hardcore audit · commit <span class="mono">036cde4</span> (clean, synced) · 2026-06-20 · evidence-backed (git, pytest, SQLite, kernel recompute, §8 validation, source review + 33-agent deep-audit workflow)</p>
+
+  <div class="grade">
+    <div class="gnum">53<small>/100</small></div>
+    <div class="gtext">
+      <div><b>Strong research-grade evaluation kernel + local CLI harness — NOT product-ready.</b> The published benchmark results are not trustworthy as presented.</div>
+      <div style="margin-top:8px;color:var(--muted)"><b style="color:var(--good)">Strength:</b> deterministic, mathematically-correct scoring kernel + clean-room grader, 341 adversarial tests. &nbsp; <b style="color:var(--bad)">Weakness:</b> leaderboard is partly fabricated &amp; non-reproducible, with no on-page disclosure.</div>
+    </div>
+  </div>
+
+  <div class="note"><b>Headline integrity finding (P0):</b> <span class="mono">examples/report_combined.py</span> hardcodes <b>50 synthetic runs each</b> for <span class="mono">qwen2.5-coder:7b</span> and <span class="mono">llama3.2</span> (plus synthetic oracle/noop). The committed DB has only <b>70 real runs (14 tasks)</b> for those two models, yet the report/README show every agent as “24 tasks · n=5 · n=120” with zero disclosure. The committed DB cannot reproduce the published leaderboard.</div>
+
+  <h2>Scorecard (out of 10)</h2>
+  <table>
+    <tr><th style="width:34%">Dimension</th><th style="width:46%">Score</th><th>/10</th></tr>
+    <tbody id="score-rows"></tbody>
+  </table>
+
+  <h2>Published leaderboard vs. real committed DB</h2>
+  <table>
+    <tr><th>Agent</th><th>Published p̂ / LCB / n</th><th>Real DB (pass/valid, tasks)</th><th>Status</th></tr>
+    <tr><td class="mono">oracle (reference)</td><td>1.000 / 0.969 / 120</td><td>— not in DB</td><td><span class="no">synthetic baseline</span></td></tr>
+    <tr><td class="mono">qwen2.5-coder:7b</td><td>0.567 / 0.477 / 120</td><td><b>39 / 70 (14)</b></td><td><span class="no">50/120 hardcoded</span></td></tr>
+    <tr><td class="mono">deepseek-coder:6.7b</td><td>0.317 / 0.240 / 120</td><td>38 / 120 (24)</td><td><span class="ok">real ✓</span></td></tr>
+    <tr><td class="mono">qwen2.5-coder:3b</td><td>0.267 / 0.196 / 120</td><td>32 / 120 (24)</td><td><span class="ok">real ✓</span></td></tr>
+    <tr><td class="mono">llama3.2:latest</td><td>0.217 / 0.152 / 120</td><td><b>17 / 70 (14)</b></td><td><span class="no">50/120 hardcoded; "3b" mislabel</span></td></tr>
+    <tr><td class="mono">gemma2:2b</td><td>0.050 / 0.023 / 120</td><td>6 / 120 (24)</td><td><span class="ok">real ✓</span></td></tr>
+    <tr><td class="mono">noop</td><td>0.000 / 0.000 / 120</td><td>— not in DB</td><td><span class="no">synthetic baseline</span></td></tr>
+  </table>
+  <p class="sub">All Wilson LCBs reproduce exactly from their (c,n) inputs — the math is correct; the inputs for the highlighted rows are synthetic in whole or part. The gap-fill values are real Phase-24 measurements but were never persisted to the committed DB.</p>
+
+  <h2>Critical &amp; major findings</h2>
+  <div id="findings"></div>
+
+  <h2>Suspicious cells — verdicts</h2>
+  <table>
+    <tr><th>Cell</th><th>Verdict</th></tr>
+    <tr><td class="mono">gemma2:2b / top-k-frequent 4/5</td><td><span class="ok">GENUINE</span> — stub 0/12; no_timeout gate enforces O(n) on a 300k input; Counter idiom is correct+efficient.</td></tr>
+    <tr><td class="mono">toposort 0/15 &amp; expression-evaluator 0/15</td><td><span class="ok">GENUINE hard tasks</span> — references pass fully; no baseline channel. Caveat: only 3 of 5 models ran them.</td></tr>
+    <tr><td class="mono">qwen7b / query-builder 0/5 (identical 2/7 ×5)</td><td><span class="mid">UNVERIFIABLE</span> — spec-miss vs deterministic parser quirk; no patch/test_results persisted to adjudicate.</td></tr>
+    <tr><td class="mono">qwen3b — 47 no-edit failures</td><td><span class="mid">MODEL</span> (parser caveat) — no parseable edit; contained by diff_exists gate (S=0, X=0).</td></tr>
+  </table>
+
+  <h2>Verified strengths (first-hand)</h2>
+  <table>
+    <tr><td><span class="ok">●</span> <b>341 tests pass</b>, 0 failed/skipped (~139s) — matches README claim.</td></tr>
+    <tr><td><span class="ok">●</span> <b>24/24 tasks pass §8 <span class="mono">validate_task</span></b> — reference 1.0 deterministically 3×; empty diff fails correctly.</td></tr>
+    <tr><td><span class="ok">●</span> <b>Every published Wilson LCB recomputed exactly</b>; kernel ranking/domain/pass@k math verified correct.</td></tr>
+    <tr><td><span class="ok">●</span> <b>Clean-room grader is genuinely strong</b> — conftest/<span class="mono">.pth</span> always-protected + refused at write, bytecode stripped, process-group SIGKILL, infra-failure voiding (for trusted local agents).</td></tr>
+    <tr><td><span class="ok">●</span> <b>DEVLOG + FAILURE_INSPECTION.md are honest</b> — historical bugs documented &amp; fixed; committed DB has 0 voided/errored/scope-violation rows.</td></tr>
+  </table>
+
+  <h2>Reproducibility checklist</h2>
+  <table><tr><th>Item</th><th>Result</th></tr><tbody id="repro"></tbody></table>
+
+  <footer>
+    External auditor report. Companion files: <span class="mono">AUDIT_REPORT.md</span>, <span class="mono">AUDIT_SCORECARD.md</span>, <span class="mono">AUDIT_FINDINGS.json</span>.
+    Note: <span class="mono">reports/</span> is gitignored, so this summary is for local viewing and is not tracked by git. Nothing was committed.
+  </footer>
+</div>
+<script>
+const scores=[["Scoring / math correctness",8.5],["Test suite quality",8.5],["Task pack quality",7.0],["Clean-room / security",6.5],["Real-agent evaluation validity",4.0],["Domain coverage",5.0],["Report quality",4.5],["Reproducibility",2.5],["Product usability",4.0],["Documentation accuracy",3.0]];
+const col=v=>v>=7.5?"var(--good)":v>=5?"var(--warn)":"var(--bad)";
+document.getElementById("score-rows").innerHTML=scores.map(([n,v])=>
+ `<tr><td>${n}</td><td><div class="bar"><span style="width:${v*10}%;background:${col(v)}"></span></div></td><td class="mono" style="color:${col(v)}">${v.toFixed(1)}</td></tr>`).join("");
+const F=[
+ ["P0","Published leaderboard is partly fabricated","report_combined.py:32-56 hardcodes 50 synthetic runs each for qwen7b & llama (+ synthetic oracle/noop); README/HTML show n=120 / '24 tasks · n=5' with zero disclosure. qwen7b 68/120 = 39 real + 29 hardcoded; llama 26/120 = 17 real + 9 hardcoded."],
+ ["P0","Not reproducible from committed artifacts","reports/ is gitignored (fresh clone has no DB/report); leaderboard is regenerated from hardcoded constants; eval runs at temperature 0.8, unpinned — re-running won't reproduce pass counts."],
+ ["P0","Domain table publishes non-displayable/gap-filled cells","On real DB qwen7b/llama have only ONE displayable domain (backend); 8/10 of their domain cells are <25 runs (INSUFFICIENT) yet shown as confident %. Even backend is built mostly from gap-filled primary-weight tasks."],
+ ["P1","Forensic layer empty","eval_persist calls save_run without a GradeReport → diffs.patch_text NULL ×500, test_results 0 rows. FAILURE_INSPECTION verdicts are aggregate inferences (honestly disclosed). No scores corrupted."],
+ ["P1","README/data contradictions","'120 runs/model' false for 2/5 models; 'llama3.2:3b' vs DB 'llama3.2:latest'; pyproject v0.1.0/>=3.10 vs README v0.2; noop row omitted from README."],
+ ["P1","Untrusted-agent safety is aspirational","Hidden tests readable during agent.act (pipeline.py:92, shared FS); DockerSandbox isolation is documented but UNIMPLEMENTED (docstring only). Honest 'trusted local' caveat, but the eval relies on agent trust."],
+ ["P1","Leaderboard generator has zero test coverage","report_combined.py (the fabrication path) is untested; no examples/*.py is imported by any test."],
+ ["P1","No product surface","No dashboard/API/run-detail viewer; db/ has only schema.sql; no CONTRIBUTING / how-to-add-task docs."],
+ ["P2","Parsimony Q diverges from its spec","scoring.py:91-97 uses thresholds 2/8 & added-only; docs §1.3/§1.6 specify 4/10 & added+removed; doc worked example S=0.6711 vs code 0.6659. Continuous-S only — Q=1.0 offline, no leaderboard impact."],
+ ["P2","Edge-case clean-room gaps","Case-insensitive FS lets 'Conftest.py' into the clean room (self-DoS, not a win); snapshot_tree follows symlinks (out-of-tree capture); no adversarial tests for either."],
+ ["P2","Weak task cells & domain skew","async-batched (4/10, high risk), refactor-order-validation (1 hidden test), top-k weakly discriminates; backend = 17/24 tasks dominates; api-design/performance have only 3 primary tasks each."]
+];
+document.getElementById("findings").innerHTML=F.map(([s,t,d])=>
+ `<div class="fin ${s}"><span class="sev s${s}">${s}</span> <b>${t}</b><p>${d}</p></div>`).join("");
+const R=[["README quickstart works verbatim","no","python not on PATH (python3 only)"],["Dependencies documented","ok","pytest>=7.0"],["Model server / Ollama documented","no","version/pull/host:port absent"],["Exact model tags pinned","no","'llama3.2:3b' vs DB ':latest', unpinned"],["n value documented","no","says n=5/120 but 2 models are 70"],["DB committed & locatable","mid","path documented but gitignored / not committed"],["Report reproducible from data","no","regenerated from hardcoded constants"],["Seeds / temperature documented","no","temp 0.8 hardcoded, not bit-reproducible"],["Resumability works","ok","eval_persist resumable"],["Infra failures recorded separately","no","zero voided rows in committed DB"]];
+document.getElementById("repro").innerHTML=R.map(([n,c,why])=>
+ `<tr><td>${n}</td><td class="${c}">${c==="ok"?"PASS":c==="mid"?"PARTIAL":"FAIL"} <span class="pill">${why}</span></td></tr>`).join("");
+</script>
+</body>
+</html>

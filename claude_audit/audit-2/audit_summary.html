@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentForge Arena — Audit-2 Summary</title>
+<style>
+  :root{--bg:#0f1117;--panel:#171a23;--panel2:#1d212c;--ink:#e6e9ef;--muted:#9aa3b2;--line:#2a2f3c;--good:#3fb950;--warn:#d29922;--bad:#f85149;--accent:#58a6ff;--p1:#db6d28;--p2:#d29922;--p3:#8b949e;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:32px 20px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px} h2{font-size:17px;margin:30px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:13px}
+  .grade{display:flex;gap:22px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:14px 0}
+  .gnum{font-size:44px;font-weight:700;line-height:1} .gnum small{font-size:17px;color:var(--muted);font-weight:400}
+  .delta{font-size:13px;color:var(--good);font-weight:700}
+  .gtext{flex:1} .gtext b{color:var(--accent)}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:8px 0}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+  th{background:var(--panel2);color:var(--muted);font-weight:600} tr:last-child td{border-bottom:none}
+  .bar{height:9px;border-radius:5px;background:var(--line);overflow:hidden;min-width:80px} .bar>span{display:block;height:100%}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+  .ok{color:var(--good)} .no{color:var(--bad)} .mid{color:var(--warn)}
+  .pillrow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+  .pill{font-size:11px;padding:2px 8px;border-radius:11px;border:1px solid var(--line)}
+  .pc{border-color:#23502e;color:#7ee29a;background:#10241a} .pp{border-color:#5a3a17;color:#f0c890;background:#1b1410} .po{border-color:#5a1f1f;color:#f5a3a0;background:#220f0f}
+  .fin{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:10px 13px;margin:7px 0}
+  .fin.P1{border-left-color:var(--p1)} .fin.P2{border-left-color:var(--p2)} .fin.P3{border-left-color:var(--p3)}
+  .fin b{font-size:13px} .fin p{margin:4px 0 0;color:var(--muted);font-size:12.5px}
+  .sev{font-weight:700;font-size:11px;padding:1px 6px;border-radius:4px;color:#0b0d12} .sP1{background:var(--p1)} .sP2{background:var(--p2)} .sP3{background:var(--p3)}
+  footer{color:var(--muted);font-size:12px;margin-top:34px;border-top:1px solid var(--line);padding-top:12px}
+  .note{background:#10241a;border:1px solid #23502e;border-radius:8px;padding:10px 13px;color:#9ff0b6;font-size:12.5px;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AgentForge Arena — Audit-2 Summary</h1>
+  <p class="sub">Adversarial re-audit · commit <span class="mono">798a5b3</span> (master, synced) · 2026-06-20 · evidence-backed (pytest, §8 ×24, SQLite, byte-reproducibility, forensic-cohort consistency + 13-agent workflow)</p>
+
+  <div class="grade">
+    <div><div class="gnum">75<small>/100</small></div><div class="delta">▲ +22 vs audit-1 (53)</div></div>
+    <div class="gtext">
+      <div><b>Trustworthy research-grade benchmark + local CLI harness.</b> Audit-1's three P0 integrity defects are genuinely closed; what remains is scope, not honesty.</div>
+      <div style="margin-top:8px;color:var(--muted)"><b style="color:var(--good)">Strength:</b> 600 real persisted runs, forensic cohort 100% score/test-consistent, byte-reproducible leaderboard. &nbsp; <b style="color:var(--bad)">Weakness:</b> no product surface, no untrusted-agent isolation.</div>
+    </div>
+  </div>
+
+  <div class="note"><b>P0 status: 3/3 genuinely closed</b> under independent adversarial re-derivation. The fabricated leaderboard (audit-1's <span class="mono">KNOWN_OLD</span> gap-fill) is gone — <span class="mono">report_combined.py</span> is DB-first, the DB holds 600 real rows (0 reconstructed/synthetic), and the report regenerates byte-identically (SHA <span class="mono">87ca6c77…</span>). Persisted patches trace to real task semantics.</div>
+
+  <h2>Scorecard (now vs audit-1)</h2>
+  <table><tr><th style="width:30%">Dimension</th><th>Now</th><th style="width:7%">/10</th><th style="width:7%">prior</th></tr><tbody id="score-rows"></tbody></table>
+
+  <h2>Finding disposition since audit-1</h2>
+  <div class="pillrow" id="disp"></div>
+
+  <h2>Closure verification (verdicts)</h2>
+  <table><tr><th>Finding</th><th>Verdict</th></tr><tbody id="clos"></tbody></table>
+
+  <h2>Leaderboard — now 100% real persisted runs</h2>
+  <table>
+    <tr><th>Agent</th><th>Source</th><th>n</th><th>passes</th><th>p̂ / LCB</th></tr>
+    <tr><td class="mono">oracle (synthetic baseline)</td><td>render-only</td><td>120</td><td>120</td><td>1.000 / 0.969</td></tr>
+    <tr><td class="mono">qwen2.5-coder:7b</td><td class="ok">persisted DB</td><td>120</td><td>68</td><td>0.567 / 0.477</td></tr>
+    <tr><td class="mono">deepseek-coder:6.7b</td><td class="ok">persisted DB</td><td>120</td><td>38</td><td>0.317 / 0.240</td></tr>
+    <tr><td class="mono">qwen2.5-coder:3b</td><td class="ok">persisted DB</td><td>120</td><td>32</td><td>0.267 / 0.196</td></tr>
+    <tr><td class="mono">llama3.2:latest</td><td class="ok">persisted DB</td><td>120</td><td>26</td><td>0.217 / 0.152</td></tr>
+    <tr><td class="mono">gemma2:2b</td><td class="ok">persisted DB</td><td>120</td><td>6</td><td>0.050 / 0.023</td></tr>
+    <tr><td class="mono">noop (synthetic baseline)</td><td>render-only</td><td>120</td><td>0</td><td>0.000 / 0.000</td></tr>
+  </table>
+
+  <h2>New findings (audit-2) — all minor</h2>
+  <div id="findings"></div>
+
+  <h2>Verified this audit (lead auditor)</h2>
+  <table>
+    <tr><td><span class="ok">●</span> <b>366 tests pass</b>; <b>§8 24/24</b> valid; hidden suites strengthened (async-batched 5→9-11, top-k 12→16, refactor-order 1→21).</td></tr>
+    <tr><td><span class="ok">●</span> <b>600 real runs</b> (5×24×5); 0 recon/synthetic/voided/duplicate rows; pass counts 68/38/32/26/6.</td></tr>
+    <tr><td><span class="ok">●</span> <b>Forensic cohort 100% consistent</b> — last 100 runs persist patches + 1218 test rows; 0 score/test mismatches; patches trace to real semantics.</td></tr>
+    <tr><td><span class="ok">●</span> <b>Report byte-reproducible</b> ×3 (SHA 87ca6c77); DB + HTML tracked; model digest/seed/temp pinned.</td></tr>
+    <tr><td><span class="mid">●</span> Caught + discarded one agent false-positive (claimed EVALUATION_FRAMEWORK.md still had the old parsimony curve — refuted by grep).</td></tr>
+  </table>
+
+  <h2>Still open (disclosed)</h2>
+  <table>
+    <tr><td><span class="no">●</span> <b>P1-3</b> No DockerSandbox / untrusted isolation — hidden tests readable during <span class="mono">act</span>; valid only for trusted local agents.</td></tr>
+    <tr><td><span class="no">●</span> <b>P1-5</b> No dashboard/API/run-viewer/CONTRIBUTING — CLI/library only.</td></tr>
+    <tr><td><span class="no">●</span> <b>Legacy</b> First 500 runs lack patch/test detail (irrecoverable).</td></tr>
+    <tr><td><span class="mid">●</span> <b>P2-5 partial</b> 3 tasks strengthened (v1.0.1) but published cells still v1.0.0 (disclosed via badge, not re-measured).</td></tr>
+  </table>
+
+  <footer>Audit-2 of AgentForge Arena. Companion files in this folder: <span class="mono">AUDIT_REPORT.md</span>, <span class="mono">AUDIT_SCORECARD.md</span>, <span class="mono">AUDIT_FINDINGS.json</span>. Read-only audit; no production code changed.</footer>
+</div>
+<script>
+const scores=[["Scoring / math",8.5,8.5],["Test quality",9.0,8.5],["Task pack",7.5,7.0],["Clean-room / security",7.0,6.5],["Eval validity",7.5,4.0],["Domain coverage",8.0,5.0],["Report quality",7.5,4.5],["Reproducibility",7.5,2.5],["Product usability",4.5,4.0],["Documentation accuracy",7.5,3.0]];
+const col=v=>v>=7.5?"var(--good)":v>=5?"var(--warn)":"var(--bad)";
+document.getElementById("score-rows").innerHTML=scores.map(([n,v,p])=>`<tr><td>${n}</td><td><div class="bar"><span style="width:${v*10}%;background:${col(v)}"></span></div></td><td class="mono" style="color:${col(v)}">${v.toFixed(1)}</td><td class="mono" style="color:var(--muted)">${p.toFixed(1)}</td></tr>`).join("");
+document.getElementById("disp").innerHTML=[["pc","15 genuinely closed"],["pp","1 partially closed (P2-5)"],["po","3 still open (P1-3, P1-5, legacy)"],["pp","1 new P2 + 9 new P3 (minor)"]].map(([c,t])=>`<span class="pill ${c}">${t}</span>`).join("");
+const C=[["P0-1 fabricated leaderboard","genuinely closed — DB-first, no KNOWN_OLD, 600 real rows, pass counts match (mutation-tested)"],["P0-2 not reproducible","genuinely closed — tracked + byte-identical regen ×3 (SHA 87ca6c77)"],["P0-3 gap-filled domains","genuinely closed — all 5 models ≥25 real runs in every domain"],["P1-1 empty forensic layer","closed forward — last 100 runs have patches+test rows; first 500 NULL (legacy)"],["P1-2 / P1-4","closed — labels match DB; generator test proven non-smoke by mutation"],["P2-1 parsimony drift","closed in BOTH framework docs (S=0.6659); one agent's 'still broken' claim refuted"],["P2-2 / P2-3 / P2-4 / P2-6 / P3-3 / P3-4","closed — casefold+symlink guards, numeric report tests, skew disclosed, floor unwired, n_tasks fixed"],["P2-5 weak task cells","PARTIAL — hidden suites strengthened, but committed cells still v1.0.0 (disclosed)"]];
+document.getElementById("clos").innerHTML=C.map(([a,b])=>`<tr><td class="mono">${a}</td><td>${b.includes("PARTIAL")?'<span class="mid">'+b+'</span>':'<span class="ok">'+b+'</span>'}</td></tr>`).join("");
+const F=[["P2","Production task-version resolution path untested","manifest items have no 'version' key, so the disk-read fallback runs in production but both tests exercise only the inline-dict branch."],["P3","build_report excludes non-MODELS agents","under-reporting (safe), moot today; latent footgun if a new model is evaluated but not added to MODELS."],["P3","save_run persists detail-less rows when report is None","unreachable in production; a defensive assert would harden P1-1."],["P3","Version/baseline disclosure nuances","synthetic baselines pool two versions for 3 tasks; stale-version shown only in a tooltip; oracle/noop ranked like measured agents with only a name suffix."],["P3","Two parallel framework docs without a source-of-truth marker","currently consistent (parsimony reconciled in both) but a drift hazard."]];
+document.getElementById("findings").innerHTML=F.map(([s,t,d])=>`<div class="fin ${s}"><span class="sev s${s}">${s}</span> <b>${t}</b><p>${d}</p></div>`).join("");
+</script>
+</body>
+</html>

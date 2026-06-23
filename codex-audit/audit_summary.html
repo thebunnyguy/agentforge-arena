@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>AgentForge Arena — Hardcore Audit Analysis</title>
+<style>
+  :root {
+    --bg: #f4f4f0;
+    --paper: #ffffff;
+    --ink: #182229;
+    --muted: #5e6a72;
+    --line: #d7ddd9;
+    --line-strong: #b9c2bd;
+    --primary: #176b87;
+    --primary-dark: #0e5269;
+    --primary-soft: #dceff4;
+    --critical: #a82b21;
+    --critical-soft: #fde9e7;
+    --warning: #8a5a00;
+    --warning-soft: #fff1cf;
+    --good: #256a47;
+    --good-soft: #e3f2e8;
+    --neutral-soft: #edf0ee;
+    --focus: #005fcc;
+    --shadow: 0 10px 30px rgba(24, 34, 41, 0.07);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  a { color: var(--primary-dark); text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  button, input { font: inherit; }
+  button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 99;
+    transform: translateY(-160%);
+    padding: 9px 12px;
+    background: var(--ink);
+    color: white;
+    border-radius: 6px;
+  }
+  .skip-link:focus { transform: translateY(0); }
+  .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .masthead {
+    background: var(--ink);
+    color: #f7f9f8;
+    padding: 38px 0 30px;
+    border-bottom: 5px solid var(--critical);
+  }
+  .kicker {
+    margin: 0 0 8px;
+    color: #b9c9cf;
+    font-size: 12px;
+    font-weight: 760;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+  }
+  h1 {
+    max-width: 950px;
+    margin: 0;
+    font-size: clamp(30px, 5vw, 54px);
+    line-height: 1.04;
+    letter-spacing: -.035em;
+  }
+  .dek {
+    max-width: 850px;
+    margin: 16px 0 0;
+    color: #d5dee1;
+    font-size: clamp(16px, 2.2vw, 20px);
+  }
+  .meta-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 20px;
+    color: #aebbc0;
+    font-size: 13px;
+  }
+  .meta-links a { color: #d8edf4; }
+
+  .section-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, .97);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+  }
+  .section-nav .wrap {
+    display: flex;
+    gap: 4px;
+    min-width: max-content;
+  }
+  .section-nav a {
+    display: block;
+    padding: 12px 11px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 720;
+  }
+  .section-nav a:hover { color: var(--ink); background: var(--neutral-soft); }
+
+  main { padding: 28px 0 64px; }
+  section { scroll-margin-top: 56px; margin: 0 0 42px; }
+  h2 {
+    margin: 0 0 6px;
+    font-size: clamp(23px, 3vw, 31px);
+    letter-spacing: -.02em;
+  }
+  h3 { margin: 0 0 8px; font-size: 17px; }
+  .section-intro { max-width: 820px; margin: 0 0 18px; color: var(--muted); }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, .8fr) minmax(0, 1.45fr);
+    gap: 18px;
+    align-items: stretch;
+  }
+  .grade-panel, .verdict-panel, .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  .grade-panel { padding: 22px; }
+  .grade-label { color: var(--muted); font-size: 13px; font-weight: 700; }
+  .grade-value {
+    margin: 5px 0 9px;
+    font-size: 64px;
+    font-weight: 820;
+    line-height: 1;
+    letter-spacing: -.05em;
+  }
+  .grade-value small { color: var(--muted); font-size: 20px; font-weight: 650; letter-spacing: 0; }
+  .grade-track {
+    position: relative;
+    height: 16px;
+    margin: 14px 0 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: #e8ebe9;
+    overflow: hidden;
+  }
+  .grade-track > span { display: block; width: 66%; height: 100%; background: var(--primary); }
+  .grade-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+  .maturity {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--warning-soft);
+    color: var(--warning);
+    font-size: 12px;
+    font-weight: 760;
+  }
+  .maturity::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .verdict-panel { padding: 24px; border-left: 6px solid var(--critical); }
+  .verdict-panel .eyebrow { color: var(--critical); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .verdict-panel h2 { max-width: 760px; margin-top: 5px; }
+  .verdict-panel p { max-width: 820px; margin: 9px 0 0; }
+
+  .evidence-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .evidence-item { padding: 16px 18px; border-right: 1px solid var(--line); }
+  .evidence-item:last-child { border-right: 0; }
+  .evidence-item b { display: block; font-size: 26px; line-height: 1.1; }
+  .evidence-item span { color: var(--muted); font-size: 12px; }
+  .evidence-item.alert b { color: var(--critical); }
+
+  .proof-alert {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid #e6b2ad;
+    border-left: 6px solid var(--critical);
+    border-radius: 10px;
+    background: var(--critical-soft);
+  }
+  .proof-alert b { color: var(--critical); }
+  .proof-alert code { padding: 1px 4px; background: rgba(255,255,255,.7); border-radius: 3px; }
+
+  .score-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+    gap: 18px;
+  }
+  .panel { padding: 18px; }
+  .score-row {
+    display: grid;
+    grid-template-columns: minmax(190px, 1fr) minmax(170px, 1.25fr) 42px;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eef0ee;
+  }
+  .score-row:last-child { border-bottom: 0; }
+  .score-name { font-size: 13px; font-weight: 680; }
+  .bar-track { height: 10px; border-radius: 3px; background: #e4e8e5; overflow: hidden; }
+  .bar-track span { display: block; height: 100%; background: var(--primary); }
+  .score-num { font-variant-numeric: tabular-nums; font-weight: 780; text-align: right; }
+  .gate-list { list-style: none; padding: 0; margin: 0; }
+  .gate-list li { display: grid; grid-template-columns: 28px 1fr; gap: 8px; margin: 10px 0; }
+  .gate-list .n { color: var(--critical); font-weight: 820; font-size: 19px; }
+
+  .blocker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .blocker {
+    padding: 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--critical);
+    border-radius: 9px;
+  }
+  .blocker p { margin: 6px 0 0; color: var(--muted); }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 820;
+    letter-spacing: .03em;
+  }
+  .tag.p0, .tag.p1, .tag.critical { background: var(--critical-soft); color: var(--critical); }
+  .tag.p2, .tag.high, .tag.high-evaluation, .tag.medium-high { background: var(--warning-soft); color: var(--warning); }
+  .tag.p3, .tag.medium, .tag.low-medium { background: var(--neutral-soft); color: #47545c; }
+  .tag.low { background: var(--good-soft); color: var(--good); }
+
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 10px 11px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  th {
+    color: var(--muted);
+    background: #f6f7f5;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: #fafbf9; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .source-note { color: var(--muted); font-size: 12px; }
+  .agent-name { font-weight: 740; }
+  .synthetic { color: var(--muted); }
+  .rank { font-size: 16px; font-weight: 820; }
+
+  .interval {
+    position: relative;
+    width: 210px;
+    height: 28px;
+    background-image: linear-gradient(to right, transparent calc(50% - .5px), #cfd5d1 calc(50% - .5px), #cfd5d1 calc(50% + .5px), transparent calc(50% + .5px));
+  }
+  .interval::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 13px;
+    height: 2px;
+    background: #d8ddda;
+  }
+  .interval-band {
+    position: absolute;
+    top: 8px;
+    left: var(--low);
+    width: calc(var(--high) - var(--low));
+    height: 12px;
+    border: 1px solid #72a8b9;
+    border-radius: 3px;
+    background: var(--primary-soft);
+  }
+  .interval-point {
+    position: absolute;
+    top: 4px;
+    left: calc(var(--point) - 2px);
+    width: 4px;
+    height: 20px;
+    background: var(--primary-dark);
+    border-radius: 2px;
+  }
+  .interval.baseline .interval-band { border-color: #9aa49f; background: var(--neutral-soft); }
+  .interval.baseline .interval-point { background: #4d585e; }
+
+  .domain-matrix th:not(:first-child), .domain-matrix td:not(:first-child) { text-align: center; min-width: 132px; }
+  .domain-cell { border-left: 1px solid white; }
+  .domain-cell b { display: block; font-size: 16px; }
+  .domain-cell span { color: #39464d; font-size: 10px; white-space: nowrap; }
+  .q0 { background: #f1f2f0; }
+  .q1 { background: #e4eff2; }
+  .q2 { background: #d0e6ec; }
+  .q3 { background: #afd4df; }
+  .q4 { background: #7db8ca; }
+  .q5 { background: #4b94ab; color: white; }
+  .q5 span { color: #eaf6f9; }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 12px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .filters label { font-size: 12px; font-weight: 760; color: var(--muted); }
+  .filter-button, .reset-button {
+    min-height: 38px;
+    padding: 7px 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: white;
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 720;
+  }
+  .filter-button[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-dark); }
+  .reset-button { margin-left: auto; color: var(--muted); }
+  .search {
+    min-height: 38px;
+    width: min(310px, 100%);
+    padding: 7px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    color: var(--ink);
+    background: white;
+  }
+  .result-count { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+
+  .finding-list { display: grid; gap: 9px; }
+  .finding-card {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--paper);
+  }
+  .finding-card[data-severity="P0"], .finding-card[data-severity="P1"] { border-left-color: var(--critical); }
+  .finding-card[data-severity="P2"] { border-left-color: var(--warning); }
+  .finding-card[data-severity="P3"] { border-left-color: #7b868c; }
+  .finding-card h3 { margin: 0; }
+  .finding-card p { margin: 5px 0 0; color: var(--muted); }
+
+  .task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .task-card {
+    padding: 14px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+  }
+  .task-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .task-title { font-weight: 780; }
+  .task-meta { margin: 4px 0 8px; color: var(--muted); font-size: 12px; }
+  .task-card p { margin: 8px 0 0; color: var(--muted); }
+  .quality-line { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+  .quality-line .bar-track { height: 8px; }
+
+  .repro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .check-list { list-style: none; margin: 0; padding: 0; }
+  .check-list li {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #edf0ee;
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .status { font-size: 11px; font-weight: 840; }
+  .status.pass { color: var(--good); }
+  .status.partial { color: var(--warning); }
+  .status.fail { color: var(--critical); }
+  details { border-top: 1px solid var(--line); }
+  details:first-child { border-top: 0; }
+  summary { padding: 11px 0; cursor: pointer; font-weight: 730; }
+  details p { margin: 0 0 12px; color: var(--muted); }
+
+  .next-steps { counter-reset: next; list-style: none; padding: 0; margin: 16px 0 0; }
+  .next-steps li {
+    counter-increment: next;
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 14px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+  }
+  .next-steps li::before {
+    content: counter(next);
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: white;
+    font-weight: 820;
+  }
+  .do-not {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: var(--warning-soft);
+    border: 1px solid #dfc37a;
+    border-radius: 9px;
+  }
+  .do-not ul { margin-bottom: 0; }
+
+  footer {
+    padding: 28px 0 40px;
+    border-top: 1px solid var(--line-strong);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 900px) {
+    .hero-grid, .score-layout, .repro-grid { grid-template-columns: 1fr; }
+    .evidence-strip { grid-template-columns: 1fr 1fr; }
+    .evidence-item:nth-child(2) { border-right: 0; }
+    .evidence-item:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+    .blocker-grid, .task-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .wrap { width: min(100% - 20px, 1180px); }
+    .masthead { padding: 28px 0 24px; }
+    .section-nav a { padding: 11px 9px; }
+    main { padding-top: 18px; }
+    section { margin-bottom: 34px; }
+    .evidence-strip { grid-template-columns: 1fr; }
+    .evidence-item { border-right: 0; border-bottom: 1px solid var(--line); }
+    .evidence-item:last-child { border-bottom: 0; }
+    .score-row { grid-template-columns: 1fr 38px; }
+    .score-row .bar-track { grid-column: 1 / -1; grid-row: 2; }
+    .score-num { grid-column: 2; grid-row: 1; }
+    .filters { align-items: stretch; }
+    .filters label { width: 100%; }
+    .search { width: 100%; }
+    .reset-button { margin-left: 0; }
+    .finding-card { grid-template-columns: 1fr; gap: 7px; }
+    .interval { width: 150px; }
+  }
+  @media print {
+    :root { --bg: white; }
+    .section-nav, .filters, .skip-link { display: none !important; }
+    body { font-size: 11px; }
+    .wrap { width: 100%; max-width: none; }
+    .masthead { padding: 18px 0; color: black; background: white; border-bottom: 3px solid black; }
+    .masthead h1, .masthead .dek, .masthead .meta-links, .masthead .kicker { color: black; }
+    .grade-panel, .verdict-panel, .panel, .blocker, .task-card, .finding-card { box-shadow: none; break-inside: avoid; }
+    section { break-inside: auto; margin-bottom: 24px; }
+  }
+</style>
+</head>
+<body>
+<!--
+Embedded visualization inventory:
+1. Overall grade meter — comparison/threshold; strategy owner; direct 66/100 label; static text fallback.
+2. Dimension score bars — categorical comparison; strategy/accessibility owner; direct values and ordered bars.
+3. Leaderboard intervals — uncertainty comparison; statistical owner; observed rate + Wilson interval + table values.
+4. Domain matrix — multivariate profile; statistical/accessibility owner; rate and interval visible in every cell.
+5. Findings/task explorers — evidence lookup; accessibility/testing owner; keyboard controls, URL state, unfiltered noscript fallback links.
+QA: embedded count invariants, HTML/JS syntax, URL-state restoration, print/mobile CSS, direct-label review.
+-->
+<a class="skip-link" href="#main">Skip to audit analysis</a>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">External audit · commit 798a5b3 · 20 June 2026</p>
+    <h1>The aggregate is reproducible. The benchmark claim is not yet fully valid.</h1>
+    <p class="dek">AgentForge Arena has a serious math-and-testing backbone, but one verified false-positive pass, a broken security-task oracle, stale task versions, and weak isolation block an unqualified benchmark claim.</p>
+    <div class="meta-links">
+      <span>Overall grade <strong>66/100</strong></span>
+      <span>Maturity <strong>research tool</strong></span>
+      <a href="AUDIT_REPORT.md">Full report</a>
+      <a href="AUDIT_SCORECARD.md">Scorecard</a>
+      <a href="AUDIT_FINDINGS.json">Raw audit JSON</a>
+      <a href="../reports/leaderboard.html">Current project leaderboard</a>
+    </div>
+  </div>
+</header>
+
+<nav class="section-nav" aria-label="Audit sections">
+  <div class="wrap">
+    <a href="#overview">Verdict</a>
+    <a href="#blockers">Blockers</a>
+    <a href="#models">Models</a>
+    <a href="#domains">Domains</a>
+    <a href="#findings">Findings</a>
+    <a href="#tasks">Tasks</a>
+    <a href="#repro">Reproducibility</a>
+    <a href="#next">Next steps</a>
+  </div>
+</nav>
+
+<main id="main" class="wrap">
+  <section id="overview" aria-labelledby="overview-title">
+    <div class="hero-grid">
+      <div class="grade-panel">
+        <div class="grade-label">Hardcore audit grade</div>
+        <div class="grade-value">66<small>/100</small></div>
+        <div class="grade-track" role="img" aria-label="Overall audit grade 66 out of 100"><span></span></div>
+        <div class="grade-scale"><span>prototype</span><span>product-ready</span></div>
+        <span class="maturity">Research tool</span>
+      </div>
+      <div class="verdict-panel">
+        <div class="eyebrow">Executive verdict</div>
+        <h2 id="overview-title">Trust the DB projection. Do not yet trust the benchmark as a complete contract test.</h2>
+        <p>The current HTML reproduces byte-for-byte from 600 genuine model rows, and the scoring arithmetic checks out. But at least one qwen functional pass is demonstrably wrong against the written task behavior, while an arbitrary agent can access host reference and hidden-test paths.</p>
+      </div>
+    </div>
+
+    <div class="evidence-strip" aria-label="Audit evidence summary">
+      <div class="evidence-item"><b>366/366</b><span>tests passed; 7 warnings</span></div>
+      <div class="evidence-item"><b>600</b><span>genuine persisted model runs</span></div>
+      <div class="evidence-item alert"><b>1 P0</b><span>demonstrated score contamination</span></div>
+      <div class="evidence-item alert"><b>75</b><span>runs on superseded task versions</span></div>
+    </div>
+
+    <div class="proof-alert" role="note">
+      <b>Executable counterexample:</b> the stored qwen expression “pass” returns <code>9</code> for <code>10-3-2</code>, <code>4</code> for <code>8/4/2</code>, and crashes on <code>1+-2</code>. The report's 68/120 is DB-correct but contract-contaminated.
+    </div>
+  </section>
+
+  <section aria-labelledby="scorecard-title">
+    <h2 id="scorecard-title">Where the 66 points came from</h2>
+    <p class="section-intro">The project is strongest where the problem is pure and local—math and tests—and weakest where reliability depends on hostile processes, exact provenance, and product workflows.</p>
+    <div class="score-layout">
+      <div class="panel" id="scorecard-bars" aria-label="Audit dimension scores"></div>
+      <aside class="panel" aria-labelledby="deductions-title">
+        <h3 id="deductions-title">Largest deductions</h3>
+        <ul class="gate-list">
+          <li><span class="n">−5</span><span>No trustworthy boundary for untrusted agents or hostile submitted code.</span></li>
+          <li><span class="n">−3</span><span>At least one false-positive pass and one nonconforming security reference.</span></li>
+          <li><span class="n">−3</span><span>Generation-level replay is impossible from current run metadata.</span></li>
+          <li><span class="n">−3</span><span>No product CLI, dashboard, API, or run-detail surface.</span></li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section id="blockers" aria-labelledby="blockers-title">
+    <h2 id="blockers-title">Release blockers</h2>
+    <p class="section-intro">These P0/P1 findings must be resolved before publishing a “fair/current/secure benchmark” claim.</p>
+    <div class="blocker-grid">
+      <article class="blocker"><span class="tag p0">P0</span><h3>Expression score false positive</h3><p>Qwen run 4 passes ten hidden assertions but fails standard associativity and supported unary-minus forms.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>Security oracle violates its contract</h3><p>The redirect reference accepts hosted <span class="mono">javascript:</span> and <span class="mono">data:</span> URLs the description says to reject.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>Hidden/reference paths leak to agents</h3><p><span class="mono">agent.act</span> receives a full Task object with absolute task and reference directories.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>Host environment changes grades</h3><p>A persisted qwen patch imported undeclared NetworkX and ran because version 3.4.2 happens to be installed locally.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>75 stale-version rows</h3><p>Three strengthened v1.0.1 tasks still report only v1.0.0 model runs.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>Run replay metadata is missing</h3><p>Per-run model digest, seed, prompt/transcript, server config, dependency image, and command log are not stored.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>Leaderboard aggregation drifts from framework</h3><p>Executable ranking is micro-pooled across tasks; the framework specifies macro-domain aggregation.</p></article>
+      <article class="blocker"><span class="tag p1">P1</span><h3>Timeout/infra taxonomy is incomplete</h3><p>Only adapter-declared transport failures are reliably voided; grader and script timeouts do not follow the documented lifecycle.</p></article>
+    </div>
+  </section>
+
+  <section id="models" aria-labelledby="models-title">
+    <h2 id="models-title">Evidence-backed leaderboard</h2>
+    <p class="section-intro">Position shows observed pass rate. The blue band is the independently recomputed Wilson 95% interval. Baselines are synthetic and shown in gray. These intervals assume binomial/exchangeable runs; real task and retry correlation can make them optimistic.</p>
+    <div class="table-wrap">
+      <table aria-describedby="leaderboard-description">
+        <caption id="leaderboard-description" class="sr-only">Seven agents ranked by Wilson lower bound, with observed pass rate and 95 percent Wilson interval.</caption>
+        <thead><tr><th>Rank</th><th>Agent</th><th>Passes</th><th>Rate / LCB</th><th>Observed rate and 95% interval</th></tr></thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><span class="agent-name synthetic">oracle</span><div class="source-note">synthetic baseline</div></td><td class="num">120/120</td><td class="num">100.0% / 96.9%</td><td><div class="interval baseline" style="--low:96.9%;--high:100%;--point:100%" role="img" aria-label="Oracle pass rate 100 percent, Wilson interval 96.9 to 100 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+          <tr><td class="rank">2</td><td><span class="agent-name">qwen2.5-coder:7b</span><div class="source-note">at least one contract-invalid pass</div></td><td class="num">68/120</td><td class="num">56.7% / 47.7%</td><td><div class="interval" style="--low:47.7%;--high:65.2%;--point:56.7%" role="img" aria-label="Qwen 7B pass rate 56.7 percent, Wilson interval 47.7 to 65.2 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+          <tr><td class="rank">3–4</td><td><span class="agent-name">deepseek-coder:6.7b</span></td><td class="num">38/120</td><td class="num">31.7% / 24.0%</td><td><div class="interval" style="--low:24%;--high:40.4%;--point:31.7%" role="img" aria-label="Deepseek pass rate 31.7 percent, Wilson interval 24.0 to 40.4 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+          <tr><td class="rank">3–5</td><td><span class="agent-name">qwen2.5-coder:3b</span></td><td class="num">32/120</td><td class="num">26.7% / 19.6%</td><td><div class="interval" style="--low:19.6%;--high:35.2%;--point:26.7%" role="img" aria-label="Qwen 3B pass rate 26.7 percent, Wilson interval 19.6 to 35.2 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+          <tr><td class="rank">4–5</td><td><span class="agent-name">llama3.2:latest</span></td><td class="num">26/120</td><td class="num">21.7% / 15.2%</td><td><div class="interval" style="--low:15.2%;--high:29.9%;--point:21.7%" role="img" aria-label="Llama 3.2 pass rate 21.7 percent, Wilson interval 15.2 to 29.9 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+          <tr><td class="rank">6</td><td><span class="agent-name">gemma2:2b</span></td><td class="num">6/120</td><td class="num">5.0% / 2.3%</td><td><div class="interval" style="--low:2.3%;--high:10.5%;--point:5%" role="img" aria-label="Gemma 2B pass rate 5 percent, Wilson interval 2.3 to 10.5 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+          <tr><td class="rank">7</td><td><span class="agent-name synthetic">noop</span><div class="source-note">synthetic baseline</div></td><td class="num">0/120</td><td class="num">0.0% / 0.0%</td><td><div class="interval baseline" style="--low:0%;--high:3.1%;--point:0%" role="img" aria-label="Noop pass rate zero percent, Wilson interval zero to 3.1 percent"><span class="interval-band"></span><span class="interval-point"></span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="source-note">Failure evidence gap: parser failures and grader timeouts are untrackable in the committed rows. “No edit” is a symptom, not a diagnosis. The first 500 rows have no patch/test forensics.</p>
+  </section>
+
+  <section id="domains" aria-labelledby="domains-title">
+    <h2 id="domains-title">Domain profile: displayable, not balanced</h2>
+    <p class="section-intro">Every cell clears the project's 5-task/25-run display rule. API and performance nevertheless have Kish effective n of only 22.86; backend contributes 17 tagged tasks and dominates the overall micro score.</p>
+    <div class="table-wrap">
+      <table class="domain-matrix">
+        <thead><tr><th>Model</th><th>API design</th><th>Async</th><th>Backend</th><th>Performance</th><th>Security</th></tr></thead>
+        <tbody>
+          <tr><td class="agent-name">qwen-7B</td><td class="domain-cell q4"><b>70%</b><span>49.5–84.7</span></td><td class="domain-cell q1"><b>20%</b><span>8.9–39.1</span></td><td class="domain-cell q4"><b>60.8%</b><span>49.6–71.0</span></td><td class="domain-cell q3"><b>50%</b><span>31.0–69.0</span></td><td class="domain-cell q5"><b>76%</b><span>56.6–88.5</span></td></tr>
+          <tr><td class="agent-name">qwen-3B</td><td class="domain-cell q2"><b>30%</b><span>15.3–50.5</span></td><td class="domain-cell q0"><b>0%</b><span>0–13.3</span></td><td class="domain-cell q2"><b>32.8%</b><span>23.3–43.9</span></td><td class="domain-cell q1"><b>22.5%</b><span>10.1–42.8</span></td><td class="domain-cell q2"><b>40%</b><span>23.4–59.3</span></td></tr>
+          <tr><td class="agent-name">deepseek</td><td class="domain-cell q1"><b>25%</b><span>11.8–45.4</span></td><td class="domain-cell q1"><b>24%</b><span>11.5–43.4</span></td><td class="domain-cell q2"><b>27.2%</b><span>18.5–38.1</span></td><td class="domain-cell q3"><b>45%</b><span>26.8–64.6</span></td><td class="domain-cell q3"><b>52%</b><span>33.5–70.0</span></td></tr>
+          <tr><td class="agent-name">llama3.2</td><td class="domain-cell q1"><b>12.5%</b><span>4.2–31.6</span></td><td class="domain-cell q0"><b>4%</b><span>0.7–19.5</span></td><td class="domain-cell q1"><b>24%</b><span>15.8–34.7</span></td><td class="domain-cell q3"><b>50%</b><span>31.0–69.0</span></td><td class="domain-cell q1"><b>24%</b><span>11.5–43.4</span></td></tr>
+          <tr><td class="agent-name">gemma2</td><td class="domain-cell q0"><b>0%</b><span>0–14.4</span></td><td class="domain-cell q0"><b>0%</b><span>0–13.3</span></td><td class="domain-cell q0"><b>6.4%</b><span>2.7–14.2</span></td><td class="domain-cell q1"><b>20%</b><span>8.5–40.1</span></td><td class="domain-cell q0"><b>0%</b><span>0–13.3</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="source-note">Cells show pass rate; second line is Wilson 95% interval. Color redundantly encodes rate only. Gemma's performance result is driven largely by one top-k cell; security includes the contract-broken redirect task.</p>
+  </section>
+
+  <section id="findings" aria-labelledby="findings-title">
+    <h2 id="findings-title">Findings explorer</h2>
+    <p class="section-intro">Filter by severity or search the evidence. Filter state is stored in the URL so the view can be reopened.</p>
+    <div class="filters" aria-label="Finding filters">
+      <label for="finding-search">Search findings</label>
+      <input class="search" id="finding-search" type="search" placeholder="e.g. timeout, task version, parser">
+      <button class="filter-button" type="button" data-severity="all" aria-pressed="true">All · 26</button>
+      <button class="filter-button" type="button" data-severity="P0" aria-pressed="false">P0 · 1</button>
+      <button class="filter-button" type="button" data-severity="P1" aria-pressed="false">P1 · 7</button>
+      <button class="filter-button" type="button" data-severity="P2" aria-pressed="false">P2 · 13</button>
+      <button class="filter-button" type="button" data-severity="P3" aria-pressed="false">P3 · 5</button>
+      <button class="reset-button" id="finding-reset" type="button">Reset</button>
+    </div>
+    <p class="result-count" id="finding-count" aria-live="polite"></p>
+    <div class="finding-list" id="finding-list"></div>
+    <noscript><p class="proof-alert">JavaScript is disabled. The complete unfiltered finding list remains available in <a href="AUDIT_REPORT.md">AUDIT_REPORT.md</a> and <a href="AUDIT_FINDINGS.json">AUDIT_FINDINGS.json</a>.</p></noscript>
+  </section>
+
+  <section id="tasks" aria-labelledby="tasks-title">
+    <h2 id="tasks-title">Task-pack quality explorer</h2>
+    <p class="section-intro">All 24 current tasks pass structural validation. The cards below separate that fact from semantic risk and test quality.</p>
+    <div class="filters" aria-label="Task filters">
+      <label for="task-search">Search tasks</label>
+      <input class="search" id="task-search" type="search" placeholder="task id, domain, note">
+      <button class="filter-button" type="button" data-risk="all" aria-pressed="true">All · 24</button>
+      <button class="filter-button" type="button" data-risk="critical" aria-pressed="false">Critical · 2</button>
+      <button class="filter-button" type="button" data-risk="high" aria-pressed="false">High · 4</button>
+      <button class="filter-button" type="button" data-risk="medium" aria-pressed="false">Medium · 14</button>
+      <button class="filter-button" type="button" data-risk="low" aria-pressed="false">Low · 4</button>
+      <button class="reset-button" id="task-reset" type="button">Reset</button>
+    </div>
+    <p class="result-count" id="task-count" aria-live="polite"></p>
+    <div class="task-grid" id="task-grid"></div>
+  </section>
+
+  <section id="repro" aria-labelledby="repro-title">
+    <h2 id="repro-title">Reproducibility: the report replays; the generations do not</h2>
+    <p class="section-intro">The DB and current HTML are committed and byte-reproducible. Exact model outputs cannot be replayed from per-run evidence.</p>
+    <div class="repro-grid">
+      <div class="panel">
+        <h3>Checklist</h3>
+        <ul class="check-list">
+          <li><span class="status pass">PASS</span><span>Test quickstart, demo, DB location, report command, manifest, and tracked hashes.</span></li>
+          <li><span class="status pass">PASS</span><span>Five exact model names/tags and n=5 across 24 tasks.</span></li>
+          <li><span class="status partial">PARTIAL</span><span>Dependencies: pytest/Ollama stated, but no locked grader image.</span></li>
+          <li><span class="status partial">PARTIAL</span><span>Temperature/base seed stated; resumed seed mapping is not persisted.</span></li>
+          <li><span class="status partial">PARTIAL</span><span>Infra separation works for adapter transport failures only.</span></li>
+          <li><span class="status fail">FAIL</span><span>Three run-time model digests and every per-run configuration record are absent.</span></li>
+          <li><span class="status fail">FAIL</span><span>Only 100/600 patches and 99/600 test-result sets exist; no transcript text exists.</span></li>
+          <li><span class="status fail">FAIL</span><span>Three current v1.0.1 tasks have only v1.0.0 evaluation rows.</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Incident trail</h3>
+        <details open><summary>Math integrity bugs — fixed before current data</summary><p>Wilson float residue, ranking self-comparison, and zero-hidden-weight functional passes all received direct regression tests.</p></details>
+        <details><summary>Clean-room auto-exec injection — path layer fixed</summary><p>conftest/sitecustomize/pytest config and .pth variants are blocked, including mixed case and symlink capture. Host/runtime isolation remains open.</p></details>
+        <details><summary>Ollama parser and connection failures — partly fixed</summary><p>In-block FILE markers are parsed and explicit transport failures are voided. Other response-format failures remain opaque no-edits.</p></details>
+        <details><summary>Background jobs reaped — resumability added</summary><p>Per-run SQLite persistence prevents total progress loss, but resume resets the model call counter and therefore seed schedule.</p></details>
+        <details><summary>Undisclosed gap-fill — fully removed</summary><p>All five model rows are now genuine DB data. Oracle/noop are explicit synthetic baselines. The legacy 500-run forensic gap remains.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="next" aria-labelledby="next-title">
+    <h2 id="next-title">What must happen next</h2>
+    <ol class="next-steps">
+      <li><div><strong>Repair the benchmark contract.</strong> Quarantine and fix expression-evaluator and redirect validation; derive adversarial tests from the descriptions; rerun affected cells.</div></li>
+      <li><div><strong>Choose one executable scoring specification.</strong> Reconcile macro/micro ranking, timeout/infra taxonomy, deterministic evidence, Q-unavailable semantics, and continuous scoring; version it.</div></li>
+      <li><div><strong>Build a real trust boundary.</strong> Run agents and graders in pinned, network-disabled isolation and pass agents a sanitized task view without host reference/hidden paths.</div></li>
+      <li><div><strong>Rerun the complete current pack.</strong> Derive stable seeds from evaluation/model/task/run identity and persist patches, tests, transcripts, parser outcomes, digests, config, commands, and timings.</div></li>
+      <li><div><strong>Only then build the product surface.</strong> Add DB constraints/migrations, raw-run drilldown, diff/test/transcript views, and CSV/JSON export before a dashboard polish sprint.</div></li>
+    </ol>
+    <div class="do-not"><strong>Do not do yet:</strong><ul><li>Add more models to the contaminated/stale matrix.</li><li>Call Wilson rank ranges statistically proven ties.</li><li>Build a glossy dashboard over missing forensic data.</li><li>Claim untrusted-agent safety, universal model ability, or a fair current-pack leaderboard.</li></ul></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Standalone audit analysis generated from <a href="AUDIT_REPORT.md">AUDIT_REPORT.md</a>, <a href="AUDIT_SCORECARD.md">AUDIT_SCORECARD.md</a>, and <a href="AUDIT_FINDINGS.json">AUDIT_FINDINGS.json</a>. No project code or benchmark data was changed.</div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const SCORECARD = [
+    ["Scoring / math correctness", 7.5],
+    ["Test suite quality", 8.5],
+    ["Task pack quality", 7.0],
+    ["Clean-room / security", 5.0],
+    ["Real-agent evaluation validity", 7.0],
+    ["Domain coverage", 6.0],
+    ["Report quality", 7.0],
+    ["Reproducibility", 6.5],
+    ["Product usability", 4.5],
+    ["Documentation accuracy", 7.0]
+  ];
+
+  const FINDINGS = [
+    ["P0-1", "P0", "Published qwen score contains a demonstrated task-contract false positive", "DB run 550 passes the hidden suite but returns 9 for 10-3-2, 4 for 8/4/2, and crashes on supported unary-minus forms."],
+    ["P1-1", "P1", "Redirect reference and hidden suite violate the security contract", "The reference accepts hosted javascript, data, and ftp URLs despite the description requiring dangerous schemes to be rejected."],
+    ["P1-2", "P1", "Arbitrary agents can read hidden and reference paths", "run_once passes a full Task with absolute task_dir and reference_dir paths to agent.act."],
+    ["P1-3", "P1", "No host security or dependency isolation", "LocalSandbox is not isolation; a persisted qwen patch imported host-installed NetworkX 3.4.2."],
+    ["P1-4", "P1", "75 published rows use obsolete task versions", "async-batched, refactor-order-validation, and top-k-frequent are current 1.0.1 but all stored model rows are 1.0.0."],
+    ["P1-5", "P1", "Per-run model, config, and seed provenance is insufficient", "The DB lacks digest, prompt/transcript, seed, server settings, dependency image, and command log; resume resets the call counter."],
+    ["P1-6", "P1", "Executable leaderboard is micro-pooled while the framework specifies macro-domain", "report.py counts all runs equally, allowing backend-heavy task distribution to dominate the headline."],
+    ["P1-7", "P1", "Timeout and infra gates do not behave as documented", "Hung in-process agents cannot be killed by run_once; grader and script timeout classifications are incomplete."],
+    ["P2-1", "P2", "Legacy forensic artifacts are missing", "500 of 600 rows lack patches and test results; every row lacks transcript text."],
+    ["P2-2", "P2", "Real evaluation primarily benchmarks a single-shot prompt/parser adapter", "OllamaAgent never runs visible tests and only accepts fenced complete-file response shapes."],
+    ["P2-3", "P2", "Report wrong-fix category conflates hidden misses and gate failures", "Every changed non-pass is called wrong-fix even when regression, collection, scope, or another gate failed."],
+    ["P2-4", "P2", "Q=1 is unmeasured but displayed as perfect", "All 600 rows default Q to one; the documented quality toolchain does not execute."],
+    ["P2-5", "P2", "Deterministic evidence policy is not implemented", "Determinism is detected but repeats still count; synthetic baselines receive Wilson intervals over 120 generated rows."],
+    ["P2-6", "P2", "Run identity uniqueness and formula-version selection are unenforced", "No unique agent/task/version/index constraint exists and load joins do not select a formula version."],
+    ["P2-7", "P2", "Domain evidence is backend-heavy and overlapping", "Backend touches 17 of 24 tasks; API and performance have only three primary tasks each."],
+    ["P2-8", "P2", "Task difficulty and discrimination are uneven", "query-builder is simple d4 at 1/25, gemma top-k is 4/5, and toposort has no real-model pass."],
+    ["P2-9", "P2", "Visible tests are weak and unused by the real adapter", "Many suites expose one or two tests; the model adapter does not execute them."],
+    ["P2-10", "P2", "Performance gates are host-dependent", "Whole-suite 20-second timeouts run without a pinned CPU, memory limit, or container."],
+    ["P2-11", "P2", "Rank ranges are heuristic, not simultaneous confidence ranks", "The one-sided LCB-versus-point rule has no family-wise correction."],
+    ["P2-12", "P2", "Full suite emits SQLite ResourceWarnings", "Seven unclosed-connection ResourceWarnings appeared in the 366-test run."],
+    ["P2-13", "P2", "Product surface is absent", "No FastAPI, Next.js, dashboard, product CLI, run viewer, or contributor guide exists."],
+    ["P3-1", "P3", "Literal python command is unavailable", "The environment has python3 but no python executable; the README correctly uses python3."],
+    ["P3-2", "P3", "Pre-existing audit artifacts were stale and untracked", "The earlier HTML described commit f70eb6d and score 75; it did not represent the current audit."],
+    ["P3-3", "P3", "Project report detail relies on hover-only title text", "Task and domain interval details are not always visible or touch/keyboard friendly."],
+    ["P3-4", "P3", "Editable allow-lists are package-wide", "Every task permits package/** rather than only its target implementation file."],
+    ["P3-5", "P3", "Weights and task metadata lack schema validation", "load_task accepts unchecked weights, difficulties, and suite metadata." ]
+  ];
+
+  const TASKS = [
+    ["escape-html", 2, "security · backend", "PASS", "low", 7.5, "Clear and well covered for a toy five-character contract."],
+    ["fix-binary-search", 2, "backend", "PASS", "medium", 8.0, "Strong edge suite; snapshot baseline passes 3/9 hidden tests and inflates partial S."],
+    ["fix-list-dedup", 2, "backend", "PASS", "medium", 6.5, "Hashability is unspecified although the reference requires it."],
+    ["async-retry", 3, "async · backend", "PASS", "medium", 7.5, "Useful retry and last-exception tests; thin visible and type edges."],
+    ["async-timeout", 3, "async", "PASS", "medium", 7.5, "Cancellation is tested; timing remains host-sensitive."],
+    ["fix-roman-numerals", 3, "backend", "PASS", "low", 7.5, "Good subtractive coverage; numeral validation is intentionally absent."],
+    ["implement-lru-cache", 3, "backend · API", "PASS", "medium", 7.0, "Core recency covered; nonpositive capacity is undefined."],
+    ["mask-secrets", 3, "security", "PASS", "medium", 6.5, "Regex grammar is partly ambiguous and tests are narrow."],
+    ["merge-intervals", 3, "backend · performance", "PASS", "low", 8.0, "Strong behavior; performance tag is not strongly enforced."],
+    ["paginator", 3, "API", "PASS", "medium", 7.5, "Precise API; invalid constructor inputs are unspecified."],
+    ["result-type", 3, "API · backend", "PASS", "low", 8.0, "Coherent API and meaningful map no-call test."],
+    ["sanitize-filename", 3, "security · backend", "PASS", "medium", 7.5, "Good stated checks; not a general cross-platform filename policy."],
+    ["async-batched", 4, "async · performance", "PASS v1.0.1", "high-evaluation", 8.5, "Strong current suite; every published row is stale v1.0.0."],
+    ["async-first-success", 4, "async", "PASS", "medium", 8.0, "Cancellation and last-input exception behavior are explicit."],
+    ["async-gather-bounded", 4, "async · backend", "PASS", "medium", 6.5, "Invalid limit and exception-cleanup coverage are weak."],
+    ["fix-path-traversal", 4, "security · backend", "PASS", "medium", 7.0, "Solid POSIX core; root and base edge semantics are thin."],
+    ["grid-paths", 4, "performance", "PASS", "medium", 8.0, "Good large discriminator; standard task may be difficulty 3."],
+    ["query-builder", 4, "API · backend", "PASS", "high", 6.0, "Simple task with 1/25 result; adapter/output confound and difficulty inflation are likely."],
+    ["refactor-order-validation", 4, "backend · API", "PASS v1.0.1", "high-evaluation", 8.5, "Strong current delegation suite; every published row is v1.0.0."],
+    ["top-k-frequent", 4, "performance · backend", "PASS v1.0.1", "high-evaluation", 8.5, "Strong current probes; published gemma outlier uses v1.0.0."],
+    ["toposort", 4, "backend", "PASS", "medium-high", 8.5, "Clear and strong; 0/25 needs a stronger-agent calibration anchor."],
+    ["two-sum-indices", 4, "performance · backend", "PASS", "low-medium", 8.0, "Good scale tests; canonical idiom makes d4 slightly high."],
+    ["validate-redirect-url", 4, "security", "FAIL contract", "critical", 4.5, "Reference accepts hosted javascript, data, and ftp schemes contrary to its description."],
+    ["expression-evaluator", 5, "backend", "FAIL coverage", "critical", 5.0, "Hidden suite awards a parser with wrong associativity and unary-minus behavior." ]
+  ];
+
+  const scorecard = document.getElementById("scorecard-bars");
+  SCORECARD.forEach(([name, value]) => {
+    const row = document.createElement("div");
+    row.className = "score-row";
+    row.innerHTML = `<span class="score-name">${name}</span><span class="bar-track" aria-hidden="true"><span style="width:${value * 10}%"></span></span><span class="score-num">${value.toFixed(1)}</span>`;
+    scorecard.appendChild(row);
+  });
+
+  const params = new URLSearchParams(location.search);
+  let severity = params.get("sev") || "all";
+  let risk = params.get("risk") || "all";
+  if (!["all", "P0", "P1", "P2", "P3"].includes(severity)) severity = "all";
+  if (!["all", "critical", "high", "medium", "low"].includes(risk)) risk = "all";
+  const findingSearch = document.getElementById("finding-search");
+  const taskSearch = document.getElementById("task-search");
+  findingSearch.value = params.get("fq") || "";
+  taskSearch.value = params.get("tq") || "";
+
+  const riskBucket = value => {
+    if (value === "critical") return "critical";
+    if (value.startsWith("high")) return "high";
+    if (value.includes("medium")) return "medium";
+    return "low";
+  };
+
+  const updateUrl = () => {
+    const next = new URLSearchParams();
+    if (severity !== "all") next.set("sev", severity);
+    if (risk !== "all") next.set("risk", risk);
+    if (findingSearch.value.trim()) next.set("fq", findingSearch.value.trim());
+    if (taskSearch.value.trim()) next.set("tq", taskSearch.value.trim());
+    const query = next.toString();
+    history.replaceState(null, "", query ? `?${query}${location.hash}` : `${location.pathname}${location.hash}`);
+  };
+
+  const setPressed = (selector, key, value) => {
+    document.querySelectorAll(selector).forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset[key] === value));
+    });
+  };
+
+  const renderFindings = () => {
+    const query = findingSearch.value.trim().toLowerCase();
+    const filtered = FINDINGS.filter(([id, sev, title, evidence]) =>
+      (severity === "all" || sev === severity) &&
+      (!query || `${id} ${sev} ${title} ${evidence}`.toLowerCase().includes(query))
+    );
+    const list = document.getElementById("finding-list");
+    list.replaceChildren();
+    filtered.forEach(([id, sev, title, evidence]) => {
+      const card = document.createElement("article");
+      card.className = "finding-card";
+      card.dataset.severity = sev;
+      card.innerHTML = `<div><span class="tag ${sev.toLowerCase()}">${id}</span></div><div><h3>${title}</h3><p>${evidence}</p></div>`;
+      list.appendChild(card);
+    });
+    document.getElementById("finding-count").textContent = `${filtered.length} of ${FINDINGS.length} findings shown`;
+    setPressed("[data-severity]", "severity", severity);
+    updateUrl();
+  };
+
+  const renderTasks = () => {
+    const query = taskSearch.value.trim().toLowerCase();
+    const filtered = TASKS.filter(([id, difficulty, domains, validation, taskRisk, quality, note]) =>
+      (risk === "all" || riskBucket(taskRisk) === risk) &&
+      (!query || `${id} ${difficulty} ${domains} ${validation} ${taskRisk} ${quality} ${note}`.toLowerCase().includes(query))
+    );
+    const grid = document.getElementById("task-grid");
+    grid.replaceChildren();
+    filtered
+      .slice()
+      .sort((a, b) => a[5] - b[5] || a[0].localeCompare(b[0]))
+      .forEach(([id, difficulty, domains, validation, taskRisk, quality, note]) => {
+        const card = document.createElement("article");
+        card.className = "task-card";
+        card.innerHTML = `<div class="task-head"><div><div class="task-title mono">${id}</div><div class="task-meta">d${difficulty} · ${domains} · ${validation}</div></div><span class="tag ${taskRisk}">${taskRisk.replace("-evaluation", " eval")}</span></div><div class="quality-line"><span class="bar-track" aria-hidden="true"><span style="width:${quality * 10}%"></span></span><strong>${quality.toFixed(1)}/10</strong></div><p>${note}</p>`;
+        grid.appendChild(card);
+      });
+    document.getElementById("task-count").textContent = `${filtered.length} of ${TASKS.length} tasks shown · sorted by quality ascending`;
+    setPressed("[data-risk]", "risk", risk);
+    updateUrl();
+  };
+
+  document.querySelectorAll("[data-severity]").forEach(button => button.addEventListener("click", () => {
+    severity = button.dataset.severity;
+    renderFindings();
+  }));
+  document.querySelectorAll("[data-risk]").forEach(button => button.addEventListener("click", () => {
+    risk = button.dataset.risk;
+    renderTasks();
+  }));
+  findingSearch.addEventListener("input", renderFindings);
+  taskSearch.addEventListener("input", renderTasks);
+  document.getElementById("finding-reset").addEventListener("click", () => {
+    severity = "all";
+    findingSearch.value = "";
+    renderFindings();
+    findingSearch.focus();
+  });
+  document.getElementById("task-reset").addEventListener("click", () => {
+    risk = "all";
+    taskSearch.value = "";
+    renderTasks();
+    taskSearch.focus();
+  });
+  addEventListener("popstate", () => location.reload());
+
+  renderFindings();
+  renderTasks();
+
+  console.assert(SCORECARD.length === 10, "Expected 10 scorecard dimensions");
+  console.assert(FINDINGS.length === 26, "Expected 26 findings");
+  console.assert(TASKS.length === 24, "Expected 24 tasks");
+  console.assert(SCORECARD.reduce((sum, [, value]) => sum + value, 0) === 66, "Scorecard must total 66");
+})();
+</script>
+</body>
+</html>

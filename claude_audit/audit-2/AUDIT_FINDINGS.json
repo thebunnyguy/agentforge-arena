@@ -1,0 +1,131 @@
+{
+  "audit": "AgentForge Arena — audit-2 (adversarial re-audit)",
+  "auditor": "external evaluator (read-only; no production code changed)",
+  "date": "2026-06-20",
+  "repo_commit": "798a5b3",
+  "branch": "master",
+  "git_state": "clean, synced with origin/master",
+  "supersedes": "audit-1 (53/100 at 036cde4)",
+  "method": "lead-auditor first-hand verification (pytest, §8 validate_task x24, SQLite integrity, byte-reproducibility, Wilson recompute, forensic-cohort consistency) + 13-agent adversarial re-audit workflow (4 closure/forensic/new-defect agents + 9 dimension rescores); every agent finding reconciled and false positives discarded by the lead auditor.",
+  "overall_grade_out_of_100": 75,
+  "prior_grade_out_of_100": 53,
+  "maturity": "trustworthy research-grade evaluation benchmark + local CLI harness; NOT product-ready; NOT safe for untrusted agents",
+  "verdict_one_line": "Audit-1's three P0 integrity defects are genuinely closed under independent adversarial re-derivation — the published leaderboard is now a faithful, byte-reproducible projection of 600 real persisted runs. What remains is structural and disclosed: no untrusted isolation, no product surface, a legacy forensic gap, and minor latent nits.",
+  "headline": {
+    "p0_status": "3/3 genuinely closed (P0-1, P0-2, P0-3)",
+    "p1_status": "P1-1 closed (forward) / P1-2 closed / P1-4 closed / P1-3 open / P1-5 open",
+    "biggest_strength": "Evaluation validity recovered: 600 real runs, forensic cohort 100% score/test-consistent, persisted patches trace to real task semantics; the leaderboard regenerates byte-identically from the committed DB.",
+    "biggest_weakness": "Still a CLI/library with no product surface (no dashboard/API/run-viewer/CONTRIBUTING) and no untrusted-agent isolation (DockerSandbox unimplemented).",
+    "most_dangerous_unresolved_risk": "Anti-gaming guarantees hold only under the trusted-local-agent assumption: hidden tests are readable on the shared FS during agent.act and no DockerSandbox exists. Fine for the current local eval; blocking for any untrusted/public use.",
+    "next_mandatory_step": "None blocking for a research/portfolio benchmark. To advance maturity: (a) re-evaluate the 3 v1.0.1 tasks so their published cells match their current hidden suites, and (b) implement DockerSandbox before admitting untrusted agents."
+  },
+  "scorecard_out_of_10": {
+    "scoring_math_correctness":      { "now": 8.5, "prior": 8.5 },
+    "test_suite_quality":           { "now": 9.0, "prior": 8.5 },
+    "task_pack_quality":            { "now": 7.5, "prior": 7.0 },
+    "cleanroom_security":           { "now": 7.0, "prior": 6.5 },
+    "real_agent_evaluation_validity": { "now": 7.5, "prior": 4.0 },
+    "domain_coverage":              { "now": 8.0, "prior": 5.0 },
+    "report_quality":               { "now": 7.5, "prior": 4.5 },
+    "reproducibility":              { "now": 7.5, "prior": 2.5 },
+    "product_usability":            { "now": 4.5, "prior": 4.0 },
+    "documentation_accuracy":       { "now": 7.5, "prior": 3.0 }
+  },
+  "verified_facts": {
+    "pytest": "366 passed, 0 failed/skipped (~137s)",
+    "validate_task": "24/24 tasks pass §8 (reference 1.0 deterministic 3x; empty diff fails correctly)",
+    "db": "600 real runs = 5 models x 24 tasks x 5; 0 recon hashes, 0 voided, 0 duplicates, 0 synthetic/oracle/noop rows in DB",
+    "pass_counts": "qwen2.5-coder:7b 68, deepseek-coder:6.7b 38, qwen2.5-coder:3b 32, llama3.2:latest 26, gemma2:2b 6",
+    "leaderboard_lcb": "all recompute exactly: qwen7b 0.477, deepseek 0.240, qwen3b 0.196, llama 0.152, gemma2 0.023; oracle 0.969 / noop 0.000 are render-only synthetic baselines",
+    "byte_reproducible": "report_combined.py regenerated 3x => identical leaderboard.html SHA 87ca6c77... matching the committed file; runs.sqlite SHA 519bee8a...",
+    "forensic_cohort": "last 100 runs persist patch_text + test_results (1218 rows / 99 runs); 0 functional_pass-with-hidden-fail, 0 G1-allpass-but-not-pass, 0 t_hidden/per-test mismatch; inspected patches trace to real task semantics",
+    "hidden_suite_strengthening": "async-batched 5->9-11, top-k-frequent 12->16, refactor-order-validation 1->21 hidden tests (all v1.0.1, still §8-valid)"
+  },
+  "finding_disposition": {
+    "genuinely_closed": ["P0-1","P0-2","P0-3","P1-1 (forward)","P1-2","P1-4","P2-1","P2-2","P2-3","P2-4","P2-6","P3-2","P3-3","P3-4","P3-1 (reduced)"],
+    "partially_closed": ["P2-5 (3 task hidden suites strengthened, but their committed leaderboard cells are still v1.0.0 evidence — disclosed via version badge, not re-evaluated)"],
+    "still_open": ["P1-3 (no DockerSandbox / untrusted isolation; hidden tests readable during act)","P1-5 (no dashboard/API/run-viewer/CONTRIBUTING)","P1-1 legacy half (first 500 runs lack patch/test detail, irrecoverable)"]
+  },
+  "closures_verified_genuine": [
+    {"id":"P0-1","what":"fabricated leaderboard","evidence":"report_combined.py is DB-first; KNOWN_OLD/recon absent; DB has 600 real rows, 0 synthetic-named; pass counts match. Mutation-tested via P1-4."},
+    {"id":"P0-2","what":"non-reproducible","evidence":"runs.sqlite + leaderboard.html git-tracked; regenerated 3x byte-identical (SHA 87ca6c77); only date is DB-derived run-window, not wall-clock."},
+    {"id":"P0-3","what":"gap-filled domains","evidence":"all 5 models have >=5 tasks AND >=25 real runs in every domain (api/async/perf/security 25 runs, backend 85); 0 cells gap-filled."},
+    {"id":"P1-1","what":"empty forensic layer","evidence":"GradeReport threaded pipeline->store->eval_persist; last 100 runs have 100 patches + 1218 test rows; first 500 NULL (legacy, irrecoverable)."},
+    {"id":"P1-2","what":"README/data contradictions","evidence":"README v0.2.0, llama3.2:latest@a80c4f17acd5, python3; leaderboard matches DB; 500->600 transition dated in FAILURE_INSPECTION."},
+    {"id":"P1-4","what":"untested generator","evidence":"test_report_combined.py proven non-smoke by mutation: injecting a recon row makes it FAIL (assert 2==1)."},
+    {"id":"P2-1","what":"parsimony doc drift","evidence":"BOTH 01-run-scoring.md and EVALUATION_FRAMEWORK.md now use 2x/8x added-only with §1.6 example S=0.6659; grep finds no residual 4x/10x/0.6711. (One re-audit agent falsely claimed EVALUATION_FRAMEWORK.md was unfixed; refuted by grep at lines 163-235.)"},
+    {"id":"P2-2","what":"case-sensitive basename guard","evidence":"diffing.py normalizes / and \\\\ and uses casefold(); tests cover Conftest.py/CONFTEST.PY/.PTH variants."},
+    {"id":"P2-3","what":"symlink capture","evidence":"snapshot_tree skips any path with a symlink component; tested for file and dir symlinks."},
+    {"id":"P2-4","what":"substring-only report tests","evidence":"report tests now assert numeric Wilson values/rank ranges + counts; test_cross_domain_integration added."},
+    {"id":"P2-6","what":"undisclosed domain skew","evidence":"README/docs/report disclose backend 17/24 and api/perf 3 primary tasks, with tag weights and a coverage caveat."},
+    {"id":"P3-3","what":"over-generous partial credit","evidence":"baseline_adjusted_t_hidden defined + tested but deliberately NOT wired into score_run (formula v0.1 unchanged)."},
+    {"id":"P3-4","what":"domain n_tasks overcount","evidence":"report.py counts a domain task only when its aggregate has >=1 valid run."}
+  ],
+  "new_findings_audit2": {
+    "P2": [
+      {"id":"A2-P2-1","title":"Production task-version resolution path is untested","detail":"manifest.json items carry no 'version' key (0/24), so _current_task_version() falls back to reading task.json from disk in production — but both tests pass 'version' inline, exercising only the dict branch. The disk-read path that actually runs in production is uncovered.","evidence":"tasks/manifest.json (no version key); examples/report_combined.py:38-46; runner/tests/test_report_combined.py"}
+    ],
+    "P3": [
+      {"id":"A2-P3-1","title":"build_report silently EXCLUDES any real agent not in the hardcoded MODELS list","detail":"Direction is under-reporting (safe), and currently moot (DB agents == MODELS). Latent footgun if a new model is evaluated but not added to MODELS.","evidence":"examples/report_combined.py MODELS list + load loop"},
+      {"id":"A2-P3-2","title":"save_run silently persists detail-less rows when report is None","detail":"No guard/assert; unreachable in the production path (run_once/eval_persist always attach grade_report) but a defensive assertion would harden P1-1.","evidence":"runner/afa_runner/store.py (report-None branch)"},
+      {"id":"A2-P3-3","title":"Synthetic oracle/noop injected at v1.0.1 while real evidence is v1.0.0, pooling two versions for the 3 hardened tasks","detail":"Narrows the 'refuse mixed versions' guarantee for those 3 cells; cosmetic since oracle/noop are synthetic 1.0/0.0 anchors.","evidence":"report_combined.py synthetic-baseline injection at current_versions[task_id]"},
+      {"id":"A2-P3-4","title":"Stale-version evidence under-disclosed: v1.0.0 data under a 'current v1.0.1' badge with the discrepancy only in a hover tooltip","detail":"The 3 hardened tasks' published cells reflect v1.0.0 grading; disclosed but easy to miss.","evidence":"reports/leaderboard.html version badge title attribute"},
+      {"id":"A2-P3-5","title":"Synthetic oracle/noop rank identically to measured agents with only an inline name-string label","detail":"A reader skimming the table could mistake them for measured agents; the only differentiator is the '(synthetic baseline)' suffix.","evidence":"reports/leaderboard.html leaderboard rows 1 and 7"},
+      {"id":"A2-P3-6","title":"store load_runs/summary INNER-JOIN runs to diffs with no guard for a diff-less run","detail":"A run row without a diff row would be silently dropped from loads/aggregates. Currently moot (every run has a diff).","evidence":"runner/afa_runner/store.py JOIN diffs"},
+      {"id":"A2-P3-7","title":"Empty-diff runs recorded as status='valid' (G=0) rather than the doc-specified AGENT_ERROR","detail":"Spec/impl divergence; scoring is correct either way (G=0 => S=0), but the status taxonomy differs from the framework text.","evidence":"pipeline.py status assignment vs framework run-status taxonomy"},
+      {"id":"A2-P3-8","title":"Observability 'runs with patch artifacts' counts 5 empty-string patches as present","detail":"100/600 'with patches' includes 5 no-edit runs whose patch_text is '' (present but empty); a minor accuracy nuance in the coverage stat.","evidence":"report_html observability counts vs diffs.patch_text=''"},
+      {"id":"A2-P3-9","title":"Two parallel canonical framework docs (modular 01-run-scoring.md + consolidated EVALUATION_FRAMEWORK.md) without a source-of-truth marker","detail":"Both are currently consistent (parsimony reconciled in both), but maintaining two copies is a drift hazard.","evidence":"docs/EVALUATION_FRAMEWORK.md and docs/evaluation-framework/*.md"}
+    ]
+  },
+  "leaderboard": [
+    {"rank":"1","agent":"oracle (synthetic baseline)","source":"render-only","n":120,"passes":120,"pass_rate":1.0,"wilson_lcb":0.969},
+    {"rank":"2","agent":"qwen2.5-coder:7b","source":"persisted DB","n":120,"passes":68,"pass_rate":0.567,"wilson_lcb":0.477},
+    {"rank":"3-4","agent":"deepseek-coder:6.7b","source":"persisted DB","n":120,"passes":38,"pass_rate":0.317,"wilson_lcb":0.240},
+    {"rank":"3-5","agent":"qwen2.5-coder:3b","source":"persisted DB","n":120,"passes":32,"pass_rate":0.267,"wilson_lcb":0.196},
+    {"rank":"4-5","agent":"llama3.2:latest","source":"persisted DB","n":120,"passes":26,"pass_rate":0.217,"wilson_lcb":0.152},
+    {"rank":"6","agent":"gemma2:2b","source":"persisted DB","n":120,"passes":6,"pass_rate":0.050,"wilson_lcb":0.023},
+    {"rank":"7","agent":"noop (synthetic baseline)","source":"render-only","n":120,"passes":0,"pass_rate":0.0,"wilson_lcb":0.0}
+  ],
+  "domain_table_real_db": {
+    "note": "pooled weighted pass rate per (model,domain) from real DB; all cells now displayable (>=5 tasks AND >=25 runs)",
+    "deepseek-coder:6.7b": {"api-design":0.25,"async-concurrency":0.24,"backend":0.27,"performance":0.45,"security":0.52},
+    "gemma2:2b":           {"api-design":0.0,"async-concurrency":0.0,"backend":0.06,"performance":0.20,"security":0.0},
+    "qwen2.5-coder:3b":    {"api-design":0.30,"async-concurrency":0.0,"backend":0.33,"performance":0.22,"security":0.40},
+    "qwen2.5-coder:7b":    {"api-design":0.75,"async-concurrency":0.24,"backend":0.62,"performance":0.50,"security":0.68},
+    "llama3.2:latest":     {"api-design":0.12,"async-concurrency":0.04,"backend":0.24,"performance":0.50,"security":0.24}
+  },
+  "reproducibility_checklist": {
+    "readme_quickstart_works": "PASS (python3 throughout)",
+    "dependencies_documented": "PASS",
+    "python_version_stated": "PASS (3.13; pyproject v0.2.0)",
+    "model_server_documented": "PASS (Ollama version + pull documented)",
+    "exact_model_tags_pinned": "PASS (llama3.2:latest digest a80c4f17acd5)",
+    "run_command_documented": "PASS",
+    "n_value_documented": "PASS (120 real rows/model, accurate)",
+    "db_committed_and_locatable": "PASS (reports/runs.sqlite tracked)",
+    "report_reproducible_from_data": "PASS (byte-identical regeneration)",
+    "seeds_temperature_documented": "PASS (temperature + base seed documented)",
+    "resumability_works": "PASS (version-matched)",
+    "infra_failures_recorded_separately": "PARTIAL (no infra/voided rows in this run; mechanism present and tested)",
+    "per_run_transcript_or_model_digest_stored": "FAIL (not persisted; LLM generations not bit-reproducible)",
+    "legacy_runs_inspectable": "FAIL (first 500 runs lack patch/test detail)"
+  },
+  "next_steps": {
+    "mandatory": [],
+    "should_do": [
+      "Re-evaluate the 3 v1.0.1 tasks (async-batched, top-k-frequent, refactor-order-validation) so their published per-task cells match their current hidden suites; or make the stale-version disclosure more prominent than a tooltip.",
+      "Add a defensive assert in save_run when a real run is persisted without a GradeReport (hardens P1-1 against future regressions).",
+      "Cover the production task-version resolution path (disk read) with a test; add a manifest 'version' key or test the fallback explicitly."
+    ],
+    "optional": [
+      "Persist per-run model digest + transcript so generations are reproducible, not just aggregates.",
+      "Render oracle/noop visually distinct from measured agents (not just a name suffix).",
+      "Pick one canonical framework doc (modular vs consolidated) and mark the other as generated/derived to remove the drift hazard.",
+      "Floor T_hidden against the snapshot baseline (wire baseline_adjusted_t_hidden) under a formula-version bump + leaderboard recompute."
+    ],
+    "do_not_do_yet": [
+      "Do not admit untrusted agents until DockerSandbox (or equivalent FS/network isolation) is implemented.",
+      "Do not build the Postgres/Next.js dashboard before deciding whether the static report + DB already meet the observability need."
+    ]
+  }
+}
