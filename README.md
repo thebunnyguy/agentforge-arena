@@ -60,30 +60,34 @@ only as explicitly labeled synthetic comparison baselines; no model cells are
 gap-filled or reconstructed.
 
 ```
-rank  agent                          n  p_hat   Wilson LCB
-  1   oracle (synthetic baseline)  120  1.000     0.969
-  2   qwen2.5-coder:7b             120  0.567     0.477
- 3-4  deepseek-coder:6.7b          120  0.317     0.240
- 3-5  qwen2.5-coder:3b             120  0.267     0.196
- 4-5  llama3.2:latest              120  0.217     0.152
-  6   gemma2:2b                    120  0.050     0.023
-  7   noop (synthetic baseline)    120  0.000     0.000
+rank  agent                          n  p_hat    LCB
+   1  oracle (synthetic baseline)  120  1.000  0.969
+   2  qwen2.5-coder:7b             120  0.558  0.469
+ 3-4  deepseek-coder:6.7b          120  0.233  0.167
+ 3-5  llama3.2:latest              120  0.183  0.124
+ 4-5  qwen2.5-coder:3b             120  0.150  0.097
+   6  gemma2:2b                    120  0.033  0.013
+   7  noop (synthetic baseline)    120  0.000  0.000
 ```
 
-Honest behaviors on display: ranks 3–5 cluster (overlapping intervals — the math
-won't fake a separation); `deepseek-coder` is strong on security/performance but
-weak on api/backend (domain scoring surfaces what one number hides); a stronger,
-newer model can beat a larger older one. Infrastructure failures (model server
-unreachable) are voided, never counted against an agent.
+Honest behaviors on display: ranks 3–5 cluster (overlapping Wilson intervals —
+the math won't fake a separation; the re-grade reshuffled their order without
+truly separating them — `llama3.2` now edges `qwen2.5-coder:3b`);
+`deepseek-coder` is strongest on performance/security and weakest on async/api
+(domain scoring surfaces what one number hides). Infrastructure failures (model
+server unreachable) are voided, never counted against an agent.
 
-The two P0 completion runs used Ollama 0.17.4, temperature 0.8, base seed 42,
-`qwen2.5-coder:7b` digest `dae161e27b0e`, and the exact DB tag
-`llama3.2:latest` digest `a80c4f17acd5`.
+Evaluation provenance (per-run config is not yet uniformly captured — see the
+roadmap): the P0 completion runs used Ollama 0.17.4, temperature 0.8, base seed
+42, `qwen2.5-coder:7b` digest `dae161e27b0e`, and `llama3.2:latest` digest
+`a80c4f17acd5`.
 
-The committed leaderboard remains frozen to task version 1.0.0. This P2/P3
-sprint strengthens hidden/visible/regression coverage for `async-batched`,
-`top-k-frequent`, and `refactor-order-validation` as task version 1.0.1 without
-rerunning models; the static report flags that version fork explicitly.
+These numbers reflect the full re-grade across all 24 tasks, each at its current
+task version. The report generator refuses to pool runs from different task
+versions within a cell, so no superseded-version rows leak into the leaderboard;
+every task's runs (including the strengthened `async-batched`, `top-k-frequent`,
+and `refactor-order-validation` oracles) are at that task's current version. The
+table is regenerated from `reports/runs.sqlite` by `examples/report_combined.py`.
 
 ## Quickstart
 
