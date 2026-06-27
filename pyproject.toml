@@ -11,6 +11,7 @@ dev = ["pytest>=7.0"]
 # the project root. Both packages are importable without an editable install.
 # The runner depends on the kernel; the kernel depends on nothing but stdlib.
 [tool.pytest.ini_options]
-pythonpath = ["kernel", "runner"]
-testpaths = ["kernel/tests", "runner/tests"]
+# "." puts the repo root on sys.path so the root-level afa_api package imports.
+pythonpath = [".", "kernel", "runner"]
+testpaths = ["kernel/tests", "runner/tests", "afa_api/tests", "tests"]
 addopts = "-q"

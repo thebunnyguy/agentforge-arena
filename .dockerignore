@@ -1,0 +1,40 @@
+# Keep build contexts small and reproducible.
+
+# VCS / tooling
+.git
+.gitignore
+.github
+
+# Python caches / virtualenvs
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node (the web image runs `npm ci` from package-lock inside the build stage)
+web/node_modules/
+web/dist/
+
+# Local data: the DB + report projection are MOUNTED at runtime via the
+# ./reports bind mount, not baked into the image.
+reports/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Audit artifacts / scratch not needed in any image
+audit/
+codex-audit/
+runpod/
+docs/
+DEVLOG.md
+
+# OS cruft
+.DS_Store
+**/.DS_Store

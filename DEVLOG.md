@@ -325,7 +325,7 @@ and got flagged for inspection.
 
 ## Phase 14 — "proceed the diagnoses" → caught a measurement-integrity bug
 
-> A third-party **Freeflow** Claude Code plugin began injecting a session-start
+> A third-party **Freeflow** editor plugin began injecting a session-start
 > hook here (unrelated to the project; removed in Phase 16).
 
 **Did.** Built `diagnose_task.py` to capture real qwen attempts on the 3 tasks.
@@ -359,15 +359,15 @@ get reaped when those jobs end.
 
 ## Phase 16 — "no, remove the freeflow plugin"
 
-**Did.** Located Freeflow (a Claude Code plugin, host-level, **not** part of this
-repo) in `~/.claude/settings.json` + `plugins/installed_plugins.json` +
-`plugins/known_marketplaces.json`, with cloned files in four directories. **Backed
-up** the three config files to `~/.claude/backups/pre-freeflow-removal-20260617-135249/`,
+**Did.** Located Freeflow (a host-level editor plugin, **not** part of this
+repo) in the local agent config (`settings.json` + `plugins/installed_plugins.json` +
+`plugins/known_marketplaces.json`), with cloned files in four directories. **Backed
+up** the three config files to a timestamped pre-removal backup directory,
 removed the entries, deleted the cloned dirs, and verified all JSON valid + zero
 `freeflow` references remain.
 
-**Note.** Hooks/skills already loaded in the running session persist until a
-**Claude Code restart**; after restart Freeflow is fully gone.
+**Note.** Hooks/skills already loaded in the running session persist until an
+**editor restart**; after restart Freeflow is fully gone.
 
 ---
 
@@ -1043,7 +1043,7 @@ references) and re-grade — ensuring no errors.
 **Did — re-audit + cross-check.** A fresh 13-agent adversarial re-audit scored
 the project **75/100** (up from audit-1's 53) at `798a5b3`: all three P0s
 genuinely closed, data real and byte-reproducible, forensic cohort
-100%-consistent (`claude_audit/audit-2/`). An independent **codex** audit scored
+100%-consistent (`audit/audit-2/`). An independent **codex** audit scored
 **66/100**; reconciling the gap showed it was ~half calibration and ~half
 *substance* — codex's deeper task-oracle analysis found two real defects the
 closure-focused re-audit missed, both verified here by execution:

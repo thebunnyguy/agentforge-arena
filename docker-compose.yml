@@ -1,0 +1,119 @@
+# AgentForge Arena — local app (Docker Compose).
+#
+# One-command local launch of the trusted single-user tool: a built Vite SPA
+# (web) talking to ONE local FastAPI app (api) with a background evaluation
+# worker, all over the shared reports/runs.sqlite (WAL). Ollama runs on the
+# HOST by default (host.docker.internal); the optional `ollama` profile is
+# available for users who prefer it in a container.
+#
+# Open: http://localhost:8080
+#
+# NOTE: every published port is bound to 127.0.0.1 — nothing is exposed off
+# this machine. This is a local, host-privileged tool (no sandbox isolation,
+# no auth, no untrusted-agent claims).
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      # Working copy (seeded once from the read-only evidence DB at
+      # /app/reports/runs.sqlite). The committed evidence DB is never mutated.
+      AFA_DB_PATH: /app/reports/app.sqlite
+      AFA_TASKS_DIR: /app/tasks
+      # Host Ollama by default; override to point at any LOCAL OpenAI-compatible
+      # server (LM Studio / llama.cpp / vLLM). No hosted/paid APIs.
+      AFA_OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      # Shared WAL DB + reproducible report projection. Keeping ./reports
+      # bind-mounted leaves results visible in the repo while developing.
+      - ./reports:/app/reports
+    # Localhost-only binding. The SPA reaches the api through the web proxy;
+    # this published port is for direct/debug access from the host only.
+    ports:
+      - "127.0.0.1:8000:8000"
+    extra_hosts:
+      # Make host.docker.internal resolve on Linux too (native on macOS/Win).
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/api/v1/healthz',timeout=3).status==200 else sys.exit(1)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    environment:
+      # Working copy (seeded once from the read-only evidence DB at
+      # /app/reports/runs.sqlite). The committed evidence DB is never mutated.
+      AFA_DB_PATH: /app/reports/app.sqlite
+      AFA_TASKS_DIR: /app/tasks
+      AFA_OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      AFA_WORKER_POLL_SECONDS: "2.0"
+    volumes:
+      # Same shared WAL DB as the api — both processes coordinate jobs here.
+      - ./reports:/app/reports
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # The worker has no inbound port; liveness = the poll loop process running.
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "pgrep -f 'afa_api.worker' >/dev/null || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    # The single main app port. Localhost-only.
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # OPTIONAL: run Ollama in a container instead of on the host.
+  #   docker compose --profile ollama up
+  # When enabled, point the api/worker at it by setting:
+  #   OLLAMA_BASE_URL=http://ollama:11434
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  ollama_models:

@@ -1,4 +1,4 @@
-# claude_audit/ — versioned external audit trail
+# audit/ — versioned external audit trail
 
 External, evidence-backed audits of AgentForge Arena. One folder per audit run.
 
