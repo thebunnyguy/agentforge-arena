@@ -121,9 +121,10 @@ def _run_score_dict(s: RunScore) -> dict[str, Any]:
 def build_overview(stores: LoadedStores, ro: sqlite3.Connection) -> dict[str, Any]:
     """Top-level dashboard: persisted-run provenance, model/task coverage, and
     the pooled (all-tasks) leaderboard. Real store only (no synthetic rows)."""
-    overall = stores.real.summary()
+    overall = stores.observability
     per_agent = {
-        agent: _summary_dict(stores.real.summary(agent)) for agent in stores.models
+        agent: _summary_dict(stores.agent_observability[agent])
+        for agent in stores.models
     }
     entries = afa.leaderboard(stores.real)
     return {
@@ -346,7 +347,7 @@ def build_meta(stores: LoadedStores, ro: sqlite3.Connection) -> dict[str, Any]:
             }
             for tid in stores.task_ids
         ],
-        "observability": _summary_dict(stores.real.summary()),
+        "observability": _summary_dict(stores.observability),
         "real_counts": {
             agent: {"n_runs": n_runs, "n_tasks": n_tasks}
             for agent, (n_runs, n_tasks) in stores.real_counts.items()

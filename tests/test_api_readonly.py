@@ -166,6 +166,11 @@ def test_overview_shape(client):
     assert ov["n_tasks"] == EXPECTED_N_TASKS
     assert sorted(ov["models"]) == sorted(MODELS)
     assert ov["observability"]["total_runs"] == EXPECTED_TOTAL_RUNS
+    # Coverage must reflect the DISK store (real patch / test_results artifacts),
+    # not the in-memory re-saved store (which reports 0). Regression for the
+    # build_overview/build_meta summary-source bug.
+    assert ov["observability"]["runs_with_patch"] > 0
+    assert ov["observability"]["test_result_rows"] > 0
     # one pooled leaderboard entry per real model (no synthetic rows here)
     assert len(ov["leaderboard"]) == len(ov["models"])
     assert all(not e["synthetic"] for e in ov["leaderboard"])

@@ -67,6 +67,8 @@ class LoadedStores:
     task_domains: dict[str, list]  # id -> [(domain, weight), ...]
     models: list[str]
     synthetic_agents: list[str]
+    observability: object  # disk RunStoreSummary: real patch/test/created_at coverage
+    agent_observability: dict  # agent -> disk RunStoreSummary (real per-agent coverage)
 
     def close(self) -> None:
         self.real.close()
@@ -137,6 +139,12 @@ def load_stores(
                 )
                 real.save_run(record)
                 full.save_run(record)
+        # Capture the DISK summary (real patch / test_results / created_at
+        # coverage) BEFORE closing. The in-memory stores re-save aggregate
+        # records without those artifacts, so their summary would report 0
+        # patches and a fake created_at (= load time).
+        disk_summary = disk.summary()
+        disk_agent_summaries = {agent: disk.summary(agent) for agent in MODELS}
     finally:
         disk.close()
 
@@ -177,4 +185,6 @@ def load_stores(
         task_domains=task_domains,
         models=list(MODELS),
         synthetic_agents=[ORACLE, NOOP],
+        observability=disk_summary,
+        agent_observability=disk_agent_summaries,
     )
