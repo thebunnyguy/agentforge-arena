@@ -1,95 +1,219 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Filter, Info } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAsync } from "../lib/useAsync";
 import { WilsonBar } from "../components/WilsonBar";
 import { ProvisionalBadge } from "../components/Badges";
 import { CaveatBanner } from "../components/CaveatBanner";
 import { ErrorState, SkeletonRows } from "../components/States";
-import { fixed, rankLabel } from "../lib/format";
+import {
+  InlineNotice,
+  PageHeader,
+  Panel,
+  SectionHeader,
+} from "../components/Primitives";
+import { fixed, pct, rankLabel } from "../lib/format";
+import { DomainMatrix } from "./DomainMatrix";
 
 export function Leaderboard() {
-  const [taskId, setTaskId] = useState<string>("");
-  const meta = useAsync((s) => api.meta(s), []);
-  const lb = useAsync((s) => api.leaderboard(taskId || null, s), [taskId]);
+  const [params, setParams] = useSearchParams();
+  const taskId = params.get("task") ?? "";
+  const meta = useAsync((signal) => api.meta(signal), []);
+  const leaderboard = useAsync(
+    (signal) => api.leaderboard(taskId || null, signal),
+    [taskId],
+  );
 
   return (
     <div>
-      <h1 className="page-title">Leaderboard</h1>
-      <p className="page-subtitle">
-        Wilson lower-bound ranking. Choose a single task to scope the ranking, or
-        keep "All tasks (pooled)".
-      </p>
+      <PageHeader
+        eyebrow="Analyze"
+        title="Leaderboard"
+        description="A serious benchmark surface: server-ordered ranks, pass rates, and the uncertainty that qualifies them."
+        actions={
+          <>
+            <Link className="btn btn-secondary" to="/runs">
+              Advanced runs
+            </Link>
+            <Link className="btn btn-secondary" to="/methodology">
+              <Info size={15} aria-hidden="true" /> Read methodology
+            </Link>
+          </>
+        }
+      />
       <CaveatBanner caveat={meta.data?.notes?.trust} />
+      <Panel>
+        <SectionHeader
+          title="Scope"
+          description="Each scope is ranked by the benchmark kernel, with its uncertainty preserved."
+        />
+        <div className="toolbar">
+          <label htmlFor="leaderboard-task">
+            <Filter size={14} aria-hidden="true" /> Task scope
+          </label>
+          <select
+            id="leaderboard-task"
+            value={taskId}
+            onChange={(event) => {
+              const next = event.target.value;
+              if (next) setParams({ task: next });
+              else setParams({});
+            }}
+          >
+            <option value="">All tasks · pooled</option>
+            {meta.data?.tasks.map((task) => (
+              <option key={task.task_id} value={task.task_id}>
+                {task.task_id}
+              </option>
+            ))}
+          </select>
+        </div>
+      </Panel>
 
-      <div className="toolbar">
-        <label htmlFor="scope">Scope</label>
-        <select id="scope" value={taskId} onChange={(e) => setTaskId(e.target.value)}>
-          <option value="">All tasks (pooled)</option>
-          {meta.data?.tasks.map((t) => (
-            <option key={t.task_id} value={t.task_id}>
-              {t.task_id}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="panel">
-        {lb.loading ? (
-          <SkeletonRows rows={5} cols={5} />
-        ) : lb.error ? (
-          <ErrorState error={lb.error} onRetry={lb.reload} />
+      <Panel>
+        <SectionHeader
+          title={
+            taskId ? `Agents on ${taskId}` : "All agents · pooled across tasks"
+          }
+          description="Rank ranges are preserved from the kernel. Overlapping intervals are evidence of limited separation, not a UI problem."
+        />
+        {leaderboard.loading ? (
+          <SkeletonRows rows={6} cols={6} />
+        ) : leaderboard.error ? (
+          <ErrorState error={leaderboard.error} onRetry={leaderboard.reload} />
         ) : (
-          <table className="data">
-            <thead>
-              <tr>
-                <th className="num">rank</th>
-                <th>agent</th>
-                <th className="num">n</th>
-                <th className="num">p̂</th>
-                <th className="num">LCB</th>
-                <th>95% Wilson interval</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lb.data!.entries.map((e) => (
-                <tr key={e.agent}>
-                  <td className="num">
-                    {e.provisional ? (
-                      <ProvisionalBadge />
-                    ) : (
-                      rankLabel(e.provisional, e.rank_low, e.rank_high)
-                    )}
-                  </td>
-                  <td>
-                    <Link to={`/agent/${encodeURIComponent(e.agent)}`}>{e.agent}</Link>
-                    {taskId && (
-                      <>
-                        {" · "}
-                        <Link
-                          to={`/cell/${encodeURIComponent(e.agent)}/${encodeURIComponent(taskId)}`}
-                        >
-                          cell
-                        </Link>
-                      </>
-                    )}
-                  </td>
-                  <td className="num">{e.n}</td>
-                  <td className="num">{fixed(e.pass_rate)}</td>
-                  <td className="num">{fixed(e.wilson_low)}</td>
-                  <td>
-                    <WilsonBar pHat={e.pass_rate} low={e.wilson_low} high={e.wilson_high} />
-                  </td>
+          <div className="table-scroll" tabIndex={0}>
+            <table className="data">
+              <thead>
+                <tr>
+                  <th className="num">rank</th>
+                  <th>agent</th>
+                  <th className="num">valid n</th>
+                  <th>pass rate</th>
+                  <th>Wilson 95%</th>
+                  <th className="num">LCB</th>
+                  <th>state</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {leaderboard.data!.entries.map((entry) => (
+                  <tr key={entry.agent}>
+                    <td className="num">
+                      {entry.provisional ? (
+                        <ProvisionalBadge />
+                      ) : (
+                        <span className="rank-number">
+                          {rankLabel(
+                            entry.provisional,
+                            entry.rank_low,
+                            entry.rank_high,
+                          )}
+                        </span>
+                      )}
+                    </td>
+                    <td className="primary-cell">
+                      <Link to={`/agent/${encodeURIComponent(entry.agent)}`}>
+                        {entry.agent}
+                      </Link>
+                      {entry.synthetic && (
+                        <span className="sub-cell">synthetic baseline</span>
+                      )}
+                    </td>
+                    <td className="num mono">{entry.n}</td>
+                    <td>
+                      <span className="mono">{pct(entry.pass_rate, 1)}</span>
+                    </td>
+                    <td>
+                      <WilsonBar
+                        pHat={entry.pass_rate}
+                        low={entry.wilson_low}
+                        high={entry.wilson_high}
+                      />
+                    </td>
+                    <td className="num mono">{fixed(entry.wilson_low, 3)}</td>
+                    <td>
+                      {entry.provisional ? (
+                        <ProvisionalBadge />
+                      ) : (
+                        <span className="badge neutral">ranked</span>
+                      )}
+                    </td>
+                    <td>
+                      {taskId ? (
+                        <Link
+                          className="link-arrow"
+                          to={`/cell/${encodeURIComponent(entry.agent)}/${encodeURIComponent(taskId)}`}
+                        >
+                          Cell →
+                        </Link>
+                      ) : (
+                        <Link
+                          className="link-arrow"
+                          to={`/agent/${encodeURIComponent(entry.agent)}`}
+                        >
+                          Profile →
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-        <p className="note muted">
-          Strict out-ranking uses LCB&gt;p̂ ties (kernel §6). Provisional agents
-          (n&lt;5) are unranked. All values server-computed.
-        </p>
-      </div>
+        <InlineNotice tone="info">
+          The rank column is the kernel’s Wilson lower-bound ranking. The
+          interval bar is not a progress bar: it shows the plausible range
+          around the observed pass rate. Provisional rows remain visibly
+          unranked.
+        </InlineNotice>
+      </Panel>
+
+      <Panel>
+        <SectionHeader
+          title="Domain capability matrix"
+          description="Server-returned domain profiles. Suppressed cells remain suppressed; they are not low scores."
+        />
+        {meta.data?.models ? (
+          <DomainMatrix agents={meta.data.models} />
+        ) : (
+          <p className="note muted">Agent metadata is still loading.</p>
+        )}
+      </Panel>
+
+      <Panel>
+        <SectionHeader
+          title="Reference baselines"
+          description="Synthetic oracle/noop rows are benchmark bookends, not real competitors."
+        />
+        {meta.data?.synthetic_agents.length && meta.data.tasks[0] ? (
+          <div className="reference-links">
+            {meta.data.synthetic_agents.map((reference) => (
+              <div className="reference-link" key={reference}>
+                <span>{reference}</span>
+                <span>
+                  <Link
+                    to={`/cell/${encodeURIComponent(reference)}/${encodeURIComponent(meta.data!.tasks[0].task_id)}`}
+                  >
+                    cell
+                  </Link>{" "}
+                  ·{" "}
+                  <Link
+                    to={`/cell/${encodeURIComponent(reference)}/${encodeURIComponent(meta.data!.tasks[0].task_id)}/run/0`}
+                  >
+                    run #0
+                  </Link>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="note muted">
+            No synthetic baselines reported by the API.
+          </p>
+        )}
+      </Panel>
     </div>
   );
 }

@@ -1,121 +1,181 @@
+import { BookOpen, Calculator, ShieldAlert } from "lucide-react";
 import { api } from "../api/client";
 import { useAsync } from "../lib/useAsync";
 import { CaveatBanner } from "../components/CaveatBanner";
+import {
+  InlineNotice,
+  PageHeader,
+  Panel,
+  SectionHeader,
+} from "../components/Primitives";
 
 export function Methodology() {
-  const meta = useAsync((s) => api.meta(s), []);
+  const meta = useAsync((signal) => api.meta(signal), []);
   return (
     <div>
-      <h1 className="page-title">Methodology</h1>
-      <p className="page-subtitle">
-        How the frozen kernel scores runs, aggregates cells, and ranks agents.
-        The app renders these values; it never recomputes them.
-      </p>
+      <PageHeader
+        eyebrow="Reference"
+        title="Methodology"
+        description="How AgentForge Arena turns trusted local run evidence into understandable benchmark results."
+      />
       <CaveatBanner caveat={meta.data?.notes?.trust} />
-
-      <div className="panel">
-        <h2>Per-run score S</h2>
+      <div className="split-layout">
+        <div>
+          <Panel>
+            <SectionHeader title="One run" />
+            <div className="formula">S = G · T_hidden · (0.85 + 0.15 · Q)</div>
+            <dl className="method-list">
+              <div>
+                <dt>G</dt>
+                <dd>
+                  The product of the hard gates: setup, diff, scope, regression,
+                  and timeout validity. One failed gate forces G = 0.
+                </dd>
+              </div>
+              <div>
+                <dt>T_hidden</dt>
+                <dd>
+                  The weighted fraction of hidden tests passed in the clean-room
+                  grade. The agent does not see those tests.
+                </dd>
+              </div>
+              <div>
+                <dt>Q</dt>
+                <dd>
+                  A bounded quality modifier. Persisted v0.1 records may not
+                  retain its component breakdown; unavailable Q components are
+                  not treated as failures.
+                </dd>
+              </div>
+              <div>
+                <dt>S</dt>
+                <dd>
+                  The continuous final score used for diagnostics and
+                  distribution evidence.
+                </dd>
+              </div>
+              <div>
+                <dt>X</dt>
+                <dd>
+                  Functional pass: all gates pass and all hidden tests pass. X
+                  is the headline run outcome.
+                </dd>
+              </div>
+            </dl>
+          </Panel>
+          <Panel>
+            <SectionHeader title="Repeated runs and validity" />
+            <p>
+              Valid runs count toward n. TIMEOUT and AGENT_ERROR are valid
+              failures. INFRA_FAILURE is voided because infrastructure failures
+              are not evidence about an agent; voided attempts remain visible
+              and are excluded from n.
+            </p>
+            <InlineNotice tone="info">
+              <Calculator size={16} aria-hidden="true" />
+              <span>
+                The app displays server-owned aggregates; it does not turn score
+                primitives into new statistics.
+              </span>
+            </InlineNotice>
+          </Panel>
+          <Panel>
+            <SectionHeader title="Uncertainty and ranking" />
+            <p>
+              Each pass rate is paired with a 95% Wilson interval. The kernel
+              ranks by the strict rule <code>LCB(a) &gt; p̂(b)</code>; otherwise
+              agents share a rank range. This keeps overlapping evidence from
+              becoming a false separation.
+            </p>
+            <p>
+              Scopes with fewer than five valid runs are provisional and should
+              not be read as stable leaderboard positions.
+            </p>
+          </Panel>
+          <Panel>
+            <SectionHeader title="Diagnostics, not promises" />
+            <p>
+              Stability describes consistency of the returned S values.
+              Deterministic means repeated evidence hashes match; bimodal means
+              pass and fail clusters make a mean especially misleading. pass@k
+              is an in-sample retry diagnostic, not a guarantee about future
+              independent attempts.
+            </p>
+          </Panel>
+        </div>
+        <div>
+          <Panel>
+            <SectionHeader title="Domains" />
+            <p>
+              Task metadata assigns weighted domain tags. A domain is
+              displayable only when it covers at least <strong>5 tasks</strong>{" "}
+              and <strong>25 runs</strong>. Suppressed domains show coverage but
+              no performance value; suppression is not a zero.
+            </p>
+          </Panel>
+          <Panel>
+            <SectionHeader title="Versions and provenance" />
+            <p>
+              Every run retains a task version. The report path refuses to pool
+              multiple versions inside a cell rather than blending incompatible
+              task contracts. Run pages retain model/task identity, repeat
+              index, task version, timestamps where available, and transcript
+              hashes.
+            </p>
+          </Panel>
+          <Panel>
+            <SectionHeader title="Reference baselines and capture limits" />
+            <dl className="method-list">
+              <div>
+                <dt>Oracle / noop</dt>
+                <dd>
+                  Synthetic reference bookends. They are not real competitors
+                  and do not receive fabricated model provenance.
+                </dd>
+              </div>
+              <div>
+                <dt>Patch/tests</dt>
+                <dd>
+                  Legacy rows may lack patch or per-test artifacts. Missing
+                  evidence is labelled missing, not rendered as an empty
+                  success.
+                </dd>
+              </div>
+              <div>
+                <dt>Q components</dt>
+                <dd>
+                  Persisted v0.1 rows may expose Q but not its component list.
+                </dd>
+              </div>
+              <div>
+                <dt>Mixed pool</dt>
+                <dd>
+                  Mixed task versions are refused instead of silently averaged.
+                </dd>
+              </div>
+            </dl>
+          </Panel>
+          <Panel>
+            <SectionHeader title="Trusted-local boundary" />
+            <InlineNotice tone="warn">
+              <ShieldAlert size={16} aria-hidden="true" />
+              <span>
+                LocalSandbox runs agent code with host privileges. AgentForge
+                Arena is a single-user local tool and makes no untrusted-agent
+                isolation claim.
+              </span>
+            </InlineNotice>
+          </Panel>
+        </div>
+      </div>
+      <Panel>
+        <SectionHeader title="Source of truth" />
         <p>
-          Each run is scored deterministically by the kernel:
+          <BookOpen size={15} aria-hidden="true" /> The frozen Python kernel
+          owns scoring, aggregation, confidence intervals, domain pooling, and
+          ranking. The local API projects those results to this workstation.
         </p>
-        <pre className="log">{`S = G · T_hidden · (0.85 + 0.15·Q)`}</pre>
-        <ul>
-          <li>
-            <strong>G</strong> — product of five binary hard gates (setup_ok,
-            diff_exists, scope_ok, regression_pass, no_timeout). Any failed gate
-            forces G=0, hence S=0.
-          </li>
-          <li>
-            <strong>T_hidden</strong> — weighted fraction of hidden-suite tests
-            that passed, in [0,1].
-          </li>
-          <li>
-            <strong>Q</strong> — bounded quality modifier in [0,1] built from
-            lint, typecheck, static analysis, security findings, and parsimony.
-            Unavailable components are dropped and remaining weights renormalised;
-            if <em>all</em> are unavailable, Q := 1.0 so absent evidence never
-            penalises. The (0.85 + 0.15·Q) band caps Q's influence at ±15%.
-          </li>
-          <li>
-            <strong>X</strong> (functional pass) — true iff G=1 and every hidden
-            test passed.
-          </li>
-        </ul>
-      </div>
-
-      <div className="panel">
-        <h2>Run status taxonomy & voided infra failures</h2>
-        <ul>
-          <li><strong>valid</strong> — executed and scorable; counts in n.</li>
-          <li><strong>timeout</strong> — hit the wall-clock budget; counts in n as a failure (S=0).</li>
-          <li><strong>agent_error</strong> — agent crashed / no usable result; counts in n as a failure (S=0).</li>
-          <li>
-            <strong>infra_failure</strong> — the platform's fault (sandbox,
-            mirror, host). <em>Voided</em>: excluded from n, never scored against
-            the agent.
-          </li>
-        </ul>
-      </div>
-
-      <div className="panel">
-        <h2>Aggregation & Wilson intervals</h2>
-        <p>
-          Over the valid (non-voided) runs of a cell the kernel computes
-          p̂ = n_pass / n_valid and a 95% Wilson score interval [low, high]. The
-          interval — not p̂ alone — is the honest measure of certainty: small n
-          yields a wide interval. The bars throughout this app draw the
-          server-provided interval; the browser only positions the endpoints on a
-          pixel track.
-        </p>
-        <p className="note muted">
-          Other reported aggregates: mean/median/min/max S, Bessel-corrected std,
-          stability = max(0, 1−2·std), a conservative continuous lower bound,
-          reliability, timeout and infra-void rates, unbiased pass@k, and flags
-          for deterministic / bimodal distributions.
-        </p>
-      </div>
-
-      <div className="panel">
-        <h2>Ranking & provisional status</h2>
-        <p>
-          Agents are ordered by their Wilson lower bound (LCB). Agent a strictly
-          out-ranks b iff LCB_a &gt; p̂_b; otherwise they share a rank range.
-          Agents with fewer than 5 valid runs in scope are <strong>provisional</strong>
-          and excluded from ranking entirely.
-        </p>
-      </div>
-
-      <div className="panel">
-        <h2>Domain profiles & displayability</h2>
-        <p>
-          A domain pools the tasks tagged to it (weights 1.0 / 0.5 / 0.25 for
-          primary / secondary / tertiary) into a pass rate with a Kish
-          effective-n Wilson interval. A domain is only{" "}
-          <strong>displayable</strong> with ≥5 tasks and ≥25 runs. Non-displayable
-          domains render as <code>--</code> so sparse, imbalanced coverage is
-          never dressed up as a confident number.
-        </p>
-      </div>
-
-      <div className="panel">
-        <h2>Captured vs not-captured vs synthetic</h2>
-        <p>
-          Recent runs capture the agent's patch, diff stats, and per-test results.
-          Legacy rows predating capture show a clear <em>not captured</em> state
-          rather than fabricating artifacts. If a synthetic baseline is ever
-          included it is explicitly flagged <em>synthetic</em>.
-        </p>
-      </div>
-
-      <div className="panel">
-        <h2>Why trusted-local only</h2>
-        <p>
-          This is a single-user local tool. The clean room runs agent code with
-          host privileges via LocalSandbox, which is <strong>not</strong> a
-          security boundary. The app makes no untrusted-agent isolation claims and
-          supports local model backends only — no paid or hosted LLM APIs.
-        </p>
-      </div>
+      </Panel>
     </div>
   );
 }

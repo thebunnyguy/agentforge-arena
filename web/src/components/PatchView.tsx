@@ -1,8 +1,6 @@
+import { FileCode2 } from "lucide-react";
 import type { CaptureState } from "../api/types";
 
-// Renders a unified-diff patch string with simple +/-/@@ colouring. When the
-// artifact wasn't captured (legacy rows) or is synthetic, render the honest
-// placeholder instead of a fake patch.
 export function PatchView({
   patch,
   captureState,
@@ -12,36 +10,65 @@ export function PatchView({
 }) {
   if (captureState === "synthetic") {
     return (
-      <div className="note muted">
-        Synthetic baseline — no real agent patch exists for this run.
-      </div>
+      <EvidenceMissing
+        title="Synthetic baseline"
+        detail="No real agent patch exists for this deterministic reference row."
+      />
     );
   }
   if (patch === null || captureState === "not_captured") {
     return (
-      <div className="note muted">
-        Patch text not captured for this run (legacy row predating diff capture).
-      </div>
+      <EvidenceMissing
+        title="Patch not captured"
+        detail="This legacy run predates patch capture. Its score primitives remain available, but the source diff does not."
+      />
     );
   }
   if (patch.trim() === "") {
-    return <div className="note muted">Empty diff (no changes produced).</div>;
+    return (
+      <EvidenceMissing
+        title="Empty diff"
+        detail="The run produced no changed lines."
+      />
+    );
   }
 
-  const lines = patch.split("\n");
   return (
-    <pre className="patch">
-      {lines.map((line, i) => {
-        let cls = "";
-        if (line.startsWith("+") && !line.startsWith("+++")) cls = "add";
-        else if (line.startsWith("-") && !line.startsWith("---")) cls = "del";
-        else if (line.startsWith("@@")) cls = "hunk";
-        return (
-          <span key={i} className={cls}>
-            {line + "\n"}
-          </span>
-        );
-      })}
-    </pre>
+    <div className="diff-shell">
+      <div className="diff-toolbar">
+        <span className="diff-file">
+          <FileCode2 size={15} aria-hidden="true" /> unified diff
+        </span>
+        <span className="note muted">captured artifact</span>
+      </div>
+      <pre className="patch" tabIndex={0}>
+        {patch.split("\n").map((line, index) => {
+          let className = "";
+          if (line.startsWith("+") && !line.startsWith("+++"))
+            className = "add";
+          else if (line.startsWith("-") && !line.startsWith("---"))
+            className = "del";
+          else if (line.startsWith("@@")) className = "hunk";
+          return (
+            <span
+              className={className}
+              key={`${index}-${line}`}
+            >{`${line}\n`}</span>
+          );
+        })}
+      </pre>
+    </div>
+  );
+}
+
+function EvidenceMissing({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="evidence-missing">
+      <FileCode2 size={20} aria-hidden="true" />
+      <div>
+        <strong>{title}</strong>
+        <p>{detail}</p>
+      </div>
+    </div>
   );
 }

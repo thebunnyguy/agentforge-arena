@@ -1,15 +1,18 @@
+import { Compass } from "lucide-react";
 import { Link } from "react-router-dom";
+import { EmptyState } from "../components/States";
 
 export function NotFound() {
   return (
-    <div className="state-card">
-      <h2>Page not found</h2>
-      <p className="note muted">
-        This route doesn't exist, or the agent/task/run/job couldn't be resolved.
+    <EmptyState title="This route is outside the arena">
+      <Compass size={22} aria-hidden="true" />
+      <p>
+        The page, agent, task, run, or evaluation could not be resolved from the
+        current local API.
       </p>
-      <Link className="btn secondary" to="/" style={{ marginTop: 12 }}>
-        Back to overview
+      <Link className="btn btn-secondary" to="/">
+        Return to overview
       </Link>
-    </div>
+    </EmptyState>
   );
 }

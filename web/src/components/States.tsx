@@ -1,32 +1,37 @@
+import type { ReactNode } from "react";
+import { AlertTriangle, LoaderCircle, RefreshCw } from "lucide-react";
 import { ApiRequestError } from "../api/client";
 
-export function Loading({ label = "Loading…" }: { label?: string }) {
+export function Loading({ label = "Loading evidence…" }: { label?: string }) {
   return (
-    <div className="state-card">
-      <div
-        className="skeleton"
-        style={{ height: 16, width: 180, margin: "0 auto 12px" }}
-      />
-      <div>{label}</div>
+    <div className="state-card" aria-live="polite">
+      <LoaderCircle className="loading-icon" size={22} aria-hidden="true" />
+      <strong>{label}</strong>
+      <span className="note muted">Reading the local evidence store.</span>
     </div>
   );
 }
 
-export function SkeletonRows({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+export function SkeletonRows({
+  rows = 5,
+  cols = 4,
+}: {
+  rows?: number;
+  cols?: number;
+}) {
   return (
-    <table className="data">
-      <tbody>
-        {Array.from({ length: rows }).map((_, r) => (
-          <tr key={r}>
-            {Array.from({ length: cols }).map((__, c) => (
-              <td key={c}>
-                <div className="skeleton" style={{ height: 14, width: "70%" }} />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="skeleton-table" aria-label="Loading table" role="status">
+      {Array.from({ length: rows }).map((_, row) => (
+        <div className="skeleton-row" key={row}>
+          {Array.from({ length: cols }).map((__, col) => (
+            <div
+              className={`skeleton skeleton-cell skeleton-cell-${(col % 3) + 1}`}
+              key={col}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -39,34 +44,28 @@ export function ErrorState({
 }) {
   const isUnreachable = error instanceof ApiRequestError && error.status === 0;
   const isNotFound = error instanceof ApiRequestError && error.status === 404;
-
   return (
-    <div className="state-card error">
-      {isUnreachable ? (
-        <>
-          <h3>Backend unreachable</h3>
-          <p>
-            The local API server isn't responding. Make sure the AgentForge Arena
-            API is running and reachable.
-          </p>
-          <p className="mono" style={{ fontSize: 12 }}>
-            uvicorn afa_api.main:app --reload
-          </p>
-        </>
-      ) : isNotFound ? (
-        <>
-          <h3>Not found</h3>
-          <p>{error.message}</p>
-        </>
-      ) : (
-        <>
-          <h3>Something went wrong</h3>
-          <p>{error.message}</p>
-        </>
+    <div className="state-card state-error" role="alert">
+      <AlertTriangle size={22} aria-hidden="true" />
+      <h3>
+        {isUnreachable
+          ? "Local API unavailable"
+          : isNotFound
+            ? "Evidence not found"
+            : "Could not load this view"}
+      </h3>
+      <p>
+        {isUnreachable
+          ? "Start the AgentForge Arena API, then try again."
+          : error.message}
+      </p>
+      {isUnreachable && (
+        <code className="command-hint">python3 afa_app.py</code>
       )}
       {onRetry && (
-        <button className="btn secondary" onClick={onRetry} style={{ marginTop: 12 }}>
-          Retry
+        <button className="btn btn-secondary" onClick={onRetry} type="button">
+          <RefreshCw size={15} aria-hidden="true" />
+          Try again
         </button>
       )}
     </div>
@@ -76,14 +75,17 @@ export function ErrorState({
 export function EmptyState({
   title,
   children,
+  action,
 }: {
   title: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="state-card">
       <h3>{title}</h3>
       {children}
+      {action && <div className="state-action">{action}</div>}
     </div>
   );
 }

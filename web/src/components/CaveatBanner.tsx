@@ -1,17 +1,19 @@
-// Honesty element required on every relevant page (implementation plan §
-// "Keep the app honest" + Phase 3 honesty elements). The app is a trusted-local
-// single-user tool. LocalSandbox is NOT a security boundary; we never claim
-// untrusted-agent isolation.
+import type { ReactNode } from "react";
+import { ShieldAlert } from "lucide-react";
+
 export function CaveatBanner({ caveat }: { caveat?: string | null }) {
   return (
-    <div className="caveat">
-      <strong>Trusted-local benchmark.</strong>{" "}
-      {caveat ||
-        "This is a single-user local tool. Agent code runs with host privileges via LocalSandbox — there is no untrusted-agent isolation or security boundary. All numbers are computed by the frozen scoring kernel and rendered as-is."}
+    <div className="caveat" role="note">
+      <ShieldAlert size={17} aria-hidden="true" />
+      <div>
+        <strong>Trusted-local benchmark.</strong>{" "}
+        {caveat ||
+          "Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned."}
+      </div>
     </div>
   );
 }
 
-export function InlineCaveat({ children }: { children: React.ReactNode }) {
+export function InlineCaveat({ children }: { children: ReactNode }) {
   return <p className="note muted">{children}</p>;
 }

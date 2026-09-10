@@ -80,10 +80,31 @@ async function request<T>(
     let detail: string | undefined;
     let message = `Request failed (${res.status})`;
     try {
-      const body = await res.json();
+      const body: unknown = await res.json();
       if (body && typeof body === "object") {
-        message = (body.error as string) || (body.detail as string) || message;
-        detail = body.detail as string | undefined;
+        const envelope = body as {
+          error?: unknown;
+          detail?: unknown;
+          message?: unknown;
+        };
+        const error = envelope.error;
+        if (typeof error === "string") message = error;
+        else if (error && typeof error === "object") {
+          const nested = error as { message?: unknown; detail?: unknown };
+          if (typeof nested.message === "string") message = nested.message;
+          else if (typeof nested.detail === "string") message = nested.detail;
+          if (typeof nested.detail === "string") detail = nested.detail;
+          else detail = JSON.stringify(error);
+        } else if (typeof envelope.message === "string")
+          message = envelope.message;
+        else if (typeof envelope.detail === "string") message = envelope.detail;
+        else if (Array.isArray(envelope.detail)) {
+          const messages = envelope.detail.map((item) =>
+            typeof item === "string" ? item : JSON.stringify(item),
+          );
+          message = messages.join("; ") || message;
+          detail = message;
+        }
       }
     } catch {
       // non-JSON error body
@@ -114,10 +135,9 @@ export const api = {
   },
 
   domainProfile: (agent: string, signal?: AbortSignal) =>
-    request<DomainProfileResponse>(
-      `/domains/${encodeURIComponent(agent)}`,
-      { signal },
-    ),
+    request<DomainProfileResponse>(`/domains/${encodeURIComponent(agent)}`, {
+      signal,
+    }),
 
   cell: (agent: string, taskId: string, signal?: AbortSignal) =>
     request<CellResponse>(
@@ -163,8 +183,7 @@ export const api = {
 
   // ----------------------------- Jobs -------------------------------- //
 
-  jobs: (signal?: AbortSignal) =>
-    request<JobListResponse>("/jobs", { signal }),
+  jobs: (signal?: AbortSignal) => request<JobListResponse>("/jobs", { signal }),
 
   job: (jobId: string, signal?: AbortSignal) =>
     request<Job>(`/jobs/${encodeURIComponent(jobId)}`, { signal }),

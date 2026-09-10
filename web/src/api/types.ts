@@ -195,7 +195,7 @@ export interface RunDetailResponse {
   touched_protected?: boolean;
   patch_text?: string | null;
   patch_available?: boolean;
-  test_results?: TestResultRow[];
+  test_results?: TestResultRow[] | string;
 }
 
 // ----------------------------------------------------------------------- //
@@ -203,11 +203,7 @@ export interface RunDetailResponse {
 // ----------------------------------------------------------------------- //
 
 export type JobStatus =
-  | "queued"
-  | "running"
-  | "succeeded"
-  | "failed"
-  | "canceled";
+  "queued" | "running" | "succeeded" | "failed" | "canceled";
 
 export type BackendKind = "mock" | "ollama" | "openai_compat";
 
@@ -233,6 +229,7 @@ export interface JobCounters {
   passed_runs: number;
   voided_runs: number;
   failed_runs: number;
+  reused_runs: number;
 }
 
 export interface Job {
@@ -254,7 +251,8 @@ export interface JobListResponse {
 export interface JobEvent {
   job_id?: string;
   seq: number;
-  ts: string;
+  /** Persisted poll events carry the server timestamp; native SSE does not. */
+  ts: string | null;
   type: string;
   payload: Record<string, unknown> | null;
 }

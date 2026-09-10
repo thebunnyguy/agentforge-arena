@@ -7,17 +7,25 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
+    "test:focused": "playwright test tests/jobView.spec.ts tests/jobEvents.spec.ts tests/evaluationValidation.spec.ts",
+    "test:browser": "playwright test tests/routes.spec.ts",
+    "test:async": "playwright test --config=playwright.async.config.ts",
+    "test:real": "playwright test --config=playwright.real.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^1.43.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "prettier": "^3.9.6",
     "typescript": "^5.5.4",
     "vite": "^5.4.6"
   }

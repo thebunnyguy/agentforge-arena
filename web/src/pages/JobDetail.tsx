@@ -1,11 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  CircleDot,
+  FileText,
+  Pause,
+  RotateCcw,
+  Wifi,
+} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiRequestError } from "../api/client";
-import type { Job } from "../api/types";
+import type { Job, JobEvent } from "../api/types";
 import { useJobEvents } from "../lib/useJobEvents";
+import { latestCurrentRun, summarizeEvent } from "../lib/jobView";
+import type { RunView } from "../lib/jobView";
+import { TaskRunGrid } from "../components/TaskRunGrid";
 import { CaveatBanner } from "../components/CaveatBanner";
+import { JobStatusBadge } from "../components/Badges";
 import { ErrorState, Loading } from "../components/States";
-import { formatDate, jobStatusLabel, toPx } from "../lib/format";
+import {
+  InlineNotice,
+  Metric,
+  MetricGroup,
+  PageHeader,
+  Panel,
+  ProgressBar,
+  SectionHeader,
+  StatusDot,
+} from "../components/Primitives";
+import {
+  backendLabel,
+  formatDate,
+  jobDuration,
+  taskScope,
+} from "../lib/format";
 
 const TERMINAL = new Set(["succeeded", "failed", "canceled"]);
 
@@ -15,202 +43,497 @@ export function JobDetail() {
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [actioning, setActioning] = useState(false);
+  const routeIdRef = useRef(jobId);
+  const routeGeneration = useRef(0);
+  if (routeIdRef.current !== jobId) {
+    routeIdRef.current = jobId;
+    routeGeneration.current += 1;
+  }
+  const stream = useJobEvents(jobId, true);
 
-  const isTerminal = job ? TERMINAL.has(job.status) : false;
-  const stream = useJobEvents(jobId, !isTerminal);
-
-  // Poll the job record for counters + terminal state. Stop once terminal.
   useEffect(() => {
-    let stopped = false;
+    return () => {
+      routeGeneration.current += 1;
+      routeIdRef.current = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    routeIdRef.current = jobId;
+    routeGeneration.current += 1;
+    const controller = new AbortController();
+    const generation = routeGeneration.current;
+    let active = true;
     let timer: number | null = null;
+    setJob(null);
+    setError(null);
+    setActioning(false);
     const tick = async () => {
       try {
-        const j = await api.job(jobId);
-        if (stopped) return;
-        setJob(j);
-        setError(null);
-        if (!TERMINAL.has(j.status)) {
-          timer = window.setTimeout(tick, 1500);
-        }
-      } catch (e) {
-        if (stopped) return;
-        setError(e instanceof Error ? e : new Error(String(e)));
+        const result = await api.job(jobId, controller.signal);
+        if (
+          !active ||
+          routeGeneration.current !== generation ||
+          routeIdRef.current !== jobId
+        )
+          return;
+        setJob(result);
+        if (!TERMINAL.has(result.status)) timer = window.setTimeout(tick, 1500);
+      } catch (caught) {
+        if (
+          !active ||
+          controller.signal.aborted ||
+          routeGeneration.current !== generation ||
+          routeIdRef.current !== jobId
+        )
+          return;
+        setError(caught instanceof Error ? caught : new Error(String(caught)));
+        timer = window.setTimeout(tick, 2500);
       }
     };
-    tick();
+    void tick();
     return () => {
-      stopped = true;
-      if (timer) window.clearTimeout(timer);
+      active = false;
+      controller.abort();
+      if (timer !== null) window.clearTimeout(timer);
+      routeGeneration.current += 1;
+      if (routeIdRef.current === jobId) routeIdRef.current = "";
     };
   }, [jobId]);
 
-  // When the stream signals a terminal event, refresh the job once more.
   useEffect(() => {
-    const last = stream.events[stream.events.length - 1];
-    if (last && ["job_done", "job_failed", "job_canceled"].includes(last.type)) {
-      api.job(jobId).then(setJob).catch(() => {});
-    }
+    const generation = routeGeneration.current;
+    if (
+      !stream.events.some((event) =>
+        ["job_done", "job_failed", "job_canceled"].includes(event.type),
+      )
+    )
+      return;
+    let active = true;
+    void api
+      .job(jobId)
+      .then((result) => {
+        if (
+          active &&
+          routeGeneration.current === generation &&
+          routeIdRef.current === jobId &&
+          result.id === jobId
+        )
+          setJob(result);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
   }, [stream.events, jobId]);
 
-  if (!job && error) return <ErrorState error={error} onRetry={() => navigate(0)} />;
-  if (!job) return <Loading label="Loading job…" />;
+  const runMap = useMemo(
+    () => latestCurrentRun(stream.events),
+    [stream.events],
+  );
+  if (error && (!job || job.id !== jobId))
+    return <ErrorState error={error} onRetry={() => navigate(0)} />;
+  if (!job || job.id !== jobId) return <Loading label="Loading evaluation…" />;
 
-  const c = job.counters;
-  const progress = c.total_runs > 0 ? c.completed_runs / c.total_runs : 0;
+  const currentJob = job;
+  const counters = currentJob.counters;
+  const progress =
+    counters.total_runs > 0 ? counters.completed_runs / counters.total_runs : 0;
+  const terminal = TERMINAL.has(currentJob.status);
+  const currentRun = terminal ? null : runMap;
+  const canCancel =
+    !currentJob.cancel_requested &&
+    (currentJob.status === "queued" || currentJob.status === "running");
+  const canRetry = terminal;
+  const transportLabel =
+    stream.transport === "poll"
+      ? "Live · fallback polling"
+      : stream.transport === "closed"
+        ? "Evidence tape closed"
+        : stream.connected
+          ? "Live"
+          : "Reconnecting";
 
   async function cancel() {
-    if (!job) return;
+    if (!canCancel) return;
+    const targetId = currentJob.id;
+    const targetGeneration = routeGeneration.current;
+    const isCurrent = () =>
+      routeGeneration.current === targetGeneration &&
+      routeIdRef.current === targetId;
     setActioning(true);
     try {
-      const j = await api.cancelJob(job.id);
-      setJob(j);
-    } catch (e) {
-      setError(e instanceof ApiRequestError ? e : new Error(String(e)));
+      const result = await api.cancelJob(targetId);
+      if (isCurrent()) setJob(result);
+    } catch (caught) {
+      if (isCurrent())
+        setError(
+          caught instanceof ApiRequestError
+            ? caught
+            : new Error(String(caught)),
+        );
     } finally {
-      setActioning(false);
+      if (isCurrent()) setActioning(false);
     }
   }
 
   async function retry() {
-    if (!job) return;
+    const targetId = currentJob.id;
+    const targetGeneration = routeGeneration.current;
+    const isCurrent = () =>
+      routeGeneration.current === targetGeneration &&
+      routeIdRef.current === targetId;
     setActioning(true);
     try {
-      const j = await api.retryJob(job.id);
-      navigate(`/jobs/${encodeURIComponent(j.id)}`);
-    } catch (e) {
-      setError(e instanceof ApiRequestError ? e : new Error(String(e)));
-      setActioning(false);
+      const next = await api.retryJob(targetId);
+      if (isCurrent()) navigate(`/jobs/${encodeURIComponent(next.id)}`);
+    } catch (caught) {
+      if (isCurrent())
+        setError(
+          caught instanceof ApiRequestError
+            ? caught
+            : new Error(String(caught)),
+        );
+      if (isCurrent()) setActioning(false);
     }
   }
 
-  const canCancel = job.status === "queued" || job.status === "running";
-  const canRetry = TERMINAL.has(job.status);
-
   return (
     <div>
-      <h1 className="page-title">
-        Job {job.id.slice(0, 8)} · {job.params.name || job.params.model}
-      </h1>
-      <p className="page-subtitle">
-        {job.params.backend.kind} · {job.params.model} · {job.params.tasks.length}{" "}
-        tasks × {job.params.repeats} repeats
-      </p>
-      <CaveatBanner />
-
-      <div className="panel">
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-          <span className={`badge ${badgeClass(job.status)}`}>
-            {jobStatusLabel(job.status)}
-          </span>
-          <span className="conn-pill">
-            <span
-              className={`dot ${
-                stream.transport === "closed"
-                  ? ""
-                  : stream.connected
-                    ? "live"
-                    : "bad"
-              }`}
-            />
-            {stream.transport === "closed"
-              ? "stream closed"
-              : stream.transport === "sse"
-                ? stream.connected
-                  ? "live (SSE)"
-                  : "reconnecting (SSE)"
-                : "live (poll fallback)"}
-          </span>
-          <div className="spacer" />
-          {canCancel && (
-            <button className="btn danger" disabled={actioning} onClick={cancel}>
-              {job.cancel_requested ? "Cancel requested…" : "Cancel"}
-            </button>
-          )}
-          {canRetry && (
-            <button className="btn secondary" disabled={actioning} onClick={retry}>
-              Retry as new job
-            </button>
-          )}
-          {TERMINAL.has(job.status) && c.completed_runs > 0 && (
-            <Link className="btn" to={`/jobs/${encodeURIComponent(job.id)}/results`}>
-              View results →
-            </Link>
-          )}
-        </div>
-
-        <div className="progress" style={{ marginBottom: 8 }}>
-          <div className="fill" style={{ width: toPx(progress, 100) + "%" }} />
-        </div>
-        <p className="note">
-          {c.completed_runs} / {c.total_runs} runs · {c.passed_runs} passed ·{" "}
-          {c.voided_runs} voided · {c.failed_runs} failed
-        </p>
-
-        {job.error_message && (
-          <p className="note" style={{ color: "var(--bad)" }}>
-            {job.error_message}
-          </p>
-        )}
-
-        <dl className="kv" style={{ marginTop: 12 }}>
-          <dt>created</dt>
-          <dd>{formatDate(job.created_at)}</dd>
-          <dt>started</dt>
-          <dd>{formatDate(job.started_at)}</dd>
-          <dt>finished</dt>
-          <dd>{formatDate(job.finished_at)}</dd>
-        </dl>
-      </div>
-
-      <div className="panel">
-        <h2>Event log ({stream.events.length})</h2>
-        {stream.events.length === 0 ? (
-          <p className="note muted">Waiting for events…</p>
-        ) : (
-          <div className="event-log">
-            {stream.events.map((e) => (
-              <div className="event-row" key={`${e.seq}-${e.type}`}>
-                <span className="seq">#{e.seq}</span>
-                <span className="type">{e.type}</span>
-                <span>{summarize(e.payload)}</span>
-              </div>
-            ))}
+      <PageHeader
+        eyebrow="Evaluation monitor"
+        title={currentJob.params.model}
+        description={`${backendLabel(currentJob.params.backend.kind)} · ${taskScope(currentJob.params.tasks.length, currentJob.params.repeats)} · created ${formatDate(currentJob.created_at)}`}
+        actions={
+          <div className="monitor-actions">
+            {canCancel && (
+              <button
+                className="btn btn-danger"
+                type="button"
+                disabled={actioning}
+                onClick={cancel}
+              >
+                <Pause size={15} aria-hidden="true" />
+                Cancel evaluation
+              </button>
+            )}
+            {currentJob.cancel_requested && (
+              <span className="badge warn">cancel requested</span>
+            )}
+            {canRetry && (
+              <button
+                className="btn btn-secondary"
+                type="button"
+                disabled={actioning}
+                onClick={retry}
+              >
+                <RotateCcw size={15} aria-hidden="true" /> Retry as new
+                evaluation
+              </button>
+            )}
+            {terminal && counters.completed_runs > 0 && (
+              <Link
+                className="btn"
+                to={`/jobs/${encodeURIComponent(currentJob.id)}/results`}
+              >
+                <FileText size={15} aria-hidden="true" /> View results
+              </Link>
+            )}
           </div>
-        )}
-        <p className="note muted">
-          Reconnects replay from Last-Event-ID and are deduped by seq, so the log
-          never shows duplicate runs after a refresh.
-        </p>
+        }
+      />
+      <CaveatBanner />
+      {error && (
+        <InlineNotice tone="danger">
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span>{error.message}</span>
+        </InlineNotice>
+      )}
+      {stream.historyError && (
+        <InlineNotice tone="warn">
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span>
+            Event history could not be fully loaded:{" "}
+            {stream.historyError.message}
+          </span>
+        </InlineNotice>
+      )}
+      <div className="monitor-hero">
+        <div>
+          <StatusDot
+            label={transportLabel}
+            tone={
+              stream.transport === "closed"
+                ? "neutral"
+                : stream.connected
+                  ? "good"
+                  : "warn"
+            }
+            pulse={stream.connected && stream.transport !== "closed"}
+          />
+          <div className="monitor-title">
+            {currentJob.status === "running"
+              ? "Evaluating"
+              : currentJob.status === "queued"
+                ? "Queued"
+                : currentJob.status === "succeeded"
+                  ? "Evaluation complete"
+                  : currentJob.status === "canceled"
+                    ? "Evaluation canceled"
+                    : "Evaluation stopped"}
+          </div>
+          <div className="monitor-count">
+            <strong>{counters.completed_runs}</strong> / {counters.total_runs}{" "}
+            runs · {counters.passed_runs} passed · {counters.failed_runs} failed
+            · {counters.voided_runs} voided
+          </div>
+          <div className="monitor-progress">
+            <ProgressBar
+              value={progress}
+              label={`${Math.round(progress * 100)}%`}
+              tone={
+                currentJob.status === "failed"
+                  ? "bad"
+                  : currentJob.status === "succeeded"
+                    ? "good"
+                    : "accent"
+              }
+            />
+          </div>
+        </div>
+        <div className="monitor-actions">
+          <JobStatusBadge status={currentJob.status} />
+        </div>
       </div>
+      <MetricGroup>
+        <Metric
+          label="Passed"
+          value={counters.passed_runs}
+          detail="functional pass"
+          tone="good"
+          mono
+        />
+        <Metric
+          label="Failed"
+          value={counters.failed_runs}
+          detail="valid failures"
+          tone="bad"
+          mono
+        />
+        <Metric
+          label="Voided"
+          value={counters.voided_runs}
+          detail="infra · excluded from n"
+          tone="void"
+          mono
+        />
+        <Metric
+          label="Reused"
+          value={counters.reused_runs}
+          detail="existing evidence reused"
+          mono
+        />
+      </MetricGroup>
+      {currentJob.error_message && (
+        <InlineNotice tone="danger">
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span>{currentJob.error_message}</span>
+        </InlineNotice>
+      )}
+
+      <div className="monitor-grid">
+        <div>
+          <Panel>
+            <SectionHeader
+              title="Task progress"
+              description="Each marker is one task/repeat unit. Reused work is not counted as a fresh pass."
+            />
+            {stream.historyLoading && stream.events.length === 0 ? (
+              <Loading label="Loading event history…" />
+            ) : (
+              <TaskRunGrid
+                job={currentJob}
+                events={stream.events}
+                historyLoading={stream.historyLoading}
+                historyError={stream.historyError}
+              />
+            )}
+            <div className="legend">
+              <span className="legend-item">
+                <span className="run-marker pass">✓</span> pass
+              </span>
+              <span className="legend-item">
+                <span className="run-marker fail">×</span> fail
+              </span>
+              <span className="legend-item">
+                <span className="run-marker voided">◇</span> voided
+              </span>
+              <span className="legend-item">
+                <span className="run-marker running">●</span> running
+              </span>
+              <span className="legend-item">
+                <span className="run-marker unknown">?</span> recorded · unknown
+              </span>
+              <span className="legend-item">
+                <span className="run-marker not_run">–</span> not run
+              </span>
+              <span className="legend-item">
+                <span className="run-marker not_recorded">?</span> not recorded
+              </span>
+              <span className="legend-item">
+                <span className="run-marker reused">↺</span> reused
+              </span>
+            </div>
+          </Panel>
+        </div>
+        <div>
+          <Panel>
+            <SectionHeader
+              title="Current run"
+              description="Worker event granularity is intentionally shown as coarse."
+            />
+            {currentRun ? (
+              <CurrentRun
+                job={currentJob}
+                current={currentRun}
+                events={stream.events}
+              />
+            ) : (
+              <div className="current-run">
+                <CircleDot size={18} aria-hidden="true" />
+                <strong>
+                  {terminal
+                    ? "No run is active"
+                    : currentJob.status === "queued"
+                      ? "Waiting for worker"
+                      : "No run currently active"}
+                </strong>
+                <span className="note muted">
+                  The raw evidence tape below remains available for inspection.
+                </span>
+              </div>
+            )}
+          </Panel>
+          <Panel>
+            <SectionHeader title="Evaluation record" />
+            <dl className="kv">
+              <dt>evaluation ID</dt>
+              <dd>{currentJob.id}</dd>
+              <dt>created</dt>
+              <dd>{formatDate(currentJob.created_at)}</dd>
+              <dt>started</dt>
+              <dd>{formatDate(currentJob.started_at)}</dd>
+              <dt>finished</dt>
+              <dd>{formatDate(currentJob.finished_at)}</dd>
+              <dt>duration</dt>
+              <dd>
+                {jobDuration(currentJob.started_at, currentJob.finished_at)}
+              </dd>
+            </dl>
+          </Panel>
+        </div>
+      </div>
+
+      <Panel>
+        <details
+          className="advanced-details"
+          open={currentJob.status === "failed"}
+        >
+          <summary>
+            <span>
+              <Wifi size={15} aria-hidden="true" /> Advanced event evidence ·{" "}
+              {stream.events.length} events · last sequence {stream.lastSeq}
+            </span>
+            <ChevronDown size={15} aria-hidden="true" />
+          </summary>
+          {stream.events.length === 0 ? (
+            <p className="note muted">
+              {stream.historyLoading
+                ? "Loading worker events…"
+                : "No worker events were recorded."}
+            </p>
+          ) : (
+            <div className="event-log">
+              {stream.events.map((event) => (
+                <EventRow event={event} key={`${event.seq}-${event.type}`} />
+              ))}
+            </div>
+          )}
+          <p className="note muted">
+            Persisted event timestamps are shown when available. Native SSE
+            events do not expose a server timestamp, so those rows say so
+            explicitly.
+          </p>
+        </details>
+      </Panel>
     </div>
   );
 }
 
-function badgeClass(status: string): string {
-  switch (status) {
-    case "succeeded":
-      return "good";
-    case "failed":
-      return "bad";
-    case "canceled":
-      return "warn";
-    case "running":
-      return "void";
-    default:
-      return "";
-  }
+function CurrentRun({
+  job,
+  current,
+  events,
+}: {
+  job: Job;
+  current: RunView;
+  events: JobEvent[];
+}) {
+  const prefix = events.filter(
+    (event) =>
+      event.payload?.task_id === current.taskId &&
+      event.payload?.idx === current.idx,
+  );
+  const graded = prefix.some(
+    (event) => event.type === "run_graded" || event.type === "run_scored",
+  );
+  const persisted = prefix.some((event) => event.type === "run_persisted");
+  return (
+    <div className="current-run">
+      <div className="current-run-title">{current.taskId}</div>
+      <div className="current-run-subtitle">
+        Repeat {current.idx + 1} of {job.params.repeats}
+      </div>
+      <div className="stage-list">
+        <div className="stage-row">
+          <span>Agent run</span>
+          <span className="stage-state">
+            <StatusDot label="running" tone="accent" pulse />
+          </span>
+        </div>
+        <div className="stage-row">
+          <span>Worker result</span>
+          <span className="stage-state">{graded ? "recorded" : "waiting"}</span>
+        </div>
+        <div className="stage-row">
+          <span>Persisted</span>
+          <span className="stage-state">{persisted ? "yes" : "waiting"}</span>
+        </div>
+      </div>
+      <p className="note muted">
+        The model call is atomic from the worker’s perspective; patch and test
+        stages are not presented as live before the result event arrives.
+      </p>
+    </div>
+  );
 }
 
-function summarize(payload: Record<string, unknown> | null): string {
-  if (!payload) return "";
-  // Render a compact, human summary of common payload shapes.
-  const parts: string[] = [];
-  for (const key of ["task_id", "idx", "status", "functional_pass", "message", "completed", "total"]) {
-    if (key in payload && payload[key] !== null && payload[key] !== undefined) {
-      parts.push(`${key}=${String(payload[key])}`);
-    }
-  }
-  if (parts.length > 0) return parts.join(" · ");
-  if ("raw" in payload) return String(payload.raw);
-  return JSON.stringify(payload);
+function EventRow({ event }: { event: JobEvent }) {
+  const timestamp = event.ts
+    ? formatDate(event.ts)
+    : "server timestamp unavailable";
+  return (
+    <details className="event-detail">
+      <summary className="event-row">
+        <span className="seq">#{event.seq}</span>
+        <span className="type">{event.type}</span>
+        <span className="payload">
+          {summarizeEvent(event.payload)} · {timestamp}
+        </span>
+      </summary>
+      <pre className="log event-payload" tabIndex={0}>
+        {event.payload ? JSON.stringify(event.payload, null, 2) : "{}"}
+      </pre>
+    </details>
+  );
 }

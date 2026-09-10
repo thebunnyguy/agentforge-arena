@@ -1,98 +1,135 @@
-import { Link } from "react-router-dom";
-import { api } from "../api/client";
-import { useAsync } from "../lib/useAsync";
+import { Filter, Plus, RefreshCw, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { api, ApiRequestError } from "../api/client";
+import { usePolling } from "../lib/usePolling";
+import type { Job, JobStatus } from "../api/types";
 import { CaveatBanner } from "../components/CaveatBanner";
-import { ErrorState, Loading } from "../components/States";
-import { formatDate, jobStatusLabel } from "../lib/format";
-
-function jobBadgeClass(status: string): string {
-  switch (status) {
-    case "succeeded":
-      return "good";
-    case "failed":
-      return "bad";
-    case "canceled":
-      return "warn";
-    case "running":
-      return "void";
-    default:
-      return "";
-  }
-}
+import { EvaluationCard } from "../components/EvaluationCard";
+import { ErrorState, EmptyState, Loading } from "../components/States";
+import { PageHeader, Panel, SectionHeader } from "../components/Primitives";
 
 export function Jobs() {
-  const jobs = useAsync((s) => api.jobs(s), []);
+  const navigate = useNavigate();
+  const jobs = usePolling((signal) => api.jobs(signal), [], 5000);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<"" | JobStatus>("");
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const filtered = useMemo(
+    () =>
+      (jobs.data?.jobs ?? []).filter((job) => {
+        const needle = query.trim().toLowerCase();
+        return (
+          (!needle ||
+            job.params.model.toLowerCase().includes(needle) ||
+            job.id.includes(needle)) &&
+          (!status || job.status === status)
+        );
+      }),
+    [jobs.data, query, status],
+  );
+
+  async function retry(job: Job) {
+    setRetryError(null);
+    try {
+      const next = await api.retryJob(job.id);
+      navigate(`/jobs/${encodeURIComponent(next.id)}`);
+    } catch (error) {
+      setRetryError(
+        error instanceof ApiRequestError ? error.message : String(error),
+      );
+    }
+  }
 
   return (
     <div>
-      <h1 className="page-title">Jobs</h1>
-      <p className="page-subtitle">Evaluation job history.</p>
+      <PageHeader
+        eyebrow="Evaluate"
+        title="Evaluations"
+        description="A history of local experiments. Running, canceled, failed, and reused work stays visible instead of disappearing into logs."
+        actions={
+          <Link className="btn" to="/new">
+            <Plus size={15} aria-hidden="true" /> New evaluation
+          </Link>
+        }
+      />
       <CaveatBanner />
-
-      <div className="toolbar">
-        <Link className="btn" to="/new">
-          + New evaluation
-        </Link>
-        <button className="btn ghost" onClick={jobs.reload}>
-          Refresh
-        </button>
-      </div>
-
-      <div className="panel">
-        {jobs.loading ? (
-          <Loading />
-        ) : jobs.error ? (
+      {retryError && (
+        <div className="inline-notice notice-danger">{retryError}</div>
+      )}
+      <Panel>
+        <SectionHeader
+          title="Evaluation history"
+          description={`${filtered.length} shown · newest first from the API`}
+          action={
+            <button
+              className="btn btn-ghost btn-small"
+              type="button"
+              onClick={jobs.reload}
+            >
+              <RefreshCw size={14} aria-hidden="true" /> Refresh
+            </button>
+          }
+        />
+        <div className="toolbar">
+          <div className="search-field">
+            <Search size={15} aria-hidden="true" />
+            <input
+              aria-label="Search evaluations"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search model IDs or evaluation IDs…"
+            />
+          </div>
+          <label htmlFor="evaluation-status">
+            <Filter size={14} aria-hidden="true" /> Status
+          </label>
+          <select
+            id="evaluation-status"
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as "" | JobStatus)
+            }
+          >
+            <option value="">All statuses</option>
+            <option value="queued">Queued</option>
+            <option value="running">Running</option>
+            <option value="succeeded">Succeeded</option>
+            <option value="failed">Failed</option>
+            <option value="canceled">Canceled</option>
+          </select>
+        </div>
+        {jobs.loading && !jobs.data ? (
+          <Loading label="Loading evaluations…" />
+        ) : jobs.error && !jobs.data ? (
           <ErrorState error={jobs.error} onRetry={jobs.reload} />
-        ) : jobs.data!.jobs.length === 0 ? (
-          <p className="note muted">
-            No jobs yet. <Link to="/new">Create one →</Link>
-          </p>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title={
+              jobs.data?.jobs.length
+                ? "No matching evaluations"
+                : "No evaluations yet"
+            }
+            action={
+              <Link className="btn btn-small" to="/new">
+                Create evaluation
+              </Link>
+            }
+          >
+            <p>
+              {jobs.data?.jobs.length
+                ? "Change the search or status filter."
+                : "Run a mock evaluation to verify the local pipeline, or connect a local model backend."}
+            </p>
+          </EmptyState>
         ) : (
-          <table className="data">
-            <thead>
-              <tr>
-                <th>job</th>
-                <th>name</th>
-                <th>backend</th>
-                <th>status</th>
-                <th className="num">progress</th>
-                <th className="num">pass / void / fail</th>
-                <th>created</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.data!.jobs.map((j) => (
-                <tr key={j.id}>
-                  <td className="mono">
-                    <Link to={`/jobs/${encodeURIComponent(j.id)}`}>
-                      {j.id.slice(0, 8)}
-                    </Link>
-                  </td>
-                  <td>{j.params.name || j.params.model}</td>
-                  <td>{j.params.backend.kind}</td>
-                  <td>
-                    <span className={`badge ${jobBadgeClass(j.status)}`}>
-                      {jobStatusLabel(j.status)}
-                    </span>
-                  </td>
-                  <td className="num">
-                    {j.counters.completed_runs}/{j.counters.total_runs}
-                  </td>
-                  <td className="num">
-                    {j.counters.passed_runs} / {j.counters.voided_runs} /{" "}
-                    {j.counters.failed_runs}
-                  </td>
-                  <td>{formatDate(j.created_at)}</td>
-                  <td>
-                    <Link to={`/jobs/${encodeURIComponent(j.id)}`}>open →</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="evaluation-list">
+            {filtered.map((job) => (
+              <EvaluationCard job={job} onRetry={retry} key={job.id} />
+            ))}
+          </div>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }

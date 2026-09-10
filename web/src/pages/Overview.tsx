@@ -1,169 +1,273 @@
-import { Link } from "react-router-dom";
-import { api } from "../api/client";
+import { useState } from "react";
+import { ArrowRight, Database, Play } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { api, ApiRequestError } from "../api/client";
+import type { Job } from "../api/types";
 import { useAsync } from "../lib/useAsync";
+import { usePolling } from "../lib/usePolling";
 import { CaveatBanner } from "../components/CaveatBanner";
+import { EvaluationCard } from "../components/EvaluationCard";
+import { ErrorState, Loading, EmptyState } from "../components/States";
+import {
+  InlineNotice,
+  LinkArrow,
+  Panel,
+  PageHeader,
+  SectionHeader,
+  StatusDot,
+} from "../components/Primitives";
 import { WilsonBar } from "../components/WilsonBar";
-import { ProvisionalBadge } from "../components/Badges";
-import { ErrorState, Loading, SkeletonRows } from "../components/States";
-import { fixed, pct, rankLabel } from "../lib/format";
-import { DomainMatrix } from "./DomainMatrix";
+import { backendLabel, pct, rankLabel } from "../lib/format";
 
 export function Overview() {
-  const overview = useAsync((s) => api.overview(s), []);
-  const meta = useAsync((s) => api.meta(s), []);
-  const lb = useAsync((s) => api.leaderboard(null, s), []);
+  const overview = useAsync((signal) => api.overview(signal), []);
+  const meta = useAsync((signal) => api.meta(signal), []);
+  const jobs = usePolling((signal) => api.jobs(signal), [], 5000);
+  const health = useAsync((signal) => api.health(signal), []);
+  const settings = useAsync((signal) => api.settings(signal), []);
+  const navigate = useNavigate();
+  const [retryError, setRetryError] = useState<string | null>(null);
 
-  if (overview.error)
-    return <ErrorState error={overview.error} onRetry={overview.reload} />;
+  if (!overview.data)
+    return (
+      <div>
+        <PageHeader
+          eyebrow="AgentForge Arena"
+          title="Evaluation workspace"
+          description="The local benchmark home is waiting for evidence data."
+          actions={
+            <Link className="btn" to="/new">
+              <Play size={15} aria-hidden="true" /> New evaluation
+            </Link>
+          }
+        />
+        {overview.loading ? (
+          <Loading label="Preparing the evaluation workspace…" />
+        ) : (
+          <InlineNotice tone="danger">
+            <Database size={16} aria-hidden="true" />
+            <span>
+              {overview.error?.message ?? "The overview could not be loaded."}{" "}
+              Use New evaluation to continue or retry this page.
+            </span>
+          </InlineNotice>
+        )}
+        <button
+          className="btn btn-secondary"
+          type="button"
+          onClick={overview.reload}
+        >
+          Retry overview
+        </button>
+      </div>
+    );
 
-  const obs = overview.data?.observability;
+  const data = overview.data;
+  const obs = data.observability;
+  const recentJobs = jobs.data?.jobs.slice(0, 4) ?? [];
+  const topEntries = data.leaderboard.slice(0, 4);
+  const configuredBackend = settings.data
+    ? `${backendLabel(settings.data.default_backend)} configured · verify before launch`
+    : settings.error
+      ? "Backend settings unavailable"
+      : "Reading backend settings…";
+  async function retryJob(job: Job) {
+    setRetryError(null);
+    try {
+      const next = await api.retryJob(job.id);
+      navigate(`/jobs/${encodeURIComponent(next.id)}`);
+    } catch (error) {
+      setRetryError(
+        error instanceof ApiRequestError ? error.message : String(error),
+      );
+    }
+  }
 
   return (
     <div>
-      <h1 className="page-title">Overview</h1>
-      <p className="page-subtitle">
-        Pooled-across-tasks leaderboard and per-domain capability for every agent
-        in the local benchmark store.
-      </p>
-
-      <CaveatBanner caveat={meta.data?.notes?.trust} />
-
-      {/* Run/DB summary */}
-      <div className="grid-2" style={{ marginBottom: 20 }}>
-        <Stat label="Total runs" value={obs?.total_runs ?? "—"} />
-        <Stat label="Agents" value={overview.data?.models.length ?? "—"} />
-        <Stat label="Tasks" value={overview.data?.n_tasks ?? "—"} />
-        <Stat
-          label="Patch coverage"
-          value={obs ? `${obs.runs_with_patch} / ${obs.total_runs}` : "—"}
-        />
-        <Stat
-          label="Test-result coverage"
-          value={obs ? `${obs.runs_with_test_results} / ${obs.total_runs}` : "—"}
-        />
-        <Stat
-          label="Synthetic baselines"
-          value={overview.data?.synthetic_agents.length ?? "—"}
-        />
-      </div>
-
-      {/* Hero: leaderboard with Wilson-interval bars */}
-      <div className="panel">
-        <h2>Leaderboard — Wilson lower-bound ranking (pooled across tasks)</h2>
-        {lb.loading ? (
-          <SkeletonRows rows={5} cols={5} />
-        ) : lb.error ? (
-          <ErrorState error={lb.error} onRetry={lb.reload} />
-        ) : (
-          <table className="data">
-            <thead>
-              <tr>
-                <th className="num">rank</th>
-                <th>agent</th>
-                <th className="num">n</th>
-                <th className="num">p̂</th>
-                <th>95% Wilson interval</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lb.data!.entries.map((e) => (
-                <tr key={e.agent}>
-                  <td className="num">
-                    {e.provisional ? (
-                      <ProvisionalBadge />
-                    ) : (
-                      rankLabel(e.provisional, e.rank_low, e.rank_high)
-                    )}
-                  </td>
-                  <td>
-                    <Link to={`/agent/${encodeURIComponent(e.agent)}`}>{e.agent}</Link>
-                  </td>
-                  <td className="num">{e.n}</td>
-                  <td className="num">{fixed(e.pass_rate)}</td>
-                  <td>
-                    <WilsonBar pHat={e.pass_rate} low={e.wilson_low} high={e.wilson_high} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        <p className="note muted">
-          Ranks come straight from the kernel's Wilson-LCB ranking. Agents with
-          n&lt;5 valid runs are <em>provisional</em> and excluded from ranking. The
-          interval bar shows p̂ (point) inside the server-computed 95% Wilson
-          interval. No interval is recomputed in the browser — values are rendered
-          as returned by the API.
-        </p>
-      </div>
-
-      {/* Domain matrix */}
-      <div className="panel">
-        <h2>Domain capability matrix</h2>
-        <p className="note muted">
-          Pooled per-domain pass rate per agent. A cell shows{" "}
-          <code>--</code> when the domain is not <em>displayable</em> for that agent
-          (kernel rule: ≥5 tasks AND ≥25 runs). Non-displayable cells are
-          deliberately blank rather than showing an unstable number.
-        </p>
-        {overview.loading ? (
-          <Loading />
-        ) : (
-          <DomainMatrix agents={overview.data?.models ?? []} />
-        )}
-      </div>
-
-      {/* Coverage / version distribution */}
-      {meta.data && meta.data.tasks.length > 0 && (
-        <div className="panel">
-          <h2>Task version coverage</h2>
-          <table className="data">
-            <thead>
-              <tr>
-                <th>task</th>
-                <th>current version</th>
-                <th>evaluated versions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {meta.data.tasks.map((t) => (
-                <tr key={t.task_id}>
-                  <td>
-                    <Link to={`/task/${encodeURIComponent(t.task_id)}`}>
-                      {t.task_id}
-                    </Link>
-                  </td>
-                  <td className="mono">{t.current_version ?? "—"}</td>
-                  <td className="mono">
-                    {t.evaluated_versions.length > 0
-                      ? t.evaluated_versions.join(", ")
-                      : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="hero">
+        <div>
+          <div className="eyebrow">AgentForge Arena</div>
+          <h1>
+            Run agents.
+            <br />
+            <span>Trust the evidence.</span>
+          </h1>
+          <p>
+            A local workstation for evaluating coding agents, observing
+            behavior, and investigating every failure without hiding
+            uncertainty.
+          </p>
+          <div className="hero-actions">
+            <Link className="btn" to="/new">
+              <Play size={15} aria-hidden="true" /> New evaluation
+            </Link>
+            <Link className="btn btn-ghost" to="/leaderboard">
+              Open leaderboard <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
         </div>
-      )}
+        <div className="hero-status">
+          <div className="hero-status-title">Workspace status</div>
+          <div className="status-list">
+            <StatusDot
+              label={
+                health.data?.stores_loaded
+                  ? "Evidence database loaded"
+                  : health.error
+                    ? "Evidence database unavailable"
+                    : "Checking evidence database"
+              }
+              tone={
+                health.error
+                  ? "bad"
+                  : health.data?.stores_loaded
+                    ? "good"
+                    : "neutral"
+              }
+              pulse={!health.error && !health.data}
+            />
+            <StatusDot
+              label={configuredBackend}
+              tone={
+                settings.error ? "bad" : settings.data ? "accent" : "neutral"
+              }
+            />
+            <StatusDot
+              label={`${data.n_tasks} benchmark tasks`}
+              tone="accent"
+            />
+            <StatusDot label="Trusted-local execution" tone="warn" />
+          </div>
+        </div>
+      </div>
+      <CaveatBanner caveat={meta.data?.notes?.trust} />
+      <div className="split-layout">
+        <Panel>
+          <SectionHeader
+            title="Recent evaluations"
+            description="The latest control-plane history. Open one to monitor or inspect its evidence."
+            action={<LinkArrow to="/jobs">View all</LinkArrow>}
+          />
+          {retryError && (
+            <div className="inline-notice notice-danger">{retryError}</div>
+          )}
+          {jobs.error && jobs.data && (
+            <div className="inline-notice notice-warn">
+              Refresh failed; showing the last loaded evaluation list.
+            </div>
+          )}
+          {jobs.loading && !jobs.data ? (
+            <Loading label="Loading recent evaluations…" />
+          ) : jobs.error && !jobs.data ? (
+            <ErrorState error={jobs.error} onRetry={jobs.reload} />
+          ) : recentJobs.length === 0 ? (
+            <EmptyState
+              title="No evaluations yet"
+              action={
+                <Link className="btn btn-small" to="/new">
+                  Start the first evaluation
+                </Link>
+              }
+            >
+              <p>
+                Choose a local backend and task set to create a replayable
+                evaluation record.
+              </p>
+            </EmptyState>
+          ) : (
+            <div>
+              {recentJobs.map((job) => (
+                <EvaluationCard job={job} onRetry={retryJob} key={job.id} />
+              ))}
+            </div>
+          )}
+        </Panel>
+        <Panel>
+          <SectionHeader
+            title="Benchmark snapshot"
+            description="Kernel order, pooled across tasks."
+            action={<LinkArrow to="/leaderboard">Full ranking</LinkArrow>}
+          />
+          <div className="snapshot-list">
+            {topEntries.map((entry) => (
+              <div className="snapshot-row" key={entry.agent}>
+                <span className="snapshot-rank">
+                  {rankLabel(
+                    entry.provisional,
+                    entry.rank_low,
+                    entry.rank_high,
+                  )}
+                </span>
+                <div className="snapshot-agent">
+                  <Link to={`/agent/${encodeURIComponent(entry.agent)}`}>
+                    {entry.agent}
+                  </Link>
+                  <span>
+                    {entry.n} valid runs · {pct(entry.pass_rate, 1)}
+                  </span>
+                </div>
+                <WilsonBar
+                  pHat={entry.pass_rate}
+                  low={entry.wilson_low}
+                  high={entry.wilson_high}
+                  width={150}
+                  compact
+                  showLabel={false}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="note muted">
+            Intervals qualify every point estimate; rank ranges stay visible
+            when evidence overlaps.
+          </p>
+          {meta.data?.synthetic_agents.length ? (
+            <p className="note muted">
+              Synthetic reference baselines remain available as clearly labelled
+              bookend cells, not competing model entries.
+            </p>
+          ) : null}
+        </Panel>
+      </div>
+      <Panel className="home-health">
+        <SectionHeader
+          title="Evidence health"
+          description="Counts from the API startup snapshot; patch and test-result coverage are independent."
+        />
+        <div className="evidence-strip evidence-strip-strong">
+          <div className="evidence-item">
+            <span className="evidence-label">Persisted runs</span>
+            <span className="evidence-value evidence-good">
+              {obs.total_runs}
+            </span>
+          </div>
+          <div className="evidence-item">
+            <span className="evidence-label">Agents</span>
+            <span className="evidence-value">{data.models.length}</span>
+          </div>
+          <div className="evidence-item">
+            <span className="evidence-label">Tasks</span>
+            <span className="evidence-value">{data.n_tasks}</span>
+          </div>
+          <div className="evidence-item">
+            <span className="evidence-label">Patch coverage</span>
+            <span className="evidence-value">
+              {obs.runs_with_patch}/{obs.total_runs}
+            </span>
+          </div>
+          <div className="evidence-item">
+            <span className="evidence-label">Test-result coverage</span>
+            <span className="evidence-value">
+              {obs.runs_with_test_results}/{obs.total_runs}
+            </span>
+          </div>
+          <div className="evidence-item">
+            <span className="evidence-label">Test rows</span>
+            <span className="evidence-value">{obs.test_result_rows}</span>
+          </div>
+        </div>
+      </Panel>
     </div>
   );
 }
-
-function Stat({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: React.ReactNode;
-  mono?: boolean;
-}) {
-  return (
-    <div className="stat">
-      <div className="label">{label}</div>
-      <div className={`value ${mono ? "mono" : ""}`}>{value}</div>
-    </div>
-  );
-}
-
-export { pct };
