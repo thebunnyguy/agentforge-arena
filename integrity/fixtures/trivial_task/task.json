@@ -1,0 +1,20 @@
+{
+  "id": "fixture-trivial-task",
+  "version": "1.0.0",
+  "title": "Fixture: a trivial task (unmodified snapshot already passes hidden tests)",
+  "description": "double(n) must return n * 2. The snapshot is (mistakenly) already correct, so doing nothing passes.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [{ "domain": "test", "weight": 1.0 }],
+  "activity": "debugging-bugfix",
+  "scale": "XS",
+  "manual_difficulty": 1,
+  "timeout_s": 30,
+  "protected_paths": ["tests_visible/**", "**/test_*.py"],
+  "editable_paths": ["pkg/**"],
+  "visible": { "paths": ["tests_visible/test_visible.py"] },
+  "hidden": { "src": "grading", "paths": ["test_hidden.py"], "weights": {} },
+  "regression": { "src": "grading", "paths": ["test_regression.py"] },
+  "scoring_recipe": { "hidden_weights": {} }
+}

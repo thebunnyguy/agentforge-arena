@@ -1,0 +1,20 @@
+{
+  "id": "fixture-overfitted-grader",
+  "version": "1.0.0",
+  "title": "Fixture: an overfitted oracle (a valid alternative is rejected)",
+  "description": "require_non_negative(n) must raise ValueError for n < 0 and return n otherwise. Fix pkg/core.py.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [{ "domain": "test", "weight": 1.0 }],
+  "activity": "debugging-bugfix",
+  "scale": "XS",
+  "manual_difficulty": 1,
+  "timeout_s": 30,
+  "protected_paths": ["tests_visible/**", "**/test_*.py"],
+  "editable_paths": ["pkg/**"],
+  "visible": { "paths": ["tests_visible/test_visible.py"] },
+  "hidden": { "src": "grading", "paths": ["test_hidden.py"], "weights": {} },
+  "regression": { "src": "grading", "paths": ["test_regression.py"] },
+  "scoring_recipe": { "hidden_weights": {} }
+}

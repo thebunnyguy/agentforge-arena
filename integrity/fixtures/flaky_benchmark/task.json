@@ -1,0 +1,20 @@
+{
+  "id": "fixture-flaky-benchmark",
+  "version": "1.0.0",
+  "title": "Fixture: a flaky benchmark (repeated grading of an unchanged artifact disagrees)",
+  "description": "add_one(n) must return n + 1. Used with a test-only Sandbox that makes the SAME artifact's hidden-suite outcome alternate across grades, deterministically, to test the determinism detector itself (see integrity/tests/test_audit_fixtures.py).",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [{ "domain": "test", "weight": 1.0 }],
+  "activity": "debugging-bugfix",
+  "scale": "XS",
+  "manual_difficulty": 1,
+  "timeout_s": 30,
+  "protected_paths": ["tests_visible/**", "**/test_*.py"],
+  "editable_paths": ["pkg/**"],
+  "visible": { "paths": ["tests_visible/test_visible.py"] },
+  "hidden": { "src": "grading", "paths": ["test_hidden.py"], "weights": {} },
+  "regression": { "src": "grading", "paths": ["test_regression.py"] },
+  "scoring_recipe": { "hidden_weights": {} }
+}

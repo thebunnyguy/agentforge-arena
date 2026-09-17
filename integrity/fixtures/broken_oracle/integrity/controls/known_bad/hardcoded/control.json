@@ -1,0 +1,5 @@
+{
+  "name": "missing_alnum_check",
+  "description": "Correctly rejects empty and over-length names but never checks that characters are alphanumeric, so 'abc!' is wrongly accepted. The hidden suite here never tests a non-alphanumeric name, so this should slip through undetected — demonstrating a broken oracle.",
+  "expect": "reject"
+}
