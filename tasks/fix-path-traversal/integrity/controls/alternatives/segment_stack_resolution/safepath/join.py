@@ -68,4 +68,4 @@ def safe_join(base, *parts):
             "joined path %r escapes base %r" % ("/".join(stack), base)
         )
 
-    return ("/" if is_abs else "") + "/".join(stack)
+    return (("/" if is_abs else "") + "/".join(stack)) or "."
