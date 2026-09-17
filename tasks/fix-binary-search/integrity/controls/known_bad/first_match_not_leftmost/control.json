@@ -1,0 +1,5 @@
+{
+  "name": "first_match_not_leftmost",
+  "description": "Adds an explicit equality check that returns as soon as ANY occurrence of target is found via the standard binary-search probe, instead of treating equality like 'still might be earlier' and continuing to narrow left. This looks like a natural, even 'more efficient-looking', early-exit optimization, but it forgets the contract's explicit requirement that a present target must resolve to the index of its FIRST occurrence -- it returns whatever mid the search happens to land on, which for a run of duplicates is essentially arbitrary. Non-duplicate cases (each value appears once) are unaffected, so this control is only caught by hidden tests with repeated values.",
+  "expect": "reject"
+}

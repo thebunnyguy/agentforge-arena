@@ -1,0 +1,5 @@
+{
+  "name": "map_calls_fn_on_err",
+  "description": "Realistic bug: forgets the is_ok guard in map() and applies fn unconditionally to whatever value/error is stored, instead of no-op'ing on err results. On an err result this calls fn(self._error) and wraps the result in a NEW ok Result, silently turning a failure into a success and invoking fn on data the contract says must never be touched. The hidden suite's test_err_map_stays_err_without_calling_fn (which records calls made to fn and asserts the result stays is_ok=False) must reject this.",
+  "expect": "reject"
+}

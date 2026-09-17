@@ -1,0 +1,5 @@
+{
+  "name": "num_pages_floor_at_least_one",
+  "description": "Realistic near-miss specific to this task's contract: num_pages is computed as max(1, ceil(total_items / per_page)), mirroring a very common real-world pagination convention where an empty collection still reports one (empty) page rather than zero pages. This task's contract explicitly requires num_pages == 0 when total_items == 0 and .page(1) to raise ValueError in that case (num_pages is 0, so every page number is invalid) — this mutant instead reports num_pages == 1 for an empty collection and .page(1) succeeds, returning an empty page (start_index == end_index == 0) instead of raising. Everywhere total_items > 0 this mutant is behaviorally identical to a correct implementation.",
+  "expect": "reject"
+}

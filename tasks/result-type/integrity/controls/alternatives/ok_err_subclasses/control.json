@@ -1,0 +1,5 @@
+{
+  "name": "ok_err_subclasses",
+  "description": "Structurally different but behaviorally equivalent design: instead of the reference's single Result class carrying an is_ok flag plus value/error slots, this splits Result into a base class and two concrete subclasses, _Ok and _Err, each implementing is_ok/unwrap/unwrap_or/map for its own case. Result.ok()/Result.err() are factory classmethods that construct the appropriate subclass. Control flow moves from branching on a stored boolean to dispatching via subclass method overrides, but every observable behavior (is_ok, unwrap, unwrap_or, map's no-op-without-calling-fn on err) matches the contract exactly.",
+  "expect": "accept"
+}

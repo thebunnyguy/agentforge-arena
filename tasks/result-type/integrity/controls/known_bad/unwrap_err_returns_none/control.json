@@ -1,0 +1,5 @@
+{
+  "name": "unwrap_err_returns_none",
+  "description": "Realistic bug: unwrap() forgets that an err result must raise ValueError, and instead returns the stored error value directly (a common mistake when someone assumes unwrap() should always 'give back what's inside', mirroring unwrap_or's shape instead of the ok/err contract). The hidden suite's test_err_unwrap_raises_value_error (pytest.raises(ValueError)) must reject this.",
+  "expect": "reject"
+}

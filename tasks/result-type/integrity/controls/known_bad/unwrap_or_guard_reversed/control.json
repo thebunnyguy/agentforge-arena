@@ -1,0 +1,5 @@
+{
+  "name": "unwrap_or_guard_reversed",
+  "description": "Realistic bug: the is_ok branch in unwrap_or() is flipped, so an ok result returns the caller's default instead of its stored value, and an err result returns its (nonexistent/None) value instead of the default. A plausible copy-paste/negation slip when writing the two branches. The hidden suite's test_ok_unwrap_or_returns_value and test_err_unwrap_or_returns_default must reject this.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "manual_wait_and_cancel",
+  "description": "Structurally different but behaviorally equivalent to the reference: instead of delegating to asyncio.wait_for, it drives asyncio.wait({task}, timeout=seconds) directly, and on timeout explicitly cancels the task and awaits asyncio.wait(pending) itself to block until the cancellation has actually completed before raising TimeoutError. Different control flow and a different low-level primitive (set-based wait/cancel loop vs. wait_for's single call), same contract: return the result if it finishes in time, otherwise raise TimeoutError and guarantee the coroutine is fully cancelled first.",
+  "expect": "accept"
+}

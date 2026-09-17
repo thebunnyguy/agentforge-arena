@@ -1,0 +1,5 @@
+{
+  "name": "boundary_flags_use_inclusive_comparison",
+  "description": "num_pages and start_index/end_index are all correct, but has_previous and has_next are computed with the wrong comparison direction at the boundary: has_previous = (n >= 1) and has_next = (n <= num_pages). Since page() already guarantees 1 <= n <= num_pages for any page it returns, both conditions are trivially always True — so has_previous is wrongly True on the first page and has_next is wrongly True on the last page. A plausible confusion between 'is n a valid page number' (>=1 / <=num_pages) and 'is there a page before/after n' (>1 / <num_pages), especially since the two pairs of operators look almost identical.",
+  "expect": "reject"
+}

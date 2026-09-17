@@ -1,0 +1,5 @@
+{
+  "name": "stdlib_bisect_right_confusion",
+  "description": "Task-specific naming near-miss: 'fixes' searchkit.search.bisect_left by delegating to Python's own stdlib bisect module -- but calls bisect.bisect(sorted_list, target), which is documented as an ALIAS for bisect.bisect_right, not bisect.bisect_left. This is a well-known, extremely plausible stdlib-naming confusion for exactly this function (the pair bisect_left/bisect_right, with bisect() defaulting to the 'right' one, trips up experienced Python users regularly), and it is specific to this task's contract rather than a generic mutation: it reintroduces precisely the 'equal elements resolve to the rightmost, not leftmost, occurrence' bug the task description says the original code has, just via a one-line stdlib delegation instead of hand-written comparison logic. Included as a separate control from the known_bad hand-rolled upper-bound bug because it is a structurally distinct submission an agent could plausibly produce (import bisect; return bisect.bisect(...)) that an author might not think to guard against if they only reviewed hand-written loops.",
+  "expect": "reject"
+}

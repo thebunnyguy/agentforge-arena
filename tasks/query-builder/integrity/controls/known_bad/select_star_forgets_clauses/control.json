@@ -1,0 +1,5 @@
+{
+  "name": "select_star_forgets_clauses",
+  "description": "Control-flow bug: build() branches early on the 'no columns selected' case and returns bare 'SELECT *' without ever appending accumulated WHERE/LIMIT clauses, because the append logic for WHERE/LIMIT was written only inside the 'if self._columns' branch. Columns-present path, AND-joining, and comma-joining are all correct. A realistic bug from writing the two SELECT-clause branches as independent early returns instead of building the SELECT prefix first and always falling through to the shared WHERE/LIMIT logic.",
+  "expect": "reject"
+}

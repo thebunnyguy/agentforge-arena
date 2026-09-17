@@ -1,0 +1,5 @@
+{
+  "name": "missing_comma_space",
+  "description": "Column list is joined with a bare comma (\",\") instead of \", \" (comma + space). WHERE/LIMIT clauses and the AND-joining are otherwise correct. A realistic transcription slip when an agent hand-writes the join separator instead of copying the contract's exact ', ' literal.",
+  "expect": "reject"
+}

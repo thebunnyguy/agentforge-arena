@@ -1,0 +1,5 @@
+{
+  "name": "empty_where_condition_dropped",
+  "description": "where(condition) only records the condition when it is truthy, silently dropping a call made with an empty string. The contract says the WHERE clause is appended 'if at least one where() was called' -- that's a call-count rule, not a truthiness-of-the-argument rule -- so where(\"\") must still produce a (degenerate) WHERE clause. This mutant instead ends up omitting WHERE entirely in that case. A realistic near-miss from an agent adding a defensive 'if condition:' guard before appending, assuming (wrongly, per this contract) that an empty condition means 'no condition'.",
+  "expect": "reject"
+}

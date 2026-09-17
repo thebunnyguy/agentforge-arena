@@ -1,0 +1,5 @@
+{
+  "name": "lowercase_and_joiner",
+  "description": "WHERE conditions are joined with lowercase ' and ' instead of the contract-required ' AND '. Column joining, the WHERE/LIMIT omission rules, and the 'SELECT *' default are otherwise correct. A realistic casing slip an agent might make by treating SQL keywords as case-insensitive rather than copying the contract's literal 'AND'.",
+  "expect": "reject"
+}

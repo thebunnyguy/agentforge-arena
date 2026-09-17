@@ -1,0 +1,5 @@
+{
+  "name": "propagates_cancelled_error",
+  "description": "Correctly cancels the task on timeout and awaits it (so cleanup runs), but forgets to catch the CancelledError that awaiting a cancelled task raises -- so that CancelledError propagates straight out of with_timeout to the caller instead of being converted into the required TimeoutError. A plausible bug from an agent that implements the 'cancel and wait for it to actually stop' half of the contract correctly but treats the resulting CancelledError as the natural/expected signal rather than an internal detail it must translate for the caller.",
+  "expect": "reject"
+}
