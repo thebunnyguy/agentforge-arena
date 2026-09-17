@@ -17,7 +17,6 @@ findings, just not folded into the status precedence.
 from __future__ import annotations
 
 from .model import (
-    AuditMode,
     CheckStatus,
     ControlKind,
     ControlResult,
@@ -33,11 +32,13 @@ EXCLUDED_FROM_STATUS = frozenset({"isolation.hidden_test_readability"})
 # reading both would double up near-duplicate reasons for one root cause.
 _CONTROLS_AGGREGATE_CHECK_ID = "controls.declared_controls"
 
+MUTATION_CHECK_ID = "mutation.generic_ast_mutants"
+ISOLATION_CHECK_ID = "isolation.hidden_test_readability"
+
 
 def determine_health_status(
     checks: list[IntegrityCheckResult],
     controls: list[ControlResult],
-    mode: AuditMode,
 ) -> tuple[HealthStatus, str]:
     invalid: list[str] = []
     needs_review: list[str] = []
@@ -86,12 +87,25 @@ def determine_health_status(
                 "issue, fix the control"
             )
 
-    if mode == AuditMode.QUICK and not (invalid or needs_review or unverifiable or provisional):
-        provisional.append(
-            "audit mode is QUICK: mutation testing, semantic mutants beyond "
-            "declared controls, and a wider determinism sample were not run "
-            "— run --full for stronger evidence"
-        )
+    if not (invalid or needs_review or unverifiable or provisional):
+        # Derived from which checks actually RAN, not from the audit mode —
+        # `--quick --mutation` runs mutation testing without FULL mode, and a
+        # mode-keyed message would then claim "mutation testing ... did not
+        # run" directly alongside a PASSING mutation.generic_ast_mutants
+        # check in the very same report.
+        ran_mutation = any(c.check_id == MUTATION_CHECK_ID for c in checks)
+        ran_isolation_probe = any(c.check_id == ISOLATION_CHECK_ID for c in checks)
+        missing = []
+        if not ran_mutation:
+            missing.append("mutation testing and a determinism sample over declared controls")
+        if not ran_isolation_probe:
+            missing.append("the isolation probe")
+        if missing:
+            provisional.append(
+                "less than the full evidence set was collected this run: "
+                + " and ".join(missing) + " did not run — run --full for "
+                "stronger evidence"
+            )
 
     if invalid:
         return HealthStatus.INVALID, "; ".join(invalid)

@@ -87,11 +87,22 @@ def report_to_markdown(report: BenchmarkIntegrityReport) -> str:
         survived = [m for m in report.mutations if m.verdict.value == "accepted" and not m.declared_equivalent]
         unsupported = [m for m in report.mutations if m.verdict.value == "unsupported"]
         equivalent = [m for m in report.mutations if m.declared_equivalent]
-        killed = generated - len(survived) - len(unsupported) - len(equivalent)
+        intercepted = [
+            m for m in report.mutations
+            if m.verdict.value in ("rejected_by_regression_gate", "rejected_by_scope_gate")
+            and not m.declared_equivalent
+        ]
+        # "Killed BY THE HIDDEN SUITE" only — a regression/scope-gate
+        # rejection never reached the hidden suite as an oracle (see
+        # mutation/engine.py's summarize_mutants), so it is its own bucket,
+        # not folded into "killed" the way a naive generated-minus-everything-
+        # else subtraction would.
+        killed = generated - len(survived) - len(unsupported) - len(equivalent) - len(intercepted)
         a(f"- Generated: {generated}")
         a(f"- Unsupported (base file failed the unparse round-trip self-check): {len(unsupported)}")
         a(f"- Declared equivalent: {len(equivalent)}")
-        a(f"- Killed: {killed}")
+        a(f"- Intercepted by regression/scope gate (never reached the hidden suite): {len(intercepted)}")
+        a(f"- Killed by the hidden suite: {killed}")
         a(f"- **Survived: {len(survived)}**")
         a("")
         if survived:
@@ -137,8 +148,18 @@ def pack_summary_to_markdown(summary: PackAuditSummary) -> str:
     a(f"**Engine version**: `{summary.engine_version}` (schema `{summary.schema_version}`)  ")
     a(f"**Timestamp**: {summary.created_at}  ")
     a(f"**Duration**: {summary.duration_ms} ms  ")
-    a(f"**Tasks audited**: {len(summary.reports)}")
+    a(f"**Tasks audited**: {len(summary.reports)}"
+      + (f" ({len(summary.failures)} FAILED TO AUDIT)" if summary.failures else ""))
     a("")
+
+    if summary.failures:
+        a("## Tasks that could not be audited at all")
+        a("")
+        a("| Task | Error |")
+        a("|---|---|")
+        for task_id, error in sorted(summary.failures.items()):
+            a(f"| `{task_id}` | {error} |")
+        a("")
 
     a("## Status counts")
     a("")

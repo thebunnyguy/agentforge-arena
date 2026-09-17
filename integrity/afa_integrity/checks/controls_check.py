@@ -20,15 +20,18 @@ from ..controls import Control, discover_controls
 from ..model import CheckStatus, ControlResult, IntegrityCheckResult, Severity, Verdict
 from ..overlay import classify_verdict, grade_diff, killed_by_tests, overlay_files_diff
 
-# Mutants/controls that hang the reference's own bug back in (e.g. an
-# adversarial known-bad overlay with a runaway loop) are capped well under a
-# task's normal timeout so one bad control can't dominate an audit.
-CONTROL_TIMEOUT_S = 30
-
-
 def _grade_control(task: Task, control: Control, sandbox: Sandbox) -> ControlResult:
+    # Unlike generic AST mutants (mutation/engine.py), declared controls are
+    # human-authored, specific, realistic implementations, not the product of
+    # random operator swaps most likely to infinite-loop — so this grades
+    # against the task's OWN timeout_s rather than an artificially tighter
+    # cap. A flat cap shorter than a task's real budget would either exceed
+    # it (contradicting the point of a cap) on a short-timeout task or falsely
+    # time out a legitimately slower — but still valid — control on a
+    # longer-timeout one; task.timeout_s is already the real bound every other
+    # grade call in this codebase (agent runs included) is held to.
     diff = overlay_files_diff(task, control.overlay_files())
-    report, score = grade_diff(task, diff, sandbox, timeout_s=CONTROL_TIMEOUT_S)
+    report, score = grade_diff(task, diff, sandbox)
     verdict = classify_verdict(report, score)
     matched_hidden_test_names = killed_by_tests(report)
 

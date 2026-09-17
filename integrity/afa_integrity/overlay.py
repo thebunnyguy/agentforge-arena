@@ -44,7 +44,10 @@ def read_overlay_files(root: Path | str) -> dict[str, str]:
         rel = src.relative_to(root).as_posix()
         try:
             files[rel] = src.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, ValueError):
+        except (UnicodeDecodeError, ValueError, OSError):
+            # OSError covers a permission error or a dangling/racing symlink
+            # (is_file() passed, read_text() didn't) — skip it like a binary
+            # file rather than crashing the whole audit on one bad entry.
             continue
     return files
 

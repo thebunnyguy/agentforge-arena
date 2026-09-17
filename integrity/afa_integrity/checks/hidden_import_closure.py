@@ -6,14 +6,18 @@ to compute expected values, left editable and unprotected, which would let an
 agent rewrite the oracle itself to force hidden tests to pass without ever
 touching a protected path.
 
-Key structural fact this check surfaces rather than re-deriving from scratch:
-every task in the current pack ships a non-empty `editable_paths` allow-list,
-and afa_runner.diffing._path_violates_scope treats ANY path outside that
-allow-list as a scope violation regardless of protected_paths — allow-list
-mode makes gate 7 satisfied *by construction* (nothing outside editable_paths
-can be silently touched at all). The check still performs the real static
-import analysis so it is meaningful for a future deny-list-only task, and
-reports which regime it found rather than assuming.
+Both the allow-list and deny-list regimes reduce to the SAME question: which
+local modules the hidden/regression suites import are actually *reachable* by
+a diff without failing the scope gate, and among those, can static analysis
+tell "this is the code under test" apart from "this is a helper the agent
+could rewrite"? It cannot in general (mission §12), so this check never
+claims gate 7 holds merely because an allow-list exists — an allow-list only
+changes *which* imports are reachable (those matching editable_paths, instead
+of those NOT matching protected_paths), not whether reachable-and-ambiguous
+imports exist. The one case this check can call PASS with a straight face is
+when there is at most one distinct reachable file: every task in the current
+pack's hidden suite imports exactly the single file it is testing, which is
+unambiguously the code under test, not a separate helper.
 """
 
 from __future__ import annotations
@@ -33,15 +37,21 @@ def _suite_files(task: Task, suite: TestSuiteSpec) -> list[Path]:
     return [base / p for p in suite.paths]
 
 
-def _local_imports(source: str) -> tuple[set[str], bool]:
-    """Top-level dotted module names imported by `source`, plus whether any
-    star-import or dynamic import call was seen (a resolution limitation)."""
+def _local_imports(source: str) -> tuple[set[str], list[str], bool]:
+    """Top-level dotted module names imported by `source`, any unresolvable
+    relative imports (``from . import x`` — level > 0, no module name, so
+    there is nothing to resolve without knowing the importing file's own
+    package location), and whether a star-import or dynamic import call was
+    seen. The relative-import and dynamic/star cases are resolution
+    limitations, surfaced rather than silently dropped.
+    """
     names: set[str] = set()
+    unresolved_relative: list[str] = []
     has_dynamic = False
     try:
         tree = ast.parse(source)
     except SyntaxError:
-        return names, True
+        return names, unresolved_relative, True
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -49,6 +59,13 @@ def _local_imports(source: str) -> tuple[set[str], bool]:
         elif isinstance(node, ast.ImportFrom):
             if node.module:
                 names.add(node.module)
+            elif node.level:
+                # `from . import x` / `from .. import x`: no module name, so
+                # this can't be resolved to a snapshot relpath without
+                # knowing which file is doing the importing.
+                unresolved_relative.append(
+                    "." * node.level + ",".join(a.name for a in node.names)
+                )
             if any(a.name == "*" for a in node.names):
                 has_dynamic = True
         elif isinstance(node, ast.Call):
@@ -60,7 +77,7 @@ def _local_imports(source: str) -> tuple[set[str], bool]:
                 "__import__",
             ):
                 has_dynamic = True
-    return names, has_dynamic
+    return names, unresolved_relative, has_dynamic
 
 
 def _resolve_local(module_name: str, snapshot_dir: Path) -> str | None:
@@ -87,6 +104,7 @@ def run_hidden_import_closure_check(task: Task) -> IntegrityCheckResult:
 
     files = _suite_files(task, task.hidden) + _suite_files(task, task.regression)
     all_modules: set[str] = set()
+    all_unresolved_relative: list[str] = []
     any_dynamic = False
     unreadable: list[str] = []
 
@@ -96,8 +114,9 @@ def run_hidden_import_closure_check(task: Task) -> IntegrityCheckResult:
         except OSError:
             unreadable.append(str(f))
             continue
-        modules, dynamic = _local_imports(source)
+        modules, unresolved_relative, dynamic = _local_imports(source)
         all_modules |= modules
+        all_unresolved_relative.extend(unresolved_relative)
         any_dynamic = any_dynamic or dynamic
 
     allow_list_mode = bool(task.editable_paths)
@@ -108,67 +127,76 @@ def run_hidden_import_closure_check(task: Task) -> IntegrityCheckResult:
         if rel is not None:
             resolved[m] = rel
 
+    # The one thing that differs between the two scope regimes: WHICH
+    # resolved imports are reachable by a diff without already failing
+    # scope_ok. Allow-list: only paths matching editable_paths are
+    # reachable at all. Deny-list-only: everything NOT matching
+    # protected_paths is reachable.
     if allow_list_mode:
-        # Allow-list mode: capture_diff's scope check rejects ANY touched path
-        # outside editable_paths, independent of protected_paths, so no
-        # resolved local import can be silently rewritten without already
-        # failing scope_ok. Gate 7 holds structurally.
-        duration_ms = int((time.monotonic() - start) * 1000)
-        return IntegrityCheckResult(
-            check_id="hidden_import_closure.gate7",
-            category="isolation",
-            status=CheckStatus.PASS,
-            severity=Severity.INFO,
-            description=(
-                "Task uses an editable_paths allow-list, which makes gate 7 "
-                "(no editable, unprotected oracle-helper import) hold "
-                "structurally: any local module the hidden/regression suites "
-                "import that isn't the editable code-under-test is already "
-                "unreachable by any diff without failing the scope gate."
-            ),
-            evidence={
-                "mode": "allow_list",
-                "editable_paths": list(task.editable_paths),
-                "resolved_local_imports": resolved,
-                "dynamic_or_star_import_seen": any_dynamic,
-                "unreadable_suite_files": unreadable,
-            },
-            duration_ms=duration_ms,
-        )
+        reachable = {
+            m: rel for m, rel in resolved.items()
+            if path_is_protected(rel.rstrip("/"), task.editable_paths)
+        }
+        mode_label = "allow_list"
+        mode_paths_key = "editable_paths"
+        mode_paths = task.editable_paths
+    else:
+        reachable = {
+            m: rel for m, rel in resolved.items()
+            if not path_is_protected(rel.rstrip("/"), task.protected_paths)
+        }
+        mode_label = "deny_list_only"
+        mode_paths_key = "protected_paths"
+        mode_paths = task.protected_paths
 
-    # Deny-list-only mode: intent (code-under-test vs. oracle helper) can't be
-    # inferred from imports alone. Flag any resolved local import NOT covered
-    # by protected_paths as a limitation-bearing finding for human review,
-    # rather than asserting certainty either way (mission §12: "do not pretend
-    # to mathematically prove completeness").
-    unprotected = {
-        m: rel
-        for m, rel in resolved.items()
-        if not path_is_protected(rel.rstrip("/"), task.protected_paths)
-    }
+    distinct_reachable_files = sorted(set(reachable.values()))
     duration_ms = int((time.monotonic() - start) * 1000)
     evidence = {
-        "mode": "deny_list_only",
-        "protected_paths": list(task.protected_paths),
+        "mode": mode_label,
+        mode_paths_key: list(mode_paths),
         "resolved_local_imports": resolved,
-        "unprotected_local_imports": unprotected,
+        "reachable_local_imports": reachable,
+        "distinct_reachable_files": distinct_reachable_files,
         "dynamic_or_star_import_seen": any_dynamic,
+        "unresolved_relative_imports": all_unresolved_relative,
         "unreadable_suite_files": unreadable,
     }
 
-    if unprotected:
+    if len(distinct_reachable_files) > 1:
         return IntegrityCheckResult(
             check_id="hidden_import_closure.gate7",
             category="isolation",
             status=CheckStatus.WARNING,
             severity=Severity.MEDIUM,
             description=(
-                f"Deny-list-only task: the hidden/regression suites import "
-                f"{len(unprotected)} local module(s) not covered by "
-                "protected_paths: "
-                f"{sorted(unprotected)}. Static import analysis cannot tell "
-                "apart 'this is the intended code under test' from 'this is "
-                "an oracle helper an agent could rewrite' — review manually."
+                f"The hidden/regression suites import {len(distinct_reachable_files)} "
+                f"distinct reachable local files: {distinct_reachable_files}. "
+                "Static import analysis cannot tell 'this is the intended "
+                "code under test' apart from 'this is an oracle helper an "
+                "agent could rewrite' when more than one file is reachable "
+                "— review manually (framework §8.2 gate 7)."
+            ),
+            evidence=evidence,
+            duration_ms=duration_ms,
+        )
+
+    if all_unresolved_relative:
+        # A single reachable file plus an unresolvable relative import: still
+        # PASS on what could be checked, but say plainly that a relative
+        # import was not verified rather than silently treating it as absent.
+        return IntegrityCheckResult(
+            check_id="hidden_import_closure.gate7",
+            category="isolation",
+            status=CheckStatus.WARNING,
+            severity=Severity.LOW,
+            description=(
+                f"{len(distinct_reachable_files)} distinct reachable local "
+                "file(s), consistent with the code under test. However "
+                f"{len(all_unresolved_relative)} relative import(s) "
+                f"({all_unresolved_relative}) could not be resolved to a "
+                "snapshot path by this static check (resolving `from . "
+                "import x` requires knowing the importing file's own "
+                "package location) — gate 7 is unverified for those."
             ),
             evidence=evidence,
             duration_ms=duration_ms,
@@ -179,8 +207,12 @@ def run_hidden_import_closure_check(task: Task) -> IntegrityCheckResult:
         category="isolation",
         status=CheckStatus.PASS,
         severity=Severity.INFO,
-        description="Every local module imported by the hidden/regression "
-        "suites is covered by protected_paths.",
+        description=(
+            f"At most one distinct local file ({distinct_reachable_files or 'none'}) "
+            "is reachable by a diff without failing the scope gate and "
+            "imported by the hidden/regression suites — unambiguously the "
+            "code under test, not a separate oracle-helper module."
+        ),
         evidence=evidence,
         duration_ms=duration_ms,
     )

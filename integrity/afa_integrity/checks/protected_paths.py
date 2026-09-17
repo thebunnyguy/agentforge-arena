@@ -115,6 +115,19 @@ def run_protected_paths_check(task: Task) -> tuple[IntegrityCheckResult, list[Fi
                 f"{rel!r} as a scope violation"
             )
 
+    # 2b. Always-protected auto-executed SUFFIX (*.pth — a site-loaded import
+    #     hook that executes code at interpreter startup). Distinct from the
+    #     basename list above: afa_runner.diffing.ALWAYS_PROTECTED_SUFFIXES
+    #     is matched by suffix, not exact basename, so it needs its own probe.
+    pth_rel = editable_prefix + "afa_probe.pth"
+    pth_diff = _diff_for_injected_files(task, {pth_rel: PROBE_CONTENT})
+    checked.append(f"always_protected_suffix:{pth_rel}")
+    if not pth_diff.touched_protected:
+        failures.append(
+            f"always-protected suffix '.pth' did not flag {pth_rel!r} as a "
+            "scope violation"
+        )
+
     # 3. Allow-list enforcement: a path outside editable_paths, not matching
     #    any protected glob either, must still be a scope violation when an
     #    allow-list is configured.

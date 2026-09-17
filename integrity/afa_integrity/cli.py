@@ -111,7 +111,14 @@ def main(argv: list[str] | None = None) -> int:
             for r in summary.reports:
                 _write(str(Path(args.markdown_dir) / f"{r.task_id}.md"), report_to_markdown(r))
         worst = max((r.status.value for r in summary.reports), key=_status_exit_code, default="healthy")
-        return _status_exit_code(worst)
+        exit_code = _status_exit_code(worst)
+        if summary.failures:
+            # A task that couldn't be audited at all is at least as bad as
+            # an INVALID one — never let it silently pass through as if
+            # every task's status was healthy just because none of the
+            # *successfully audited* tasks were invalid.
+            exit_code = max(exit_code, EXIT_INVALID)
+        return exit_code
 
     task = load_task(Path(args.tasks_root) / args.task_id)
     report = run_audit(

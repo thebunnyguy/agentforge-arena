@@ -101,11 +101,14 @@ def run_audit(
     mutations = []
     if run_mutation:
         for c in discover_controls(task):
+            # No artificial timeout override: declared controls are
+            # human-authored, specific implementations, not randomly-mutated
+            # code most likely to infinite-loop — grade against the task's
+            # own timeout_s, the real bound every other grade call uses.
             determinism_samples.append(
                 DeterminismSample(
                     label=f"control:{c.kind.value}:{c.name}",
                     diff=overlay_files_diff(task, c.overlay_files()),
-                    timeout_s=30,
                 )
             )
         mutation_check, mutations = run_mutation_check(
@@ -114,13 +117,18 @@ def run_audit(
         checks.append(mutation_check)
     else:
         limitations.append(
-            "Mutation testing, a determinism sample over declared controls, "
-            "and the isolation probe were not run (QUICK mode) — run --full "
-            "for stronger evidence."
+            "Mutation testing and a determinism sample over declared "
+            "controls were not run — pass --full or --mutation for "
+            "stronger evidence."
         )
 
     checks.append(run_determinism_check(task, determinism_samples, sandbox))
 
+    # Independent of run_mutation/force_mutation: the isolation probe is
+    # gated on FULL mode alone, so `--quick --mutation` runs mutation testing
+    # but NOT the isolation probe — each limitation below is tied to exactly
+    # the condition that gates the check it describes, not to the audit mode
+    # as a whole, so the two can never contradict each other.
     if mode == AuditMode.FULL:
         isolation_check = run_isolation_probe(task, sandbox)
         checks.append(isolation_check)
@@ -132,6 +140,12 @@ def run_audit(
             "property of the current LocalSandbox threat model, not "
             "something this specific task can fix."
         )
+    else:
+        limitations.append(
+            "The isolation probe was not run (FULL mode only) — pass "
+            "--full to check whether the hidden test source is readable "
+            "by code being graded."
+        )
 
     limitations.append(
         "Mutation equivalence is undecidable in general; a surviving "
@@ -140,7 +154,7 @@ def run_audit(
         "treated as a correctness probability (mission §16)."
     )
 
-    status, reason = determine_health_status(checks, control_results, mode)
+    status, reason = determine_health_status(checks, control_results)
     provenance = collect_provenance(task)
     duration_ms = int((time.monotonic() - start) * 1000)
 

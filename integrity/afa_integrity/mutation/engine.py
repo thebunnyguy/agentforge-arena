@@ -253,33 +253,44 @@ def summarize_mutants(records: list[MutationRecord]) -> dict:
     generated = len(records)
     unsupported = sum(1 for r in records if r.verdict == Verdict.UNSUPPORTED)
     declared_equivalent = sum(1 for r in records if r.declared_equivalent)
-    relevant = generated - unsupported - declared_equivalent
+
+    # A mutant intercepted by the REGRESSION or SCOPE gate never meaningfully
+    # exercised the hidden suite as an oracle: report.hidden still ran and
+    # has a result, but classify_verdict checks scope/regression BEFORE
+    # hidden (see overlay.classify_verdict's docstring — "scope-gate
+    # masking"), so a regression/scope-gate verdict tells us nothing about
+    # whether the HIDDEN suite would have caught this mutation. Exactly the
+    # distinction checks/controls_check.py already makes for declared
+    # controls (ERROR, not scored as evidence either way) — folding these
+    # into killed_total/kill_rate here would silently contradict that and
+    # let a mutant that broke something unrelated to the bug it introduced
+    # count as "the oracle caught it." They are reported as their own bucket,
+    # excluded from both the numerator and the denominator of kill_rate.
+    intercepted = sum(
+        1 for r in records
+        if r.verdict in (Verdict.REJECTED_BY_REGRESSION_GATE, Verdict.REJECTED_BY_SCOPE_GATE)
+        and not r.declared_equivalent
+    )
+    relevant = generated - unsupported - declared_equivalent - intercepted
     killed_by_hidden = sum(
         1 for r in records if r.verdict == Verdict.REJECTED_BY_HIDDEN_TEST and not r.declared_equivalent
     )
-    killed_by_regression = sum(
-        1 for r in records if r.verdict == Verdict.REJECTED_BY_REGRESSION_GATE and not r.declared_equivalent
-    )
     killed_by_error = sum(
         1 for r in records if r.verdict == Verdict.REJECTED_BY_TIMEOUT_OR_ERROR and not r.declared_equivalent
-    )
-    killed_by_scope = sum(
-        1 for r in records if r.verdict == Verdict.REJECTED_BY_SCOPE_GATE and not r.declared_equivalent
     )
     survived = [
         r for r in records
         if r.verdict == Verdict.ACCEPTED and not r.declared_equivalent
     ]
-    killed_total = killed_by_hidden + killed_by_regression + killed_by_error + killed_by_scope
+    killed_total = killed_by_hidden + killed_by_error
     return {
         "mutants_generated": generated,
         "mutants_unsupported": unsupported,
         "mutants_declared_equivalent": declared_equivalent,
+        "mutants_intercepted_by_regression_or_scope": intercepted,
         "mutants_relevant": relevant,
         "killed_total": killed_total,
         "killed_by_hidden_test": killed_by_hidden,
-        "killed_by_regression_gate": killed_by_regression,
-        "killed_by_scope_gate": killed_by_scope,
         "killed_by_timeout_or_error": killed_by_error,
         "survived_count": len(survived),
         "survived": [
@@ -329,9 +340,10 @@ def run_mutation_check(
                 severity=Severity.MEDIUM,
                 description=(
                     "No relevant mutants were generated (all candidates were "
-                    "unsupported or declared-equivalent, or no editable file "
-                    "had any mutable construct). Mutation adequacy could not "
-                    "be assessed this run."
+                    "unsupported, declared-equivalent, intercepted by the "
+                    "regression/scope gate before reaching the hidden suite, "
+                    "or no editable file had any mutable construct). "
+                    "Mutation adequacy could not be assessed this run."
                 ),
                 evidence=summary,
                 duration_ms=duration_ms,
@@ -372,10 +384,13 @@ def run_mutation_check(
             severity=Severity.INFO,
             description=(
                 f"All {summary['mutants_relevant']} relevant mutant(s) were "
-                f"killed (kill_rate=1.00 over "
+                f"killed by the hidden suite (kill_rate=1.00 over "
                 f"{summary['mutants_generated']} generated, "
                 f"{summary['mutants_unsupported']} unsupported, "
-                f"{summary['mutants_declared_equivalent']} declared-equivalent)."
+                f"{summary['mutants_declared_equivalent']} declared-equivalent, "
+                f"{summary['mutants_intercepted_by_regression_or_scope']} "
+                "intercepted by the regression/scope gate before reaching "
+                "the hidden suite)."
             ),
             evidence=summary,
             duration_ms=duration_ms,

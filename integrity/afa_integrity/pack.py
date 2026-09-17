@@ -67,10 +67,16 @@ def audit_pack(
         )
 
     reports: list[BenchmarkIntegrityReport] = []
+    failures: dict[str, str] = {}
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(_audit_one, tid): tid for tid in ids}
         for future in as_completed(futures):
-            reports.append(future.result())
+            task_id = futures[future]
+            try:
+                reports.append(future.result())
+            except Exception as exc:  # noqa: BLE001 - one broken task must
+                # never discard every other task's already-completed report.
+                failures[task_id] = f"{type(exc).__name__}: {exc}"
 
     status_counts = Counter(r.status.value for r in reports)
 
@@ -95,5 +101,6 @@ def audit_pack(
         reports=tuple(sorted(reports, key=lambda r: r.task_id)),
         status_counts=dict(status_counts),
         common_findings=common_findings,
+        failures=failures,
         duration_ms=duration_ms,
     )

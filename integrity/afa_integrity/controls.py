@@ -109,7 +109,15 @@ def discover_controls(task: Task, kind: ControlKind | None = None) -> list[Contr
                 spec = json.loads(spec_path.read_text())
             except (json.JSONDecodeError, OSError):
                 continue
-            expect = spec.get("expect", "reject" if k != ControlKind.ALTERNATIVE else "accept")
+            default_expect = "accept" if k == ControlKind.ALTERNATIVE else "reject"
+            raw_expect = spec.get("expect", default_expect)
+            expect = raw_expect.strip().lower() if isinstance(raw_expect, str) else raw_expect
+            if expect not in ("accept", "reject"):
+                raise ValueError(
+                    f"{spec_path}: \"expect\" must be \"accept\" or \"reject\", "
+                    f"got {raw_expect!r} — a malformed value would silently "
+                    "invert this control's expected outcome"
+                )
             controls.append(
                 Control(
                     name=spec.get("name", entry.name),

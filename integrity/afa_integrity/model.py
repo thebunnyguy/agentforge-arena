@@ -188,7 +188,13 @@ class BenchmarkIntegrityReport:
 
 @dataclass(frozen=True)
 class PackAuditSummary:
-    """Aggregate over a pack-level run (mission §21)."""
+    """Aggregate over a pack-level run (mission §21).
+
+    failures maps task_id -> error message for any task that could not be
+    audited at all (e.g. a malformed task.json) — a pack-wide run must never
+    let one broken task silently swallow every other task's completed
+    report, but it also must never hide that a task couldn't be audited.
+    """
 
     schema_version: str
     engine_version: str
@@ -197,6 +203,7 @@ class PackAuditSummary:
     reports: tuple[BenchmarkIntegrityReport, ...]
     status_counts: dict[str, int] = field(default_factory=dict)
     common_findings: tuple[Finding, ...] = ()
+    failures: dict[str, str] = field(default_factory=dict)
     duration_ms: int = 0
 
 

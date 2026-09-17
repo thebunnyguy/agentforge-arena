@@ -88,7 +88,10 @@ def run_isolation_probe(task: Task, sandbox: Sandbox) -> IntegrityCheckResult:
     base_files[init_rel] = base_files[init_rel] + "\n" + probe_code
 
     diff = overlay_files_diff(task, base_files)
-    report, score = grade_diff(task, diff, sandbox, timeout_s=30)
+    # No artificial timeout cap: the probe code (above) only ever adds an
+    # immediate import-time check-and-raise, so it can't hang — grade against
+    # the task's own timeout_s like any other overlay.
+    report, score = grade_diff(task, diff, sandbox)
     duration_ms = int((time.monotonic() - start) * 1000)
 
     combined_notes = (report.hidden.notes or "") + (report.regression.notes or "")
