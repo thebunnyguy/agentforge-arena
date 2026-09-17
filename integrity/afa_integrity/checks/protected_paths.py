@@ -148,32 +148,87 @@ def run_protected_paths_check(task: Task) -> tuple[IntegrityCheckResult, list[Fi
     #    fixing it generally edges into the sandboxing redesign this mission
     #    explicitly excludes (§14/§25) — report as a finding + limitation,
     #    not a check failure.
+    #
+    #    IMPORTANT (corrected after empirical testing — see docs/agents/
+    #    ORACLE.md "Corrected: the _pytest shadow-package finding was
+    #    overstated"): a `_pytest/` package NESTED inside an editable_paths
+    #    subtree (e.g. "searchkit/_pytest/__init__.py") is empirically
+    #    HARMLESS. `python -m pytest` never adds the editable package
+    #    directory itself to sys.path — only the cleanroom ROOT is on
+    #    sys.path[0] — so a nested `_pytest/` is only ever importable as
+    #    "searchkit._pytest", never as the bare top-level "_pytest" the real
+    #    pytest package needs; a controlled test confirms `import _pytest`
+    #    from inside the editable package still resolves to the real
+    #    site-packages one. Only a `_pytest/` placed at the CLEANROOM ROOT
+    #    itself (confirmed separately, by controlled test, to crash pytest's
+    #    own bootstrap via ImportError) would be dangerous — and every task's
+    #    editable_paths allow-list already rejects ANY root-level write
+    #    (probe 3 above), independent of this basename/suffix mechanism. This
+    #    probe is therefore only meaningfully testing a hypothetical FUTURE
+    #    deny-list-only task (editable_prefix empty), where nothing else
+    #    would stop a root-level `_pytest/` — not a live gap in any task in
+    #    the current pack.
+    is_root_level_probe = not editable_prefix
     shadow_rel = f"{editable_prefix}_pytest/__init__.py" if editable_prefix else "_pytest/__init__.py"
     shadow_diff = _diff_for_injected_files(task, {shadow_rel: PROBE_CONTENT})
     checked.append(f"pytest_shadow_dir:{shadow_rel}")
     shadow_gap_confirmed = not shadow_diff.touched_protected
-    if shadow_gap_confirmed:
+    if shadow_gap_confirmed and is_root_level_probe:
         findings.append(
             Finding(
                 finding_id="protected_paths.pytest_shadow_package",
                 category="isolation",
                 severity=Severity.HIGH,
                 summary=(
-                    "A `_pytest/` package directory is not flagged as a "
-                    "protected-path violation, though grading runs pytest "
-                    "with the cleanroom at sys.path[0]."
+                    "This deny-list-only task has no editable_paths allow-list, "
+                    "and a root-level `_pytest/` package directory is not "
+                    "flagged as a protected-path violation — empirically "
+                    "confirmed to crash pytest's own bootstrap if planted "
+                    "there during grading."
                 ),
                 detail=(
-                    f"Injecting {shadow_rel!r} was NOT flagged as touching a "
-                    "protected path. ALWAYS_PROTECTED_BASENAMES matches "
-                    "basenames, not directory names, so a submission-created "
-                    "`_pytest/` package shadowing the real `_pytest` internals "
-                    "package is currently only stopped by this task's "
-                    "editable_paths allow-list (when configured), not by a "
-                    "structural guarantee. See docs/agents/ORACLE.md for why "
-                    "this is reported rather than silently fixed here."
+                    f"Injecting {shadow_rel!r} at the snapshot ROOT was NOT "
+                    "flagged as touching a protected path. "
+                    "ALWAYS_PROTECTED_BASENAMES matches basenames, not "
+                    "directory names, and this task has no editable_paths "
+                    "allow-list to reject an out-of-scope root write either — "
+                    "so nothing currently stops a root-level `_pytest/` "
+                    "package from shadowing the real one for the grading "
+                    "pytest invocation. See docs/agents/ORACLE.md for the "
+                    "empirical confirmation and why this is reported rather "
+                    "than silently fixed here."
                 ),
                 evidence={"probe_path": shadow_rel, "touched_protected": False},
+            )
+        )
+    elif shadow_gap_confirmed:
+        findings.append(
+            Finding(
+                finding_id="protected_paths.pytest_shadow_package_nested",
+                category="isolation",
+                severity=Severity.INFO,
+                summary=(
+                    "A `_pytest/` package nested inside this task's editable "
+                    "subtree is not flagged as a protected-path violation, "
+                    "but empirical testing confirms this is NOT currently "
+                    "exploitable."
+                ),
+                detail=(
+                    f"Injecting {shadow_rel!r} (nested inside the editable "
+                    "package, not at the snapshot root) was NOT flagged as "
+                    "touching a protected path — but `python -m pytest` never "
+                    "adds the editable package directory itself to sys.path, "
+                    "so this nested `_pytest/` is only importable as "
+                    "`<package>._pytest`, never as the bare top-level "
+                    "`_pytest` the real pytest package needs; a controlled "
+                    "test confirms `import _pytest` still resolves to the "
+                    "real site-packages module. Recorded as a structural gap "
+                    "(no basename/suffix rule catches a directory named "
+                    "`_pytest`) that would only matter if this task ever lost "
+                    "its editable_paths allow-list, not as a live weakness "
+                    "today. See docs/agents/ORACLE.md."
+                ),
+                evidence={"probe_path": shadow_rel, "touched_protected": False, "exploitable_today": False},
             )
         )
 
@@ -183,6 +238,7 @@ def run_protected_paths_check(task: Task) -> tuple[IntegrityCheckResult, list[Fi
         "skipped_globs": skipped,
         "failures": failures,
         "pytest_shadow_package_gap_confirmed": shadow_gap_confirmed,
+        "pytest_shadow_package_exploitable_today": shadow_gap_confirmed and is_root_level_probe,
     }
 
     if failures:
@@ -214,10 +270,19 @@ def run_protected_paths_check(task: Task) -> tuple[IntegrityCheckResult, list[Fi
                 "protected-path/allow-list probes correctly flagged a scope "
                 "violation."
                 + (
-                    " One known, documented gap (a `_pytest/` shadow "
-                    "package) was also probed and confirmed — see findings."
-                    if shadow_gap_confirmed
-                    else ""
+                    " One exploitable gap (a ROOT-level `_pytest/` shadow "
+                    "package, confirmed by controlled test to crash pytest's "
+                    "own bootstrap) was also probed and confirmed on this "
+                    "deny-list-only task — see findings."
+                    if (shadow_gap_confirmed and is_root_level_probe)
+                    else (
+                        " A `_pytest/` package nested inside the editable "
+                        "subtree is also not flagged, but empirical testing "
+                        "confirms it is NOT exploitable under this task's "
+                        "current editable_paths allow-list — see findings."
+                        if shadow_gap_confirmed
+                        else ""
+                    )
                 )
             ),
             evidence=evidence,

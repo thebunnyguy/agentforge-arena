@@ -614,3 +614,73 @@ engine, not the pre-fix run.
   `runner/afa_runner/diffing.py` and `pipeline.py` are purely additive
   (a new frozenset entry, a new top-level function) and very unlikely to
   conflict with anything Phase-0-shaped.
+
+---
+
+# Mission 2 — Benchmark Remediation & Coverage Hardening
+
+## 2026-09-18 — Corrected: the `_pytest` shadow-package finding was overstated
+
+Before touching any task's hidden suite, revisited mission-2's explicit
+instruction to investigate the `_pytest` shadow-package finding's *exact
+exploitability*, since the first-mission finding was reported at HIGH
+severity as if it were a live gap.
+
+**It was overstated.** The original probe (`checks/protected_paths.py`)
+injects `_pytest/__init__.py` **nested inside the task's editable_paths
+subtree** (e.g. `searchkit/_pytest/__init__.py`), since `editable_prefix`
+is derived from `editable_paths[0]` — every task in the pack has one. I
+built a controlled reproduction rather than trusting the theoretical
+argument:
+
+```python
+# searchkit/__init__.py does `import _pytest; print(_pytest.__file__)`
+# with a malicious searchkit/_pytest/__init__.py sitting right next to it.
+# Result: RESOLVED _pytest FROM: .../site-packages/_pytest/__init__.py
+```
+
+**Empirically confirmed harmless**: `python -m pytest` never adds the
+editable package directory itself to `sys.path` — only the cleanroom
+*root* is on `sys.path[0]` — so a nested `_pytest/` is only ever
+importable as `searchkit._pytest`, never as the bare top-level `_pytest`
+the real pytest package needs internally. The exact same experiment with
+the malicious package placed at the **cleanroom root** instead (only
+reachable if a task had NO `editable_paths` allow-list at all — a
+deny-list-only configuration) does shadow the real one and **crashes
+pytest's own bootstrap**:
+
+```text
+ImportError: cannot import name '__version__' from '_pytest'
+(.../tmp.../  _pytest/__init__.py)
+```
+
+**Conclusion, verified against all 24 tasks' `task.json`**: every single
+task ships a non-empty `editable_paths` allow-list of the shape
+`<package>/**` — none permits a root-level write, and none is
+deny-list-only. **No task in the current pack is exploitable via this
+route today.** The theoretical concern only applies to a hypothetical
+future deny-list-only task, and even then only via a root-level
+placement, not a nested one.
+
+**Fix** (dedicated commit, engine-only, no task files touched):
+`checks/protected_paths.py` now distinguishes the two cases explicitly —
+a nested-in-editable-subtree finding is downgraded to `INFO` severity with
+an explicit `exploitable_today: false` evidence flag and the empirical
+reasoning above; a genuine root-level finding on an actual deny-list-only
+task keeps `HIGH` severity (that variant IS real, per the second
+experiment). Added `integrity/tests/test_protected_paths.py`, including a
+standing pack-wide invariant test (`test_no_task_in_the_real_pack_is_in_
+deny_list_only_mode`) that fails loudly if any future task ever ships
+without an `editable_paths` allow-list — the exact moment this finding
+would stop being theoretical.
+
+**No prior finding is invalidated by this fix** beyond its own severity
+label — the underlying mechanics (`touched_protected=False` for the nested
+case) were always correctly measured; only the Finding's narrative
+overclaimed live exploitability. Per mission-2 §14: minimal structural
+protection was considered and rejected — catching a directory literally
+named `_pytest` anywhere would need new directory-name-matching logic (not
+a one-line basename addition like the `pytest.py` fix from mission 1), for
+a scenario with zero current exposure. Documented as a residual, currently
+inert limitation instead, exactly as mission-2 §14 anticipates ("or
+whether it must remain a documented LocalSandbox limitation").
