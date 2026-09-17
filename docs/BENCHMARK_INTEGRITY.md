@@ -80,7 +80,7 @@ score — with a different source of files:
 |---|---|---|---|
 | `reference.solution_validation` | `checks/reference.py` | Gate 1 | Overlay the reference, grade it 3× (QUICK) / 5× (FULL), require `(1.0, True)` identically every time. |
 | `noop.unmodified_baseline` | `checks/noop.py` | Gates 2–3 | Empty diff must pass regression, fail hidden, score 0. **New**: also computes `T_hidden` on the untouched snapshot and warns at the documented `>= 0.5` ceiling — this number was never computed anywhere in the codebase before. |
-| `hidden_import_closure.gate7` | `checks/hidden_import_closure.py` | Gate 7 (never implemented before) | Statically resolves every import in the hidden/regression suites. With an `editable_paths` allow-list (every task in the pack today), this holds structurally; the check still does the real static analysis for a future deny-list-only task. |
+| `hidden_import_closure.gate7` | `checks/hidden_import_closure.py` | Gate 7 (never implemented before) | Statically resolves every import in the hidden/regression suites and asks which resolved files are *reachable* by a diff without failing the scope gate — matching `editable_paths` in allow-list mode, or NOT matching `protected_paths` in deny-list mode (an allow-list only rules out imports outside the editable tree, not a helper module living inside it alongside the code under test). PASS only when at most one distinct reachable file exists (unambiguously the code under test); more than one gets flagged for human review. Caught a real case on the first pack run: `refactor-order-validation` imports both `orderkit/__init__.py` and `orderkit/process.py` — traced by hand and confirmed benign (a normal parent-package import in a 3-file refactor task), but correctly surfaced rather than silently passed. |
 | `protected_paths.tampering_probes` | `checks/protected_paths.py` | §8.3 anti-cheating | Constructs real adversarial diffs (every protected glob, every always-protected basename, an allow-list-outside probe) via the actual public `capture_diff`. Also probes a known, documented gap (a `_pytest/` shadow package) and reports it as a finding rather than a check failure. |
 | `controls.declared_controls` | `checks/controls_check.py` | §7/§9/§10 | Grades every declared control and checks it against its author's `expect`. |
 | `mutation.generic_ast_mutants` | `mutation/engine.py` | §8 (never implemented before) | Generic AST mutation testing — see below. |
@@ -193,10 +193,28 @@ each call shells out to `pytest` and waits — so thread parallelism across
 - **A surviving mutant is not proof of a broken oracle**, and a 100% kill
   rate is not a correctness certificate. Both directions of overclaiming are
   deliberately avoided in the report language.
-- **Deny-list-only import-closure analysis (gate 7) cannot distinguish
-  intent** (code-under-test vs. an oracle helper) from static imports alone
-  — it surfaces candidates for human review, not a verdict. Every task in
-  the current pack uses an allow-list, where this is moot.
+- **Import-closure analysis (gate 7) cannot distinguish intent** (code-under-
+  test vs. an oracle helper) from static imports alone, in EITHER scope
+  regime — an allow-list only narrows which imports are reachable at all
+  (those matching `editable_paths`), it does not by itself prove a reachable
+  import is safe. The check surfaces candidates for human review (more than
+  one distinct reachable file) rather than asserting a verdict; see
+  `refactor-order-validation` above for a real, benign example.
+- **No hardcoding/literal-overlap detector (mission §13, framework §8.3).**
+  The framework documents an AST/tree-sitter literal-overlap heuristic
+  ("`overlap > 0.5 AND count >= 3`") for detecting a submission that special-
+  cases hidden-test inputs, explicitly gated as "reviewed by a human, never
+  an automatic S = 0" because of known false positives. This engine does not
+  implement it — a general literal-overlap heuristic is brittle exactly as
+  documented, and the known-bad/semantic-mutant control mechanism already
+  covers "returns expected constants" and "special-cases hidden inputs" as
+  concrete, checkable behaviors instead of a fuzzy static signal. It does
+  NOT cover every form of gaming: `expression-evaluator`'s
+  `eval_based_implementation` semantic mutant is the concrete example this
+  pack run found — a purely behavioral hidden suite has no way to enforce a
+  "don't use `eval()`" constraint the task prose states in English, because
+  `eval()` produces byte-identical results to a correct parser on every
+  benign input the suite happens to exercise.
 - **A `_pytest/` shadow-package gap is reported, not silently fixed** — see
   the journal for why (it edges into the sandboxing redesign this engine's
   mission explicitly excludes).
