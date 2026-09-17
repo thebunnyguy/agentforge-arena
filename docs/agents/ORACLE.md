@@ -388,6 +388,21 @@ zero `rejected_by_scope_gate`/`rejected_by_regression_gate` authoring
 errors — these tasks' hidden suites held up against everything thrown at
 them in this pass.
 
+### Mutation cap disclosure (no silent caps)
+
+The pack-wide FULL run used `--max-mutants 40` (not the default 60, to keep
+the whole-pack wall clock reasonable). Two tasks hit that cap and did NOT
+get their full candidate set graded: `expression-evaluator` (112 candidates
+generated, only the first 40 graded — 72 not graded this run) and
+`refactor-order-validation` (72 generated, 40 graded, 32 not graded). Both
+are recorded in `evidence.notes` on their `mutation.generic_ast_mutants`
+check, but the check's own headline ("N relevant of 40 generated") reads as
+if 40 were the natural count for that file, not a cap — stated here
+explicitly so it isn't missed. Every other task's mutation count in this
+run is the true total (no cap applied). A future full run with a higher
+`--max-mutants` (or per-file, rather than per-task, budgeting) would give
+these two tasks a fairer shake; this run did not attempt that.
+
 ### FULL-mode pack audit: status and mutation-family patterns
 
 `integrity/pack-audit/full-summary.md` (24 tasks, ~6.4 minutes wall clock at
@@ -555,3 +570,47 @@ engine, not the pre-fix run.
   `integrity/pack-audit/full-summary.md` for which tasks have surviving
   generic mutants beyond what's captured above via declared semantic
   mutants.
+- `expression-evaluator` (112 candidates) and `refactor-order-validation`
+  (72 candidates) both hit the `--max-mutants 40` cap used for the pack-wide
+  FULL run and did not get their full candidate set graded — see "Mutation
+  cap disclosure" above. Worth a dedicated, uncapped run on just these two.
+- **Exact remediation test cases for the three INVALID tasks**, so a
+  benchmark author has something to act on directly instead of just a
+  verdict:
+  - `sanitize-filename`: add a hidden test asserting a name with a space,
+    punctuation, or non-ASCII character (e.g. `"my file.txt"`,
+    `"résumé.pdf"`) is returned UNCHANGED — the spec already promises this,
+    nothing currently checks it.
+  - `toposort`: add a case where the dropped-dependency bug ISN'T rescued
+    by the alphabetical tiebreak, e.g. `{"app": ["lib", "aaa"]}` — "aaa"
+    sorts BEFORE "lib" alphabetically, so if the `app -> aaa` edge is
+    silently dropped, "aaa" would incorrectly need to come before "app" by
+    coincidence only if it already would anyway; picking a dependency name
+    that sorts AFTER the other candidates (e.g. `{"app": ["lib", "zzz"]}`)
+    forces the edge itself to be what puts "zzz" before "app", so a
+    dropped-edge implementation actually fails the ordering assertion
+    instead of passing by alphabetical accident.
+  - `validate-redirect-url`: add a hidden test with a look-alike host that
+    CONTAINS the allowed host as a substring or prefix, e.g.
+    `safe_redirect("https://app.example.com.evil.com/x", ALLOWED)` must
+    raise — nothing currently tests this attacker-controlled-superstring
+    shape, only a completely unrelated host (`evil.com`).
+- **Commit-history disclosure for a bisecting reviewer**: `62bdcc7`
+  ("domain model + reference/no-op checks") ships an `afa_integrity/
+  __init__.py` that imports `audit.py`/`pack.py`/`health.py`/`report.py`,
+  which don't exist until `c76eb50`/`bc00d4d` — `afa_integrity` is not
+  importable at that intermediate commit. Deliberate: rewriting history to
+  make every commit independently importable was weighed against "always
+  create NEW commits, never rewrite" and the latter won; every commit is a
+  real, reviewable logical unit, just not independently `pip install`-able
+  until `bc00d4d`. Also: `c48e1ef` (the first pack-audit run, pre-code-review)
+  is superseded by `bf475b9` (post-fix re-run) — the numbers in `c48e1ef`
+  should not be cited as current.
+- **Merge considerations for whoever reconciles this with ATLAS's branch**:
+  `pyproject.toml`'s `[tool.pytest.ini_options]` (`pythonpath`/`testpaths`)
+  is the most likely conflict — ATLAS's Phase-0 work plausibly touches the
+  same block. `runner/afa_runner/__init__.py`'s export list is a secondary,
+  lower-probability conflict point (a new export added on a nearby line).
+  `runner/afa_runner/diffing.py` and `pipeline.py` are purely additive
+  (a new frozenset entry, a new top-level function) and very unlikely to
+  conflict with anything Phase-0-shaped.
