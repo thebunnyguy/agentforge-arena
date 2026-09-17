@@ -4,12 +4,12 @@
 **Version**: `1.0.1`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T20:40:45.119372+00:00  
-**Duration**: 30644 ms
+**Timestamp**: 2026-09-17T21:15:24.038586+00:00  
+**Duration**: 29897 ms
 
 ## Status: NEEDS_REVIEW
 
-**Reason**: noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework §8.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check — it is not equivalent to the binary hidden_all_passed gate above.
+**Reason**: noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework §8.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check — it is not equivalent to the binary hidden_all_passed gate above.; mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.
 
 ## Checks
 
@@ -17,10 +17,10 @@
 |---|---|---|---|---|
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | WARNING | high | The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework §8.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check — it is not equivalent to the binary hidden_all_passed gate above. |
-| `hidden_import_closure.gate7` | isolation | PASS | info | Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
+| `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['listkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
 | `controls.declared_controls` | controls | SKIPPED | medium | No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks. |
-| `mutation.generic_ast_mutants` | mutation | PASS | info | All 6 relevant mutant(s) were killed (kill_rate=1.00 over 6 generated, 0 unsupported, 0 declared-equivalent). |
+| `mutation.generic_ast_mutants` | mutation | WARNING | medium | No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run. |
 | `determinism.repeated_grading` | determinism | PASS | info | All 1 sampled artifact(s) graded identically across their repeats. |
 | `isolation.hidden_test_readability` | isolation_limitation | UNVERIFIABLE | high | CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically — real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission §14/§25) and is tracked as a repo-wide 'deliberately still open' item. |
 
@@ -29,7 +29,8 @@
 - Generated: 6
 - Unsupported (base file failed the unparse round-trip self-check): 0
 - Declared equivalent: 0
-- Killed: 6
+- Intercepted by regression/scope gate (never reached the hidden suite): 6
+- Killed by the hidden suite: 0
 - **Survived: 0**
 
 ## Findings

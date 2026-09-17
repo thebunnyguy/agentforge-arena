@@ -4,8 +4,8 @@
 **Version**: `1.0.1`  
 **Mode**: `quick`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T20:39:36.777828+00:00  
-**Duration**: 12627 ms
+**Timestamp**: 2026-09-17T21:14:21.671865+00:00  
+**Duration**: 12161 ms
 
 ## Status: NEEDS_REVIEW
 
@@ -17,8 +17,8 @@
 |---|---|---|---|---|
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 3 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | WARNING | high | The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework §8.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check — it is not equivalent to the binary hidden_all_passed gate above. |
-| `hidden_import_closure.gate7` | isolation | PASS | info | Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
+| `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['listkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
 | `controls.declared_controls` | controls | SKIPPED | medium | No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks. |
 | `determinism.repeated_grading` | determinism | PASS | info | All 1 sampled artifact(s) graded identically across their repeats. |
 
@@ -31,7 +31,8 @@
 
 - Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST — see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.
 - No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) — absence of evidence here, not evidence of absence.
-- Mutation testing, a determinism sample over declared controls, and the isolation probe were not run (QUICK mode) — run --full for stronger evidence.
+- Mutation testing and a determinism sample over declared controls were not run — pass --full or --mutation for stronger evidence.
+- The isolation probe was not run (FULL mode only) — pass --full to check whether the hidden test source is readable by code being graded.
 - Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission §16).
 
 ## Provenance

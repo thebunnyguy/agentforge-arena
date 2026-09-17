@@ -5,8 +5,8 @@
   "task_version": "1.0.1",
   "mode": "full",
   "status": "needs_review",
-  "reason": "noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework \u00a78.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check \u2014 it is not equivalent to the binary hidden_all_passed gate above.",
-  "created_at": "2026-09-17T20:40:45.119372+00:00",
+  "reason": "noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework \u00a78.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check \u2014 it is not equivalent to the binary hidden_all_passed gate above.; mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
+  "created_at": "2026-09-17T21:15:24.038586+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -78,7 +78,7 @@
         "lines_added": 9,
         "lines_removed": 5
       },
-      "duration_ms": 8619
+      "duration_ms": 8381
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -97,14 +97,14 @@
         "n_hidden": 6,
         "diff_exists_gate": false
       },
-      "duration_ms": 1744
+      "duration_ms": 1745
     },
     {
       "check_id": "hidden_import_closure.gate7",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "description": "At most one distinct local file (['listkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
       "evidence": {
         "mode": "allow_list",
         "editable_paths": [
@@ -113,7 +113,14 @@
         "resolved_local_imports": {
           "listkit": "listkit/__init__.py"
         },
+        "reachable_local_imports": {
+          "listkit": "listkit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "listkit/__init__.py"
+        ],
         "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
       "duration_ms": 1
@@ -123,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -136,6 +143,7 @@
           "always_protected:listkit/setup.cfg",
           "always_protected:listkit/pyproject.toml",
           "always_protected:listkit/pytest.py",
+          "always_protected_suffix:listkit/afa_probe.pth",
           "allowlist_outside:__afa_probe_outside_allowlist__.py",
           "pytest_shadow_dir:listkit/_pytest/__init__.py"
         ],
@@ -143,7 +151,7 @@
         "failures": [],
         "pytest_shadow_package_gap_confirmed": true
       },
-      "duration_ms": 204
+      "duration_ms": 216
     },
     {
       "check_id": "controls.declared_controls",
@@ -159,25 +167,24 @@
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "pass",
-      "severity": "info",
-      "description": "All 6 relevant mutant(s) were killed (kill_rate=1.00 over 6 generated, 0 unsupported, 0 declared-equivalent).",
+      "status": "warning",
+      "severity": "medium",
+      "description": "No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
       "evidence": {
         "mutants_generated": 6,
         "mutants_unsupported": 0,
         "mutants_declared_equivalent": 0,
-        "mutants_relevant": 6,
-        "killed_total": 6,
+        "mutants_intercepted_by_regression_or_scope": 6,
+        "mutants_relevant": 0,
+        "killed_total": 0,
         "killed_by_hidden_test": 0,
-        "killed_by_regression_gate": 6,
-        "killed_by_scope_gate": 0,
         "killed_by_timeout_or_error": 0,
         "survived_count": 0,
         "survived": [],
-        "kill_rate": 1.0,
+        "kill_rate": null,
         "notes": []
       },
-      "duration_ms": 12104
+      "duration_ms": 11672
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -215,7 +222,7 @@
           }
         ]
       },
-      "duration_ms": 5079
+      "duration_ms": 4897
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -233,7 +240,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2880
+      "duration_ms": 2972
     }
   ],
   "mutations": [
@@ -362,5 +369,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 30644
+  "duration_ms": 29897
 }

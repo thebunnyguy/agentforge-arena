@@ -5,8 +5,8 @@
   "task_version": "1.0.2",
   "mode": "full",
   "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 4/40 relevant mutant(s) survived (kill_rate=0.90 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T20:42:40.951186+00:00",
+  "reason": "hidden_import_closure.gate7: The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/process.py']. Static import analysis cannot tell 'this is the intended code under test' apart from 'this is an oracle helper an agent could rewrite' when more than one file is reachable \u2014 review manually (framework \u00a78.2 gate 7).; mutation.generic_ast_mutants: 4/8 relevant mutant(s) survived (kill_rate=0.50 over 8 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+  "created_at": "2026-09-17T21:17:33.260089+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -78,7 +78,7 @@
         "lines_added": 46,
         "lines_removed": 35
       },
-      "duration_ms": 8033
+      "duration_ms": 9865
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -97,14 +97,14 @@
         "n_hidden": 1,
         "diff_exists_gate": false
       },
-      "duration_ms": 2821
+      "duration_ms": 3505
     },
     {
       "check_id": "hidden_import_closure.gate7",
       "category": "isolation",
-      "status": "pass",
-      "severity": "info",
-      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "status": "warning",
+      "severity": "medium",
+      "description": "The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/process.py']. Static import analysis cannot tell 'this is the intended code under test' apart from 'this is an oracle helper an agent could rewrite' when more than one file is reachable \u2014 review manually (framework \u00a78.2 gate 7).",
       "evidence": {
         "mode": "allow_list",
         "editable_paths": [
@@ -114,17 +114,26 @@
           "orderkit": "orderkit/__init__.py",
           "orderkit.process": "orderkit/process.py"
         },
+        "reachable_local_imports": {
+          "orderkit": "orderkit/__init__.py",
+          "orderkit.process": "orderkit/process.py"
+        },
+        "distinct_reachable_files": [
+          "orderkit/__init__.py",
+          "orderkit/process.py"
+        ],
         "dynamic_or_star_import_seen": true,
+        "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 2
+      "duration_ms": 3
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -137,6 +146,7 @@
           "always_protected:orderkit/setup.cfg",
           "always_protected:orderkit/pyproject.toml",
           "always_protected:orderkit/pytest.py",
+          "always_protected_suffix:orderkit/afa_probe.pth",
           "allowlist_outside:__afa_probe_outside_allowlist__.py",
           "pytest_shadow_dir:orderkit/_pytest/__init__.py"
         ],
@@ -144,7 +154,7 @@
         "failures": [],
         "pytest_shadow_package_gap_confirmed": true
       },
-      "duration_ms": 101
+      "duration_ms": 152
     },
     {
       "check_id": "controls.declared_controls",
@@ -162,16 +172,15 @@
       "category": "mutation",
       "status": "warning",
       "severity": "medium",
-      "description": "4/40 relevant mutant(s) survived (kill_rate=0.90 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "description": "4/8 relevant mutant(s) survived (kill_rate=0.50 over 8 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
       "evidence": {
         "mutants_generated": 40,
         "mutants_unsupported": 0,
         "mutants_declared_equivalent": 0,
-        "mutants_relevant": 40,
-        "killed_total": 36,
+        "mutants_intercepted_by_regression_or_scope": 32,
+        "mutants_relevant": 8,
+        "killed_total": 4,
         "killed_by_hidden_test": 4,
-        "killed_by_regression_gate": 32,
-        "killed_by_scope_gate": 0,
         "killed_by_timeout_or_error": 0,
         "survived_count": 4,
         "survived": [
@@ -204,12 +213,12 @@
             "description": "remove_validation: if not isinstance(item, dict):\n            raise ValueError(\"each item must be a dict\") (if-guard's raise removed (body -> pass))"
           }
         ],
-        "kill_rate": 0.9,
+        "kill_rate": 0.5,
         "notes": [
           "mutation candidate cap reached: generated 72 candidates, graded only the first 40 (deterministic order by file/line/operator); 32 candidate(s) NOT graded this run."
         ]
       },
-      "duration_ms": 69139
+      "duration_ms": 74552
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -247,7 +256,7 @@
           }
         ]
       },
-      "duration_ms": 7535
+      "duration_ms": 7433
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -265,7 +274,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2647
+      "duration_ms": 2401
     }
   ],
   "mutations": [
@@ -912,5 +921,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 90289
+  "duration_ms": 97922
 }

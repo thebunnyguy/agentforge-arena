@@ -4,8 +4,8 @@
 **Version**: `1.0.1`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T20:43:14.866555+00:00  
-**Duration**: 94815 ms
+**Timestamp**: 2026-09-17T21:18:14.097104+00:00  
+**Duration**: 94486 ms
 
 ## Status: INVALID
 
@@ -17,8 +17,8 @@
 |---|---|---|---|---|
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required. |
-| `hidden_import_closure.gate7` | isolation | PASS | info | Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
+| `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['graphkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
 | `controls.declared_controls` | controls | FAIL | critical | 1/4 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: first_dependency_only. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow. |
 | `mutation.generic_ast_mutants` | mutation | WARNING | medium | 1/23 relevant mutant(s) survived (kill_rate=0.96 over 23 relevant of 23 generated). A surviving mutant is not automatic proof of a broken oracle — review whether each represents behavior the task contract actually promises to reject (mission §8); see evidence.survived for exact locations. |
 | `determinism.repeated_grading` | determinism | PASS | info | All 5 sampled artifact(s) graded identically across their repeats. |
@@ -38,7 +38,8 @@
 - Generated: 23
 - Unsupported (base file failed the unparse round-trip self-check): 0
 - Declared equivalent: 0
-- Killed: 22
+- Intercepted by regression/scope gate (never reached the hidden suite): 0
+- Killed by the hidden suite: 22
 - **Survived: 1**
 
 Survived mutants (review whether the task contract actually promises to reject each):

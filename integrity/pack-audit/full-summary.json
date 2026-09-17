@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "mode": "full",
-  "created_at": "2026-09-17T20:40:45.115178+00:00",
+  "created_at": "2026-09-17T21:15:24.036555+00:00",
   "reports": [
     {
       "schema_version": "1.0.0",
@@ -12,7 +12,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 1/11 relevant mutant(s) survived (kill_rate=0.91 over 11 relevant of 11 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:41:53.849340+00:00",
+      "created_at": "2026-09-17T21:16:31.352738+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -84,7 +84,7 @@
             "lines_added": 15,
             "lines_removed": 3
           },
-          "duration_ms": 8330
+          "duration_ms": 10261
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -103,14 +103,14 @@
             "n_hidden": 12,
             "diff_exists_gate": false
           },
-          "duration_ms": 1716
+          "duration_ms": 2440
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['abatch/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -119,17 +119,24 @@
             "resolved_local_imports": {
               "abatch": "abatch/__init__.py"
             },
+            "reachable_local_imports": {
+              "abatch": "abatch/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "abatch/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 2
+          "duration_ms": 3
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -142,6 +149,7 @@
               "always_protected:abatch/setup.cfg",
               "always_protected:abatch/pyproject.toml",
               "always_protected:abatch/pytest.py",
+              "always_protected_suffix:abatch/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:abatch/_pytest/__init__.py"
             ],
@@ -149,7 +157,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 142
+          "duration_ms": 246
         },
         {
           "check_id": "controls.declared_controls",
@@ -172,11 +180,10 @@
             "mutants_generated": 11,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 11,
             "killed_total": 10,
             "killed_by_hidden_test": 10,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 1,
             "survived": [
@@ -191,7 +198,7 @@
             "kill_rate": 0.9090909090909091,
             "notes": []
           },
-          "duration_ms": 21565
+          "duration_ms": 29857
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -229,7 +236,7 @@
               }
             ]
           },
-          "duration_ms": 6124
+          "duration_ms": 7498
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -247,7 +254,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 3012
+          "duration_ms": 3798
         }
       ],
       "mutations": [
@@ -525,7 +532,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 40903
+      "duration_ms": 54115
     },
     {
       "schema_version": "1.0.0",
@@ -535,7 +542,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 3/21 relevant mutant(s) survived (kill_rate=0.86 over 21 relevant of 21 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:41:58.126993+00:00",
+      "created_at": "2026-09-17T21:16:36.441082+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -607,7 +614,7 @@
             "lines_added": 36,
             "lines_removed": 3
           },
-          "duration_ms": 8125
+          "duration_ms": 11034
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -626,14 +633,14 @@
             "n_hidden": 6,
             "diff_exists_gate": false
           },
-          "duration_ms": 1861
+          "duration_ms": 2082
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['afirst/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -642,7 +649,14 @@
             "resolved_local_imports": {
               "afirst": "afirst/__init__.py"
             },
+            "reachable_local_imports": {
+              "afirst": "afirst/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "afirst/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 2
@@ -652,7 +666,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -665,6 +679,7 @@
               "always_protected:afirst/setup.cfg",
               "always_protected:afirst/pyproject.toml",
               "always_protected:afirst/pytest.py",
+              "always_protected_suffix:afirst/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:afirst/_pytest/__init__.py"
             ],
@@ -672,7 +687,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 105
+          "duration_ms": 145
         },
         {
           "check_id": "controls.declared_controls",
@@ -695,11 +710,10 @@
             "mutants_generated": 21,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 21,
             "killed_total": 18,
             "killed_by_hidden_test": 16,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 2,
             "survived_count": 3,
             "survived": [
@@ -728,7 +742,7 @@
             "kill_rate": 0.8571428571428571,
             "notes": []
           },
-          "duration_ms": 77796
+          "duration_ms": 89502
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -766,7 +780,7 @@
               }
             ]
           },
-          "duration_ms": 5292
+          "duration_ms": 5699
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -784,7 +798,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 3417
+          "duration_ms": 3244
         }
       ],
       "mutations": [
@@ -1222,7 +1236,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 96611
+      "duration_ms": 111719
     },
     {
       "schema_version": "1.0.0",
@@ -1232,7 +1246,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 5/17 relevant mutant(s) survived (kill_rate=0.71 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:42:00.708709+00:00",
+      "created_at": "2026-09-17T21:16:39.563812+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -1304,7 +1318,7 @@
             "lines_added": 30,
             "lines_removed": 3
           },
-          "duration_ms": 8490
+          "duration_ms": 10512
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -1323,14 +1337,14 @@
             "n_hidden": 7,
             "diff_exists_gate": false
           },
-          "duration_ms": 1882
+          "duration_ms": 2191
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['asynckit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -1339,17 +1353,24 @@
             "resolved_local_imports": {
               "asynckit": "asynckit/__init__.py"
             },
+            "reachable_local_imports": {
+              "asynckit": "asynckit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "asynckit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 1
+          "duration_ms": 2
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -1362,6 +1383,7 @@
               "always_protected:asynckit/setup.cfg",
               "always_protected:asynckit/pyproject.toml",
               "always_protected:asynckit/pytest.py",
+              "always_protected_suffix:asynckit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:asynckit/_pytest/__init__.py"
             ],
@@ -1369,7 +1391,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 116
+          "duration_ms": 163
         },
         {
           "check_id": "controls.declared_controls",
@@ -1392,11 +1414,10 @@
             "mutants_generated": 17,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 17,
             "killed_total": 12,
             "killed_by_hidden_test": 12,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 5,
             "survived": [
@@ -1439,7 +1460,7 @@
             "kill_rate": 0.7058823529411765,
             "notes": []
           },
-          "duration_ms": 31595
+          "duration_ms": 42613
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -1477,7 +1498,7 @@
               }
             ]
           },
-          "duration_ms": 5166
+          "duration_ms": 6022
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -1495,7 +1516,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2626
+          "duration_ms": 3489
         }
       ],
       "mutations": [
@@ -1859,7 +1880,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 49884
+      "duration_ms": 65002
     },
     {
       "schema_version": "1.0.0",
@@ -1869,7 +1890,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 1/9 relevant mutant(s) survived (kill_rate=0.89 over 9 relevant of 9 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.; semantic mutant 'swallows_base_exceptions' survived (should have been rejected by the hidden suite)",
-      "created_at": "2026-09-17T20:40:45.120261+00:00",
+      "created_at": "2026-09-17T21:15:24.039581+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -1941,7 +1962,7 @@
             "lines_added": 10,
             "lines_removed": 3
           },
-          "duration_ms": 8616
+          "duration_ms": 8385
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -1960,14 +1981,14 @@
             "n_hidden": 6,
             "diff_exists_gate": false
           },
-          "duration_ms": 1813
+          "duration_ms": 1801
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['aretry/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -1976,7 +1997,14 @@
             "resolved_local_imports": {
               "aretry": "aretry/__init__.py"
             },
+            "reachable_local_imports": {
+              "aretry": "aretry/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "aretry/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -1986,7 +2014,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -1999,6 +2027,7 @@
               "always_protected:aretry/setup.cfg",
               "always_protected:aretry/pyproject.toml",
               "always_protected:aretry/pytest.py",
+              "always_protected_suffix:aretry/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:aretry/_pytest/__init__.py"
             ],
@@ -2006,7 +2035,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 214
+          "duration_ms": 229
         },
         {
           "check_id": "controls.declared_controls",
@@ -2036,7 +2065,7 @@
             ],
             "warnings": []
           },
-          "duration_ms": 8752
+          "duration_ms": 8338
         },
         {
           "check_id": "mutation.generic_ast_mutants",
@@ -2048,11 +2077,10 @@
             "mutants_generated": 9,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 9,
             "killed_total": 8,
             "killed_by_hidden_test": 8,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 1,
             "survived": [
@@ -2067,7 +2095,7 @@
             "kill_rate": 0.8888888888888888,
             "notes": []
           },
-          "duration_ms": 16501
+          "duration_ms": 16666
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -2235,7 +2263,7 @@
               }
             ]
           },
-          "duration_ms": 29832
+          "duration_ms": 28775
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -2253,7 +2281,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2901
+          "duration_ms": 3021
         }
       ],
       "mutations": [
@@ -2513,7 +2541,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 68727
+      "duration_ms": 67312
     },
     {
       "schema_version": "1.0.0",
@@ -2523,7 +2551,7 @@
       "mode": "full",
       "status": "provisional",
       "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
-      "created_at": "2026-09-17T20:40:45.122444+00:00",
+      "created_at": "2026-09-17T21:15:24.039282+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -2595,7 +2623,7 @@
             "lines_added": 11,
             "lines_removed": 3
           },
-          "duration_ms": 8745
+          "duration_ms": 8514
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -2614,14 +2642,14 @@
             "n_hidden": 4,
             "diff_exists_gate": false
           },
-          "duration_ms": 1666
+          "duration_ms": 1659
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['atimeout/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -2630,7 +2658,14 @@
             "resolved_local_imports": {
               "atimeout": "atimeout/__init__.py"
             },
+            "reachable_local_imports": {
+              "atimeout": "atimeout/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "atimeout/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -2640,7 +2675,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -2653,6 +2688,7 @@
               "always_protected:atimeout/setup.cfg",
               "always_protected:atimeout/pyproject.toml",
               "always_protected:atimeout/pytest.py",
+              "always_protected_suffix:atimeout/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:atimeout/_pytest/__init__.py"
             ],
@@ -2660,7 +2696,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 252
+          "duration_ms": 264
         },
         {
           "check_id": "controls.declared_controls",
@@ -2678,23 +2714,22 @@
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 3 relevant mutant(s) were killed (kill_rate=1.00 over 3 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 3 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 3 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 3,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 3,
             "killed_total": 3,
             "killed_by_hidden_test": 3,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 7177
+          "duration_ms": 6782
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -2732,7 +2767,7 @@
               }
             ]
           },
-          "duration_ms": 4867
+          "duration_ms": 4831
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -2750,7 +2785,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2810
+          "duration_ms": 2696
         }
       ],
       "mutations": [
@@ -2847,7 +2882,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 25541
+      "duration_ms": 24767
     },
     {
       "schema_version": "1.0.0",
@@ -2857,7 +2892,7 @@
       "mode": "full",
       "status": "healthy",
       "reason": "All checks passed with no outstanding findings.",
-      "created_at": "2026-09-17T20:40:45.118533+00:00",
+      "created_at": "2026-09-17T21:15:24.038984+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -2929,7 +2964,7 @@
             "lines_added": 6,
             "lines_removed": 9
           },
-          "duration_ms": 8620
+          "duration_ms": 8386
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -2948,14 +2983,14 @@
             "n_hidden": 9,
             "diff_exists_gate": false
           },
-          "duration_ms": 1751
+          "duration_ms": 1740
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['htmlesc/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -2964,7 +2999,14 @@
             "resolved_local_imports": {
               "htmlesc": "htmlesc/__init__.py"
             },
+            "reachable_local_imports": {
+              "htmlesc": "htmlesc/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "htmlesc/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -2974,7 +3016,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -2987,6 +3029,7 @@
               "always_protected:htmlesc/setup.cfg",
               "always_protected:htmlesc/pyproject.toml",
               "always_protected:htmlesc/pytest.py",
+              "always_protected_suffix:htmlesc/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:htmlesc/_pytest/__init__.py"
             ],
@@ -2994,7 +3037,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 198
+          "duration_ms": 217
         },
         {
           "check_id": "controls.declared_controls",
@@ -3022,30 +3065,29 @@
             "fails": [],
             "warnings": []
           },
-          "duration_ms": 8831
+          "duration_ms": 8411
         },
         {
           "check_id": "mutation.generic_ast_mutants",
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 6 relevant mutant(s) were killed (kill_rate=1.00 over 6 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 6 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 6 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 6,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 6,
             "killed_total": 6,
             "killed_by_hidden_test": 6,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 11650
+          "duration_ms": 11621
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -3213,7 +3255,7 @@
               }
             ]
           },
-          "duration_ms": 29715
+          "duration_ms": 29011
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -3231,7 +3273,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2868
+          "duration_ms": 2750
         }
       ],
       "mutations": [
@@ -3454,7 +3496,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 63726
+      "duration_ms": 62229
     },
     {
       "schema_version": "1.0.0",
@@ -3464,7 +3506,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 5/40 relevant mutant(s) survived (kill_rate=0.88 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.; semantic mutant 'eval_based_implementation' survived (should have been rejected by the hidden suite)",
-      "created_at": "2026-09-17T20:43:31.644351+00:00",
+      "created_at": "2026-09-17T21:18:28.161486+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -3536,7 +3578,7 @@
             "lines_added": 105,
             "lines_removed": 5
           },
-          "duration_ms": 8494
+          "duration_ms": 8786
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -3555,14 +3597,14 @@
             "n_hidden": 15,
             "diff_exists_gate": false
           },
-          "duration_ms": 1504
+          "duration_ms": 1639
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['calckit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -3571,7 +3613,14 @@
             "resolved_local_imports": {
               "calckit": "calckit/__init__.py"
             },
+            "reachable_local_imports": {
+              "calckit": "calckit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "calckit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -3581,7 +3630,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -3594,6 +3643,7 @@
               "always_protected:calckit/setup.cfg",
               "always_protected:calckit/pyproject.toml",
               "always_protected:calckit/pytest.py",
+              "always_protected_suffix:calckit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:calckit/_pytest/__init__.py"
             ],
@@ -3601,7 +3651,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 93
+          "duration_ms": 103
         },
         {
           "check_id": "controls.declared_controls",
@@ -3631,7 +3681,7 @@
             ],
             "warnings": []
           },
-          "duration_ms": 8451
+          "duration_ms": 7740
         },
         {
           "check_id": "mutation.generic_ast_mutants",
@@ -3643,11 +3693,10 @@
             "mutants_generated": 40,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 40,
             "killed_total": 35,
             "killed_by_hidden_test": 29,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 6,
             "survived_count": 5,
             "survived": [
@@ -3692,7 +3741,7 @@
               "mutation candidate cap reached: generated 112 candidates, graded only the first 40 (deterministic order by file/line/operator); 72 candidate(s) NOT graded this run."
             ]
           },
-          "duration_ms": 174583
+          "duration_ms": 173036
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -3860,7 +3909,7 @@
               }
             ]
           },
-          "duration_ms": 23343
+          "duration_ms": 22993
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -3878,7 +3927,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2262
+          "duration_ms": 2305
         }
       ],
       "mutations": [
@@ -4920,7 +4969,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 218794
+      "duration_ms": 216684
     },
     {
       "schema_version": "1.0.0",
@@ -4930,7 +4979,7 @@
       "mode": "full",
       "status": "provisional",
       "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
-      "created_at": "2026-09-17T20:40:45.118765+00:00",
+      "created_at": "2026-09-17T21:15:24.039097+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -5002,7 +5051,7 @@
             "lines_added": 0,
             "lines_removed": 6
           },
-          "duration_ms": 8619
+          "duration_ms": 8380
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -5021,14 +5070,14 @@
             "n_hidden": 9,
             "diff_exists_gate": false
           },
-          "duration_ms": 1752
+          "duration_ms": 1748
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['searchkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -5037,7 +5086,14 @@
             "resolved_local_imports": {
               "searchkit": "searchkit/__init__.py"
             },
+            "reachable_local_imports": {
+              "searchkit": "searchkit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "searchkit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -5047,7 +5103,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -5060,6 +5116,7 @@
               "always_protected:searchkit/setup.cfg",
               "always_protected:searchkit/pyproject.toml",
               "always_protected:searchkit/pytest.py",
+              "always_protected_suffix:searchkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:searchkit/_pytest/__init__.py"
             ],
@@ -5067,7 +5124,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 242
+          "duration_ms": 260
         },
         {
           "check_id": "controls.declared_controls",
@@ -5085,23 +5142,22 @@
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 15 relevant mutant(s) were killed (kill_rate=1.00 over 15 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 6 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 15 generated, 0 unsupported, 0 declared-equivalent, 9 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 15,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 15,
-            "killed_total": 15,
+            "mutants_intercepted_by_regression_or_scope": 9,
+            "mutants_relevant": 6,
+            "killed_total": 6,
             "killed_by_hidden_test": 5,
-            "killed_by_regression_gate": 9,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 1,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 200229
+          "duration_ms": 201229
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -5139,7 +5195,7 @@
               }
             ]
           },
-          "duration_ms": 4394
+          "duration_ms": 4471
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -5157,7 +5213,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2547
+          "duration_ms": 2658
         }
       ],
       "mutations": [
@@ -5456,7 +5512,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 217794
+      "duration_ms": 218758
     },
     {
       "schema_version": "1.0.0",
@@ -5465,8 +5521,8 @@
       "task_version": "1.0.1",
       "mode": "full",
       "status": "needs_review",
-      "reason": "noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework \u00a78.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check \u2014 it is not equivalent to the binary hidden_all_passed gate above.",
-      "created_at": "2026-09-17T20:40:45.119372+00:00",
+      "reason": "noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework \u00a78.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check \u2014 it is not equivalent to the binary hidden_all_passed gate above.; mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
+      "created_at": "2026-09-17T21:15:24.038586+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -5538,7 +5594,7 @@
             "lines_added": 9,
             "lines_removed": 5
           },
-          "duration_ms": 8619
+          "duration_ms": 8381
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -5557,14 +5613,14 @@
             "n_hidden": 6,
             "diff_exists_gate": false
           },
-          "duration_ms": 1744
+          "duration_ms": 1745
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['listkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -5573,7 +5629,14 @@
             "resolved_local_imports": {
               "listkit": "listkit/__init__.py"
             },
+            "reachable_local_imports": {
+              "listkit": "listkit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "listkit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -5583,7 +5646,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -5596,6 +5659,7 @@
               "always_protected:listkit/setup.cfg",
               "always_protected:listkit/pyproject.toml",
               "always_protected:listkit/pytest.py",
+              "always_protected_suffix:listkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:listkit/_pytest/__init__.py"
             ],
@@ -5603,7 +5667,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 204
+          "duration_ms": 216
         },
         {
           "check_id": "controls.declared_controls",
@@ -5619,25 +5683,24 @@
         {
           "check_id": "mutation.generic_ast_mutants",
           "category": "mutation",
-          "status": "pass",
-          "severity": "info",
-          "description": "All 6 relevant mutant(s) were killed (kill_rate=1.00 over 6 generated, 0 unsupported, 0 declared-equivalent).",
+          "status": "warning",
+          "severity": "medium",
+          "description": "No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
           "evidence": {
             "mutants_generated": 6,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 6,
-            "killed_total": 6,
+            "mutants_intercepted_by_regression_or_scope": 6,
+            "mutants_relevant": 0,
+            "killed_total": 0,
             "killed_by_hidden_test": 0,
-            "killed_by_regression_gate": 6,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
-            "kill_rate": 1.0,
+            "kill_rate": null,
             "notes": []
           },
-          "duration_ms": 12104
+          "duration_ms": 11672
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -5675,7 +5738,7 @@
               }
             ]
           },
-          "duration_ms": 5079
+          "duration_ms": 4897
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -5693,7 +5756,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2880
+          "duration_ms": 2972
         }
       ],
       "mutations": [
@@ -5822,7 +5885,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 30644
+      "duration_ms": 29897
     },
     {
       "schema_version": "1.0.0",
@@ -5831,8 +5894,8 @@
       "task_version": "1.0.1",
       "mode": "full",
       "status": "needs_review",
-      "reason": "mutation.generic_ast_mutants: 2/15 relevant mutant(s) survived (kill_rate=0.87 over 15 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:42:17.291808+00:00",
+      "reason": "mutation.generic_ast_mutants: 2/6 relevant mutant(s) survived (kill_rate=0.67 over 6 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "created_at": "2026-09-17T21:17:02.143674+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -5904,7 +5967,7 @@
             "lines_added": 32,
             "lines_removed": 8
           },
-          "duration_ms": 8451
+          "duration_ms": 11984
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -5923,14 +5986,14 @@
             "n_hidden": 9,
             "diff_exists_gate": false
           },
-          "duration_ms": 1770
+          "duration_ms": 2244
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['safepath/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -5939,17 +6002,24 @@
             "resolved_local_imports": {
               "safepath": "safepath/__init__.py"
             },
+            "reachable_local_imports": {
+              "safepath": "safepath/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "safepath/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 2
+          "duration_ms": 1
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -5962,6 +6032,7 @@
               "always_protected:safepath/setup.cfg",
               "always_protected:safepath/pyproject.toml",
               "always_protected:safepath/pytest.py",
+              "always_protected_suffix:safepath/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:safepath/_pytest/__init__.py"
             ],
@@ -5969,7 +6040,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 142
+          "duration_ms": 188
         },
         {
           "check_id": "controls.declared_controls",
@@ -5997,23 +6068,22 @@
             "fails": [],
             "warnings": []
           },
-          "duration_ms": 9065
+          "duration_ms": 11018
         },
         {
           "check_id": "mutation.generic_ast_mutants",
           "category": "mutation",
           "status": "warning",
           "severity": "medium",
-          "description": "2/15 relevant mutant(s) survived (kill_rate=0.87 over 15 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+          "description": "2/6 relevant mutant(s) survived (kill_rate=0.67 over 6 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
           "evidence": {
             "mutants_generated": 15,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 15,
-            "killed_total": 13,
+            "mutants_intercepted_by_regression_or_scope": 9,
+            "mutants_relevant": 6,
+            "killed_total": 4,
             "killed_by_hidden_test": 4,
-            "killed_by_regression_gate": 9,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 2,
             "survived": [
@@ -6032,10 +6102,10 @@
                 "description": "remove_validation: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-guard's raise removed (body -> pass))"
               }
             ],
-            "kill_rate": 0.8666666666666667,
+            "kill_rate": 0.6666666666666666,
             "notes": []
           },
-          "duration_ms": 25309
+          "duration_ms": 31606
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -6203,7 +6273,7 @@
               }
             ]
           },
-          "duration_ms": 28785
+          "duration_ms": 33550
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -6221,7 +6291,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 3265
+          "duration_ms": 2912
         }
       ],
       "mutations": [
@@ -6560,7 +6630,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 76891
+      "duration_ms": 93612
     },
     {
       "schema_version": "1.0.0",
@@ -6569,8 +6639,8 @@
       "task_version": "1.0.0",
       "mode": "full",
       "status": "needs_review",
-      "reason": "mutation.generic_ast_mutants: 1/27 relevant mutant(s) survived (kill_rate=0.96 over 27 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:40:45.121657+00:00",
+      "reason": "mutation.generic_ast_mutants: 1/17 relevant mutant(s) survived (kill_rate=0.94 over 17 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "created_at": "2026-09-17T21:15:24.039424+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -6642,7 +6712,7 @@
             "lines_added": 11,
             "lines_removed": 7
           },
-          "duration_ms": 8611
+          "duration_ms": 8383
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -6661,14 +6731,14 @@
             "n_hidden": 9,
             "diff_exists_gate": false
           },
-          "duration_ms": 1750
+          "duration_ms": 1743
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['romankit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -6677,7 +6747,14 @@
             "resolved_local_imports": {
               "romankit": "romankit/__init__.py"
             },
+            "reachable_local_imports": {
+              "romankit": "romankit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "romankit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -6687,7 +6764,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -6700,6 +6777,7 @@
               "always_protected:romankit/setup.cfg",
               "always_protected:romankit/pyproject.toml",
               "always_protected:romankit/pytest.py",
+              "always_protected_suffix:romankit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:romankit/_pytest/__init__.py"
             ],
@@ -6707,7 +6785,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 292
+          "duration_ms": 306
         },
         {
           "check_id": "controls.declared_controls",
@@ -6731,23 +6809,22 @@
             "fails": [],
             "warnings": []
           },
-          "duration_ms": 7081
+          "duration_ms": 6677
         },
         {
           "check_id": "mutation.generic_ast_mutants",
           "category": "mutation",
           "status": "warning",
           "severity": "medium",
-          "description": "1/27 relevant mutant(s) survived (kill_rate=0.96 over 27 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+          "description": "1/17 relevant mutant(s) survived (kill_rate=0.94 over 17 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
           "evidence": {
             "mutants_generated": 27,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 27,
-            "killed_total": 26,
+            "mutants_intercepted_by_regression_or_scope": 10,
+            "mutants_relevant": 17,
+            "killed_total": 16,
             "killed_by_hidden_test": 16,
-            "killed_by_regression_gate": 10,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 1,
             "survived": [
@@ -6759,10 +6836,10 @@
                 "description": "change_constant_increment: 0 (0 -> 1)"
               }
             ],
-            "kill_rate": 0.9629629629629629,
+            "kill_rate": 0.9411764705882353,
             "notes": []
           },
-          "duration_ms": 46370
+          "duration_ms": 45512
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -6904,7 +6981,7 @@
               }
             ]
           },
-          "duration_ms": 25082
+          "duration_ms": 30745
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -6922,7 +6999,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2880
+          "duration_ms": 4626
         }
       ],
       "mutations": [
@@ -7487,7 +7564,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 92168
+      "duration_ms": 98102
     },
     {
       "schema_version": "1.0.0",
@@ -7497,7 +7574,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 6/22 relevant mutant(s) survived (kill_rate=0.73 over 22 relevant of 22 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:42:20.113467+00:00",
+      "created_at": "2026-09-17T21:17:05.847032+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -7569,7 +7646,7 @@
             "lines_added": 21,
             "lines_removed": 10
           },
-          "duration_ms": 8279
+          "duration_ms": 11607
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -7588,14 +7665,14 @@
             "n_hidden": 8,
             "diff_exists_gate": false
           },
-          "duration_ms": 1998
+          "duration_ms": 2166
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['gridpaths/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -7604,7 +7681,14 @@
             "resolved_local_imports": {
               "gridpaths": "gridpaths/__init__.py"
             },
+            "reachable_local_imports": {
+              "gridpaths": "gridpaths/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "gridpaths/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -7614,7 +7698,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -7627,6 +7711,7 @@
               "always_protected:gridpaths/setup.cfg",
               "always_protected:gridpaths/pyproject.toml",
               "always_protected:gridpaths/pytest.py",
+              "always_protected_suffix:gridpaths/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:gridpaths/_pytest/__init__.py"
             ],
@@ -7634,7 +7719,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 127
+          "duration_ms": 154
         },
         {
           "check_id": "controls.declared_controls",
@@ -7657,11 +7742,10 @@
             "mutants_generated": 22,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 22,
             "killed_total": 16,
             "killed_by_hidden_test": 16,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 6,
             "survived": [
@@ -7711,7 +7795,7 @@
             "kill_rate": 0.7272727272727273,
             "notes": []
           },
-          "duration_ms": 36961
+          "duration_ms": 45121
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -7749,7 +7833,7 @@
               }
             ]
           },
-          "duration_ms": 4614
+          "duration_ms": 5630
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -7767,7 +7851,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2760
+          "duration_ms": 3556
         }
       ],
       "mutations": [
@@ -8243,7 +8327,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 54752
+      "duration_ms": 68249
     },
     {
       "schema_version": "1.0.0",
@@ -8253,7 +8337,7 @@
       "mode": "full",
       "status": "healthy",
       "reason": "All checks passed with no outstanding findings.",
-      "created_at": "2026-09-17T20:40:45.122305+00:00",
+      "created_at": "2026-09-17T21:15:24.039781+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -8325,7 +8409,7 @@
             "lines_added": 15,
             "lines_removed": 6
           },
-          "duration_ms": 8617
+          "duration_ms": 8382
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -8344,14 +8428,14 @@
             "n_hidden": 7,
             "diff_exists_gate": false
           },
-          "duration_ms": 1756
+          "duration_ms": 1748
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['cachekit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -8360,7 +8444,14 @@
             "resolved_local_imports": {
               "cachekit": "cachekit/__init__.py"
             },
+            "reachable_local_imports": {
+              "cachekit": "cachekit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "cachekit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -8370,7 +8461,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -8383,6 +8474,7 @@
               "always_protected:cachekit/setup.cfg",
               "always_protected:cachekit/pyproject.toml",
               "always_protected:cachekit/pytest.py",
+              "always_protected_suffix:cachekit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:cachekit/_pytest/__init__.py"
             ],
@@ -8390,7 +8482,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 206
+          "duration_ms": 215
         },
         {
           "check_id": "controls.declared_controls",
@@ -8414,30 +8506,29 @@
             "fails": [],
             "warnings": []
           },
-          "duration_ms": 7156
+          "duration_ms": 6760
         },
         {
           "check_id": "mutation.generic_ast_mutants",
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 17 relevant mutant(s) were killed (kill_rate=1.00 over 17 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 14 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 17 generated, 0 unsupported, 0 declared-equivalent, 3 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 17,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 17,
-            "killed_total": 17,
+            "mutants_intercepted_by_regression_or_scope": 3,
+            "mutants_relevant": 14,
+            "killed_total": 14,
             "killed_by_hidden_test": 14,
-            "killed_by_regression_gate": 3,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 29804
+          "duration_ms": 29339
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -8579,7 +8670,7 @@
               }
             ]
           },
-          "duration_ms": 24995
+          "duration_ms": 25395
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -8597,7 +8688,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2973
+          "duration_ms": 3595
         }
       ],
       "mutations": [
@@ -9028,7 +9119,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 75585
+      "duration_ms": 75522
     },
     {
       "schema_version": "1.0.0",
@@ -9038,7 +9129,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "semantic mutant 'boundary_anchored_secrets' survived (should have been rejected by the hidden suite)",
-      "created_at": "2026-09-17T20:40:45.122146+00:00",
+      "created_at": "2026-09-17T21:15:24.039667+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -9110,7 +9201,7 @@
             "lines_added": 19,
             "lines_removed": 12
           },
-          "duration_ms": 8607
+          "duration_ms": 8384
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -9129,14 +9220,14 @@
             "n_hidden": 7,
             "diff_exists_gate": false
           },
-          "duration_ms": 1767
+          "duration_ms": 1745
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['maskkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -9145,7 +9236,14 @@
             "resolved_local_imports": {
               "maskkit": "maskkit/__init__.py"
             },
+            "reachable_local_imports": {
+              "maskkit": "maskkit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "maskkit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -9155,7 +9253,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -9168,6 +9266,7 @@
               "always_protected:maskkit/setup.cfg",
               "always_protected:maskkit/pyproject.toml",
               "always_protected:maskkit/pytest.py",
+              "always_protected_suffix:maskkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:maskkit/_pytest/__init__.py"
             ],
@@ -9175,7 +9274,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 211
+          "duration_ms": 218
         },
         {
           "check_id": "controls.declared_controls",
@@ -9205,30 +9304,29 @@
             ],
             "warnings": []
           },
-          "duration_ms": 8803
+          "duration_ms": 8399
         },
         {
           "check_id": "mutation.generic_ast_mutants",
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 8 relevant mutant(s) were killed (kill_rate=1.00 over 8 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 8 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 8 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 8,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 8,
             "killed_total": 8,
             "killed_by_hidden_test": 8,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 14807
+          "duration_ms": 15038
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -9396,7 +9494,7 @@
               }
             ]
           },
-          "duration_ms": 29897
+          "duration_ms": 28822
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -9414,7 +9512,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2815
+          "duration_ms": 2789
         }
       ],
       "mutations": [
@@ -9682,7 +9780,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 67000
+      "duration_ms": 65490
     },
     {
       "schema_version": "1.0.0",
@@ -9691,8 +9789,8 @@
       "task_version": "1.0.1",
       "mode": "full",
       "status": "needs_review",
-      "reason": "mutation.generic_ast_mutants: 3/17 relevant mutant(s) survived (kill_rate=0.82 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:41:10.665144+00:00",
+      "reason": "mutation.generic_ast_mutants: 3/12 relevant mutant(s) survived (kill_rate=0.75 over 12 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "created_at": "2026-09-17T21:15:48.807498+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -9764,7 +9862,7 @@
             "lines_added": 11,
             "lines_removed": 6
           },
-          "duration_ms": 7916
+          "duration_ms": 8253
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -9783,14 +9881,14 @@
             "n_hidden": 12,
             "diff_exists_gate": false
           },
-          "duration_ms": 1584
+          "duration_ms": 1622
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['intervalkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -9799,7 +9897,14 @@
             "resolved_local_imports": {
               "intervalkit": "intervalkit/__init__.py"
             },
+            "reachable_local_imports": {
+              "intervalkit": "intervalkit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "intervalkit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -9809,7 +9914,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -9822,6 +9927,7 @@
               "always_protected:intervalkit/setup.cfg",
               "always_protected:intervalkit/pyproject.toml",
               "always_protected:intervalkit/pytest.py",
+              "always_protected_suffix:intervalkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:intervalkit/_pytest/__init__.py"
             ],
@@ -9829,7 +9935,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 101
+          "duration_ms": 105
         },
         {
           "check_id": "controls.declared_controls",
@@ -9847,16 +9953,15 @@
           "category": "mutation",
           "status": "warning",
           "severity": "medium",
-          "description": "3/17 relevant mutant(s) survived (kill_rate=0.82 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+          "description": "3/12 relevant mutant(s) survived (kill_rate=0.75 over 12 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
           "evidence": {
             "mutants_generated": 17,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 17,
-            "killed_total": 14,
+            "mutants_intercepted_by_regression_or_scope": 5,
+            "mutants_relevant": 12,
+            "killed_total": 9,
             "killed_by_hidden_test": 9,
-            "killed_by_regression_gate": 5,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 3,
             "survived": [
@@ -9882,10 +9987,10 @@
                 "description": "change_constant_zero: 1 (1 -> 0)"
               }
             ],
-            "kill_rate": 0.8235294117647058,
+            "kill_rate": 0.75,
             "notes": []
           },
-          "duration_ms": 29841
+          "duration_ms": 28694
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -9923,7 +10028,7 @@
               }
             ]
           },
-          "duration_ms": 5061
+          "duration_ms": 5335
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -9941,7 +10046,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2947
+          "duration_ms": 3609
         }
       ],
       "mutations": [
@@ -10305,7 +10410,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 47460
+      "duration_ms": 47632
     },
     {
       "schema_version": "1.0.0",
@@ -10315,7 +10420,7 @@
       "mode": "full",
       "status": "provisional",
       "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
-      "created_at": "2026-09-17T20:41:15.764684+00:00",
+      "created_at": "2026-09-17T21:15:53.937304+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -10387,7 +10492,7 @@
             "lines_added": 12,
             "lines_removed": 4
           },
-          "duration_ms": 7906
+          "duration_ms": 7967
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -10406,14 +10511,14 @@
             "n_hidden": 7,
             "diff_exists_gate": false
           },
-          "duration_ms": 1646
+          "duration_ms": 1607
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['paginate/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -10422,7 +10527,14 @@
             "resolved_local_imports": {
               "paginate": "paginate/__init__.py"
             },
+            "reachable_local_imports": {
+              "paginate": "paginate/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "paginate/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -10432,7 +10544,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -10445,6 +10557,7 @@
               "always_protected:paginate/setup.cfg",
               "always_protected:paginate/pyproject.toml",
               "always_protected:paginate/pytest.py",
+              "always_protected_suffix:paginate/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:paginate/_pytest/__init__.py"
             ],
@@ -10452,7 +10565,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 97
+          "duration_ms": 99
         },
         {
           "check_id": "controls.declared_controls",
@@ -10470,23 +10583,22 @@
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 27 relevant mutant(s) were killed (kill_rate=1.00 over 27 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 27 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 27 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 27,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 27,
             "killed_total": 27,
             "killed_by_hidden_test": 27,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 46365
+          "duration_ms": 50091
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -10524,7 +10636,7 @@
               }
             ]
           },
-          "duration_ms": 5129
+          "duration_ms": 7663
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -10542,7 +10654,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 3192
+          "duration_ms": 4466
         }
       ],
       "mutations": [
@@ -11081,7 +11193,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 64347
+      "duration_ms": 71908
     },
     {
       "schema_version": "1.0.0",
@@ -11091,7 +11203,7 @@
       "mode": "full",
       "status": "provisional",
       "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
-      "created_at": "2026-09-17T20:42:34.753631+00:00",
+      "created_at": "2026-09-17T21:17:25.469734+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -11163,7 +11275,7 @@
             "lines_added": 15,
             "lines_removed": 6
           },
-          "duration_ms": 7717
+          "duration_ms": 10056
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -11182,14 +11294,14 @@
             "n_hidden": 8,
             "diff_exists_gate": false
           },
-          "duration_ms": 1480
+          "duration_ms": 1899
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['qbuild/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -11198,7 +11310,14 @@
             "resolved_local_imports": {
               "qbuild": "qbuild/__init__.py"
             },
+            "reachable_local_imports": {
+              "qbuild": "qbuild/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "qbuild/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -11208,7 +11327,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -11221,6 +11340,7 @@
               "always_protected:qbuild/setup.cfg",
               "always_protected:qbuild/pyproject.toml",
               "always_protected:qbuild/pytest.py",
+              "always_protected_suffix:qbuild/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:qbuild/_pytest/__init__.py"
             ],
@@ -11228,7 +11348,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 116
+          "duration_ms": 167
         },
         {
           "check_id": "controls.declared_controls",
@@ -11246,23 +11366,22 @@
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 19 relevant mutant(s) were killed (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 19 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 19,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 19,
             "killed_total": 19,
             "killed_by_hidden_test": 19,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 31965
+          "duration_ms": 38580
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -11300,7 +11419,7 @@
               }
             ]
           },
-          "duration_ms": 4558
+          "duration_ms": 5160
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -11318,7 +11437,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2758
+          "duration_ms": 3421
         }
       ],
       "mutations": [
@@ -11748,7 +11867,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 48605
+      "duration_ms": 59296
     },
     {
       "schema_version": "1.0.0",
@@ -11757,8 +11876,8 @@
       "task_version": "1.0.2",
       "mode": "full",
       "status": "needs_review",
-      "reason": "mutation.generic_ast_mutants: 4/40 relevant mutant(s) survived (kill_rate=0.90 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:42:40.951186+00:00",
+      "reason": "hidden_import_closure.gate7: The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/process.py']. Static import analysis cannot tell 'this is the intended code under test' apart from 'this is an oracle helper an agent could rewrite' when more than one file is reachable \u2014 review manually (framework \u00a78.2 gate 7).; mutation.generic_ast_mutants: 4/8 relevant mutant(s) survived (kill_rate=0.50 over 8 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "created_at": "2026-09-17T21:17:33.260089+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -11830,7 +11949,7 @@
             "lines_added": 46,
             "lines_removed": 35
           },
-          "duration_ms": 8033
+          "duration_ms": 9865
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -11849,14 +11968,14 @@
             "n_hidden": 1,
             "diff_exists_gate": false
           },
-          "duration_ms": 2821
+          "duration_ms": 3505
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
-          "status": "pass",
-          "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "status": "warning",
+          "severity": "medium",
+          "description": "The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/process.py']. Static import analysis cannot tell 'this is the intended code under test' apart from 'this is an oracle helper an agent could rewrite' when more than one file is reachable \u2014 review manually (framework \u00a78.2 gate 7).",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -11866,17 +11985,26 @@
               "orderkit": "orderkit/__init__.py",
               "orderkit.process": "orderkit/process.py"
             },
+            "reachable_local_imports": {
+              "orderkit": "orderkit/__init__.py",
+              "orderkit.process": "orderkit/process.py"
+            },
+            "distinct_reachable_files": [
+              "orderkit/__init__.py",
+              "orderkit/process.py"
+            ],
             "dynamic_or_star_import_seen": true,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 2
+          "duration_ms": 3
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -11889,6 +12017,7 @@
               "always_protected:orderkit/setup.cfg",
               "always_protected:orderkit/pyproject.toml",
               "always_protected:orderkit/pytest.py",
+              "always_protected_suffix:orderkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:orderkit/_pytest/__init__.py"
             ],
@@ -11896,7 +12025,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 101
+          "duration_ms": 152
         },
         {
           "check_id": "controls.declared_controls",
@@ -11914,16 +12043,15 @@
           "category": "mutation",
           "status": "warning",
           "severity": "medium",
-          "description": "4/40 relevant mutant(s) survived (kill_rate=0.90 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+          "description": "4/8 relevant mutant(s) survived (kill_rate=0.50 over 8 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
           "evidence": {
             "mutants_generated": 40,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
-            "mutants_relevant": 40,
-            "killed_total": 36,
+            "mutants_intercepted_by_regression_or_scope": 32,
+            "mutants_relevant": 8,
+            "killed_total": 4,
             "killed_by_hidden_test": 4,
-            "killed_by_regression_gate": 32,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 4,
             "survived": [
@@ -11956,12 +12084,12 @@
                 "description": "remove_validation: if not isinstance(item, dict):\n            raise ValueError(\"each item must be a dict\") (if-guard's raise removed (body -> pass))"
               }
             ],
-            "kill_rate": 0.9,
+            "kill_rate": 0.5,
             "notes": [
               "mutation candidate cap reached: generated 72 candidates, graded only the first 40 (deterministic order by file/line/operator); 32 candidate(s) NOT graded this run."
             ]
           },
-          "duration_ms": 69139
+          "duration_ms": 74552
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -11999,7 +12127,7 @@
               }
             ]
           },
-          "duration_ms": 7535
+          "duration_ms": 7433
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -12017,7 +12145,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2647
+          "duration_ms": 2401
         }
       ],
       "mutations": [
@@ -12664,7 +12792,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 90289
+      "duration_ms": 97922
     },
     {
       "schema_version": "1.0.0",
@@ -12674,7 +12802,7 @@
       "mode": "full",
       "status": "provisional",
       "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
-      "created_at": "2026-09-17T20:41:48.846264+00:00",
+      "created_at": "2026-09-17T21:16:26.269559+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -12746,7 +12874,7 @@
             "lines_added": 17,
             "lines_removed": 8
           },
-          "duration_ms": 8233
+          "duration_ms": 8863
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -12765,14 +12893,14 @@
             "n_hidden": 9,
             "diff_exists_gate": false
           },
-          "duration_ms": 1801
+          "duration_ms": 2295
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['resultkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -12781,7 +12909,14 @@
             "resolved_local_imports": {
               "resultkit": "resultkit/__init__.py"
             },
+            "reachable_local_imports": {
+              "resultkit": "resultkit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "resultkit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -12791,7 +12926,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -12804,6 +12939,7 @@
               "always_protected:resultkit/setup.cfg",
               "always_protected:resultkit/pyproject.toml",
               "always_protected:resultkit/pytest.py",
+              "always_protected_suffix:resultkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:resultkit/_pytest/__init__.py"
             ],
@@ -12811,7 +12947,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 131
+          "duration_ms": 184
         },
         {
           "check_id": "controls.declared_controls",
@@ -12829,23 +12965,22 @@
           "category": "mutation",
           "status": "pass",
           "severity": "info",
-          "description": "All 19 relevant mutant(s) were killed (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent).",
+          "description": "All 19 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
           "evidence": {
             "mutants_generated": 19,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 19,
             "killed_total": 19,
             "killed_by_hidden_test": 19,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 0,
             "survived": [],
             "kill_rate": 1.0,
             "notes": []
           },
-          "duration_ms": 34461
+          "duration_ms": 46050
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -12883,7 +13018,7 @@
               }
             ]
           },
-          "duration_ms": 4826
+          "duration_ms": 6007
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -12901,7 +13036,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2640
+          "duration_ms": 3577
         }
       ],
       "mutations": [
@@ -13299,7 +13434,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 52103
+      "duration_ms": 66989
     },
     {
       "schema_version": "1.0.0",
@@ -13309,7 +13444,7 @@
       "mode": "full",
       "status": "invalid",
       "reason": "known-bad control 'strict_allowlist' was ACCEPTED (should have been rejected by the hidden suite)",
-      "created_at": "2026-09-17T20:41:52.123186+00:00",
+      "created_at": "2026-09-17T21:16:29.530953+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -13381,7 +13516,7 @@
             "lines_added": 17,
             "lines_removed": 7
           },
-          "duration_ms": 8403
+          "duration_ms": 9881
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -13400,14 +13535,14 @@
             "n_hidden": 10,
             "diff_exists_gate": false
           },
-          "duration_ms": 1658
+          "duration_ms": 2212
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['safename/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -13416,17 +13551,24 @@
             "resolved_local_imports": {
               "safename": "safename/__init__.py"
             },
+            "reachable_local_imports": {
+              "safename": "safename/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "safename/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 1
+          "duration_ms": 2
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -13439,6 +13581,7 @@
               "always_protected:safename/setup.cfg",
               "always_protected:safename/pyproject.toml",
               "always_protected:safename/pytest.py",
+              "always_protected_suffix:safename/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:safename/_pytest/__init__.py"
             ],
@@ -13446,7 +13589,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 150
+          "duration_ms": 230
         },
         {
           "check_id": "controls.declared_controls",
@@ -13476,7 +13619,7 @@
             ],
             "warnings": []
           },
-          "duration_ms": 8655
+          "duration_ms": 10271
         },
         {
           "check_id": "mutation.generic_ast_mutants",
@@ -13488,11 +13631,10 @@
             "mutants_generated": 24,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 24,
             "killed_total": 22,
             "killed_by_hidden_test": 22,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 2,
             "survived": [
@@ -13514,7 +13656,7 @@
             "kill_rate": 0.9166666666666666,
             "notes": []
           },
-          "duration_ms": 42299
+          "duration_ms": 55620
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -13682,7 +13824,7 @@
               }
             ]
           },
-          "duration_ms": 28041
+          "duration_ms": 33849
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -13700,7 +13842,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2829
+          "duration_ms": 3301
         }
       ],
       "mutations": [
@@ -14237,7 +14379,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 92129
+      "duration_ms": 115480
     },
     {
       "schema_version": "1.0.0",
@@ -14247,7 +14389,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 2/13 relevant mutant(s) survived (kill_rate=0.85 over 13 relevant of 13 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:42:50.594060+00:00",
+      "created_at": "2026-09-17T21:17:44.566810+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -14319,7 +14461,7 @@
             "lines_added": 26,
             "lines_removed": 12
           },
-          "duration_ms": 8487
+          "duration_ms": 9832
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -14338,14 +14480,14 @@
             "n_hidden": 17,
             "diff_exists_gate": false
           },
-          "duration_ms": 1521
+          "duration_ms": 1943
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['topk/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -14354,17 +14496,24 @@
             "resolved_local_imports": {
               "topk": "topk/__init__.py"
             },
+            "reachable_local_imports": {
+              "topk": "topk/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "topk/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 1
+          "duration_ms": 2
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -14377,6 +14526,7 @@
               "always_protected:topk/setup.cfg",
               "always_protected:topk/pyproject.toml",
               "always_protected:topk/pytest.py",
+              "always_protected_suffix:topk/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:topk/_pytest/__init__.py"
             ],
@@ -14384,7 +14534,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 111
+          "duration_ms": 202
         },
         {
           "check_id": "controls.declared_controls",
@@ -14407,11 +14557,10 @@
             "mutants_generated": 13,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 13,
             "killed_total": 11,
             "killed_by_hidden_test": 11,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 2,
             "survived": [
@@ -14433,7 +14582,7 @@
             "kill_rate": 0.8461538461538461,
             "notes": []
           },
-          "duration_ms": 22300
+          "duration_ms": 28229
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -14471,7 +14620,7 @@
               }
             ]
           },
-          "duration_ms": 5442
+          "duration_ms": 5694
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -14489,7 +14638,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 3175
+          "duration_ms": 3277
         }
       ],
       "mutations": [
@@ -14853,7 +15002,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 41049
+      "duration_ms": 49193
     },
     {
       "schema_version": "1.0.0",
@@ -14863,7 +15012,7 @@
       "mode": "full",
       "status": "invalid",
       "reason": "known-bad control 'first_dependency_only' was ACCEPTED (should have been rejected by the hidden suite)",
-      "created_at": "2026-09-17T20:43:14.866555+00:00",
+      "created_at": "2026-09-17T21:18:14.097104+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -14935,7 +15084,7 @@
             "lines_added": 38,
             "lines_removed": 7
           },
-          "duration_ms": 7799
+          "duration_ms": 9065
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -14954,14 +15103,14 @@
             "n_hidden": 13,
             "diff_exists_gate": false
           },
-          "duration_ms": 1713
+          "duration_ms": 2040
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['graphkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -14970,17 +15119,24 @@
             "resolved_local_imports": {
               "graphkit": "graphkit/__init__.py"
             },
+            "reachable_local_imports": {
+              "graphkit": "graphkit/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "graphkit/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
-          "duration_ms": 1
+          "duration_ms": 2
         },
         {
           "check_id": "protected_paths.tampering_probes",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -14993,6 +15149,7 @@
               "always_protected:graphkit/setup.cfg",
               "always_protected:graphkit/pyproject.toml",
               "always_protected:graphkit/pytest.py",
+              "always_protected_suffix:graphkit/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:graphkit/_pytest/__init__.py"
             ],
@@ -15000,7 +15157,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 122
+          "duration_ms": 163
         },
         {
           "check_id": "controls.declared_controls",
@@ -15026,7 +15183,7 @@
             ],
             "warnings": []
           },
-          "duration_ms": 7173
+          "duration_ms": 7361
         },
         {
           "check_id": "mutation.generic_ast_mutants",
@@ -15038,11 +15195,10 @@
             "mutants_generated": 23,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 23,
             "killed_total": 22,
             "killed_by_hidden_test": 21,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 1,
             "survived_count": 1,
             "survived": [
@@ -15057,7 +15213,7 @@
             "kill_rate": 0.9565217391304348,
             "notes": []
           },
-          "duration_ms": 56071
+          "duration_ms": 54698
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -15199,7 +15355,7 @@
               }
             ]
           },
-          "duration_ms": 19540
+          "duration_ms": 18825
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -15217,7 +15373,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2323
+          "duration_ms": 2256
         }
       ],
       "mutations": [
@@ -15853,7 +16009,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 94815
+      "duration_ms": 94486
     },
     {
       "schema_version": "1.0.0",
@@ -15863,7 +16019,7 @@
       "mode": "full",
       "status": "needs_review",
       "reason": "mutation.generic_ast_mutants: 1/11 relevant mutant(s) survived (kill_rate=0.91 over 11 relevant of 11 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-      "created_at": "2026-09-17T20:43:23.360081+00:00",
+      "created_at": "2026-09-17T21:18:24.766974+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -15935,7 +16091,7 @@
             "lines_added": 18,
             "lines_removed": 9
           },
-          "duration_ms": 8757
+          "duration_ms": 9436
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -15954,14 +16110,14 @@
             "n_hidden": 12,
             "diff_exists_gate": false
           },
-          "duration_ms": 2089
+          "duration_ms": 1676
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['twosum/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -15970,7 +16126,14 @@
             "resolved_local_imports": {
               "twosum": "twosum/__init__.py"
             },
+            "reachable_local_imports": {
+              "twosum": "twosum/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "twosum/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -15980,7 +16143,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -15993,6 +16156,7 @@
               "always_protected:twosum/setup.cfg",
               "always_protected:twosum/pyproject.toml",
               "always_protected:twosum/pytest.py",
+              "always_protected_suffix:twosum/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:twosum/_pytest/__init__.py"
             ],
@@ -16000,7 +16164,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 111
+          "duration_ms": 102
         },
         {
           "check_id": "controls.declared_controls",
@@ -16023,11 +16187,10 @@
             "mutants_generated": 11,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 11,
             "killed_total": 10,
             "killed_by_hidden_test": 10,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 1,
             "survived": [
@@ -16042,7 +16205,7 @@
             "kill_rate": 0.9090909090909091,
             "notes": []
           },
-          "duration_ms": 19420
+          "duration_ms": 18745
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -16080,7 +16243,7 @@
               }
             ]
           },
-          "duration_ms": 4459
+          "duration_ms": 4417
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -16098,7 +16261,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2595
+          "duration_ms": 2516
         }
       ],
       "mutations": [
@@ -16402,7 +16565,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 37441
+      "duration_ms": 36901
     },
     {
       "schema_version": "1.0.0",
@@ -16412,7 +16575,7 @@
       "mode": "full",
       "status": "invalid",
       "reason": "known-bad control 'host_substring_match' was ACCEPTED (should have been rejected by the hidden suite)",
-      "created_at": "2026-09-17T20:43:24.253224+00:00",
+      "created_at": "2026-09-17T21:18:25.012518+00:00",
       "checks": [
         {
           "check_id": "reference.solution_validation",
@@ -16484,7 +16647,7 @@
             "lines_added": 40,
             "lines_removed": 7
           },
-          "duration_ms": 8821
+          "duration_ms": 9055
         },
         {
           "check_id": "noop.unmodified_baseline",
@@ -16503,14 +16666,14 @@
             "n_hidden": 11,
             "diff_exists_gate": false
           },
-          "duration_ms": 2098
+          "duration_ms": 1598
         },
         {
           "check_id": "hidden_import_closure.gate7",
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+          "description": "At most one distinct local file (['saferedirect/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
           "evidence": {
             "mode": "allow_list",
             "editable_paths": [
@@ -16519,7 +16682,14 @@
             "resolved_local_imports": {
               "saferedirect": "saferedirect/__init__.py"
             },
+            "reachable_local_imports": {
+              "saferedirect": "saferedirect/__init__.py"
+            },
+            "distinct_reachable_files": [
+              "saferedirect/__init__.py"
+            ],
             "dynamic_or_star_import_seen": false,
+            "unresolved_relative_imports": [],
             "unreadable_suite_files": []
           },
           "duration_ms": 1
@@ -16529,7 +16699,7 @@
           "category": "isolation",
           "status": "pass",
           "severity": "info",
-          "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+          "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
           "evidence": {
             "checked": [
               "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -16542,6 +16712,7 @@
               "always_protected:saferedirect/setup.cfg",
               "always_protected:saferedirect/pyproject.toml",
               "always_protected:saferedirect/pytest.py",
+              "always_protected_suffix:saferedirect/afa_probe.pth",
               "allowlist_outside:__afa_probe_outside_allowlist__.py",
               "pytest_shadow_dir:saferedirect/_pytest/__init__.py"
             ],
@@ -16549,7 +16720,7 @@
             "failures": [],
             "pytest_shadow_package_gap_confirmed": true
           },
-          "duration_ms": 96
+          "duration_ms": 103
         },
         {
           "check_id": "controls.declared_controls",
@@ -16579,7 +16750,7 @@
             ],
             "warnings": []
           },
-          "duration_ms": 7684
+          "duration_ms": 7750
         },
         {
           "check_id": "mutation.generic_ast_mutants",
@@ -16591,11 +16762,10 @@
             "mutants_generated": 31,
             "mutants_unsupported": 0,
             "mutants_declared_equivalent": 0,
+            "mutants_intercepted_by_regression_or_scope": 0,
             "mutants_relevant": 31,
             "killed_total": 22,
             "killed_by_hidden_test": 22,
-            "killed_by_regression_gate": 0,
-            "killed_by_scope_gate": 0,
             "killed_by_timeout_or_error": 0,
             "survived_count": 9,
             "survived": [
@@ -16666,7 +16836,7 @@
             "kill_rate": 0.7096774193548387,
             "notes": []
           },
-          "duration_ms": 46743
+          "duration_ms": 44569
         },
         {
           "check_id": "determinism.repeated_grading",
@@ -16834,7 +17004,7 @@
               }
             ]
           },
-          "duration_ms": 23257
+          "duration_ms": 22424
         },
         {
           "check_id": "isolation.hidden_test_readability",
@@ -16852,7 +17022,7 @@
             "regression_all_passed": true,
             "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
           },
-          "duration_ms": 2356
+          "duration_ms": 2232
         }
       ],
       "mutations": [
@@ -17502,7 +17672,7 @@
         "python_version": "3.13.2",
         "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
       },
-      "duration_ms": 91125
+      "duration_ms": 87792
     }
   ],
   "status_counts": {
@@ -17524,5 +17694,6 @@
       }
     }
   ],
-  "duration_ms": 385324
+  "failures": {},
+  "duration_ms": 400810
 }

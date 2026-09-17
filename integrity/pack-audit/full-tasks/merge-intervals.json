@@ -5,8 +5,8 @@
   "task_version": "1.0.1",
   "mode": "full",
   "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 3/17 relevant mutant(s) survived (kill_rate=0.82 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T20:41:10.665144+00:00",
+  "reason": "mutation.generic_ast_mutants: 3/12 relevant mutant(s) survived (kill_rate=0.75 over 12 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+  "created_at": "2026-09-17T21:15:48.807498+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -78,7 +78,7 @@
         "lines_added": 11,
         "lines_removed": 6
       },
-      "duration_ms": 7916
+      "duration_ms": 8253
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -97,14 +97,14 @@
         "n_hidden": 12,
         "diff_exists_gate": false
       },
-      "duration_ms": 1584
+      "duration_ms": 1622
     },
     {
       "check_id": "hidden_import_closure.gate7",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "description": "At most one distinct local file (['intervalkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
       "evidence": {
         "mode": "allow_list",
         "editable_paths": [
@@ -113,7 +113,14 @@
         "resolved_local_imports": {
           "intervalkit": "intervalkit/__init__.py"
         },
+        "reachable_local_imports": {
+          "intervalkit": "intervalkit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "intervalkit/__init__.py"
+        ],
         "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
       "duration_ms": 1
@@ -123,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -136,6 +143,7 @@
           "always_protected:intervalkit/setup.cfg",
           "always_protected:intervalkit/pyproject.toml",
           "always_protected:intervalkit/pytest.py",
+          "always_protected_suffix:intervalkit/afa_probe.pth",
           "allowlist_outside:__afa_probe_outside_allowlist__.py",
           "pytest_shadow_dir:intervalkit/_pytest/__init__.py"
         ],
@@ -143,7 +151,7 @@
         "failures": [],
         "pytest_shadow_package_gap_confirmed": true
       },
-      "duration_ms": 101
+      "duration_ms": 105
     },
     {
       "check_id": "controls.declared_controls",
@@ -161,16 +169,15 @@
       "category": "mutation",
       "status": "warning",
       "severity": "medium",
-      "description": "3/17 relevant mutant(s) survived (kill_rate=0.82 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "description": "3/12 relevant mutant(s) survived (kill_rate=0.75 over 12 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
       "evidence": {
         "mutants_generated": 17,
         "mutants_unsupported": 0,
         "mutants_declared_equivalent": 0,
-        "mutants_relevant": 17,
-        "killed_total": 14,
+        "mutants_intercepted_by_regression_or_scope": 5,
+        "mutants_relevant": 12,
+        "killed_total": 9,
         "killed_by_hidden_test": 9,
-        "killed_by_regression_gate": 5,
-        "killed_by_scope_gate": 0,
         "killed_by_timeout_or_error": 0,
         "survived_count": 3,
         "survived": [
@@ -196,10 +203,10 @@
             "description": "change_constant_zero: 1 (1 -> 0)"
           }
         ],
-        "kill_rate": 0.8235294117647058,
+        "kill_rate": 0.75,
         "notes": []
       },
-      "duration_ms": 29841
+      "duration_ms": 28694
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -237,7 +244,7 @@
           }
         ]
       },
-      "duration_ms": 5061
+      "duration_ms": 5335
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -255,7 +262,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2947
+      "duration_ms": 3609
     }
   ],
   "mutations": [
@@ -619,5 +626,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 47460
+  "duration_ms": 47632
 }
