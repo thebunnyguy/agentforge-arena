@@ -12,7 +12,14 @@ from .agents_openai import OpenAICompatAgent, openai_chat_generate
 from .sandbox import CommandResult, LocalSandbox, Sandbox
 from .diffing import Diff, apply_diff, capture_diff, snapshot_tree
 from .grader import GradeReport, SuiteOutcome, grade
-from .pipeline import RunRecord, aggregate_group, run_group, run_once, validate_task
+from .pipeline import (
+    RunRecord,
+    aggregate_group,
+    overlay_diff,
+    run_group,
+    run_once,
+    validate_task,
+)
 from .store import RunStore, RunStoreSummary, SqliteRunStore
 from .report import domain_profile, format_leaderboard, leaderboard, task_aggregate
 from .report_html import render_report
@@ -26,6 +33,7 @@ __all__ = [
     "Diff", "snapshot_tree", "capture_diff", "apply_diff",
     "GradeReport", "SuiteOutcome", "grade",
     "RunRecord", "run_once", "run_group", "aggregate_group", "validate_task",
+    "overlay_diff",
     "RunStore", "RunStoreSummary", "SqliteRunStore",
     "leaderboard", "domain_profile", "task_aggregate", "format_leaderboard",
     "render_report",

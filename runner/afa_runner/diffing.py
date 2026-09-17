@@ -64,6 +64,13 @@ ALWAYS_PROTECTED_BASENAMES = frozenset(
         "tox.ini",            # may carry a [pytest]/[tool:pytest] section
         "setup.cfg",          # may carry a [tool:pytest] section
         "pyproject.toml",     # may carry [tool.pytest.ini_options]
+        "pytest.py",          # grading runs `sys.executable -m pytest` with
+                               # cwd=cleanroom, putting the cleanroom at
+                               # sys.path[0]; a submission-introduced pytest.py
+                               # there would shadow the real pytest module for
+                               # the grading interpreter (found by the
+                               # Benchmark Integrity Engine's protected-path
+                               # probe, docs/agents/ORACLE.md).
     }
 )
 ALWAYS_PROTECTED_SUFFIXES = frozenset({".pth"})  # site-loaded import hooks
