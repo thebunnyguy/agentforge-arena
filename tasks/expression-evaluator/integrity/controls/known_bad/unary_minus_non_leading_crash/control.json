@@ -1,0 +1,5 @@
+{
+  "name": "unary_minus_non_leading_crash",
+  "description": "Realistic partial fix for unary minus: parse_factor only special-cases a leading '+'/'-' when it is the very first token of the whole expression (self.pos == 0), instead of recognizing unary sign at every factor position. '-3+2' still works, but '1+-2', '6/-2', '2--3', and '3*(-2)' all raise ValueError because the parser reaches a bare '-' where it expects a number. Matches the prior real defect's 'unary-minus crashing' symptom.",
+  "expect": "reject"
+}

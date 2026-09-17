@@ -1,0 +1,5 @@
+{
+  "name": "span_merge_rebuild",
+  "description": "Structurally different but behaviorally equivalent solution: instead of three sequential re.sub passes (each rescanning the already-partially-redacted string), it collects every match span from all three patterns with finditer, merges overlapping/adjacent spans, and rebuilds the string once by slicing around the merged spans. Different algorithm and control flow (collect-then-rebuild vs. chained substitution), same observable masking behavior.",
+  "expect": "accept"
+}

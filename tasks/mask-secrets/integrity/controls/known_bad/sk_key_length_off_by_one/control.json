@@ -1,0 +1,5 @@
+{
+  "name": "sk_key_length_off_by_one",
+  "description": "Misreads 'sk- followed by 20 or more alphanumeric characters' as 'more than 20' and requires {21,} instead of {20,}. An API key with exactly 20 characters after the sk- prefix (the hidden suite's own fixture) is left unmasked.",
+  "expect": "reject"
+}

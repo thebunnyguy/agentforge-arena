@@ -1,0 +1,5 @@
+{
+  "name": "bearer_token_partial_mask",
+  "description": "Uses a lookbehind so only the token after 'Bearer ' is replaced, leaving the literal word 'Bearer' visible in the output instead of redacting the whole 'Bearer <token>' credential as the spec requires.",
+  "expect": "reject"
+}

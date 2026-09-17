@@ -1,0 +1,5 @@
+{
+  "name": "posix_separator_only",
+  "description": "Security-relevant near-miss: uses os.sep/os.altsep to detect path separators instead of literal '/' and '\\\\'. On a POSIX grading host, os.sep is '/' and os.altsep is None, so a backslash is never recognized as a separator and 'a\\\\b' (or a Windows-style traversal payload like '..\\\\..\\\\secret') is accepted unchanged instead of being rejected. A partial or platform-naive fix for path-separator rejection is realistically likely to make exactly this mistake.",
+  "expect": "reject"
+}

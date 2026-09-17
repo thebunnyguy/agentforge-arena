@@ -1,0 +1,5 @@
+{
+  "name": "eval_based_implementation",
+  "description": "Task-specific, security-relevant near-miss: computes the answer with Python's eval() instead of a real parser, which the task prose explicitly forbids ('Do NOT use eval()') because handing attacker-influenced text to eval() is an arbitrary-code-execution risk, not a style nit. Python's own +,-,*,/ operators happen to share the same precedence, left-associativity, and unary-minus semantics the task specifies, so on every benign input the hidden suite exercises this produces byte-identical results to a correct parser. Expected reject: this is exactly the kind of spec-violating shortcut a naive or corner-cutting agent might submit. If the purely behavioral hidden suite accepts it, that is a genuine benchmark-integrity gap (nothing in the grading verifies the 'no eval()' constraint), not an authoring mistake.",
+  "expect": "reject"
+}

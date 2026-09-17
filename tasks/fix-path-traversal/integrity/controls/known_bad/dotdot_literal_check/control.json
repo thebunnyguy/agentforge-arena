@@ -1,0 +1,5 @@
+{
+  "name": "dotdot_literal_check",
+  "description": "Rejects any individual part containing a literal '..' segment (plus any absolute component), but never normalizes-and-compares against base at all. This over-rejects a legitimate '..' that still resolves within base (e.g. \"reports/../public\"), because it looks only at the raw, pre-join part text rather than the resolved path. A plausible 'forgot the allowed edge case' fix: the author reasoned '..' is always dangerous and blocked it outright instead of checking containment.",
+  "expect": "reject"
+}

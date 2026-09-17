@@ -1,0 +1,5 @@
+{
+  "name": "strict_allowlist",
+  "description": "Adds an extra character allowlist (only [A-Za-z0-9._-] permitted) on top of the correct traversal/separator/null-byte checks, rejecting otherwise-safe names such as 'my file.txt' (space), 'résumé.pdf' (non-ASCII), or 'report (1).txt' (parentheses). The task spec says the name must be returned UNCHANGED unless it matches one of the five listed unsafe conditions; an extra character allowlist is not one of them, so this over-rejects valid input.",
+  "expect": "reject"
+}

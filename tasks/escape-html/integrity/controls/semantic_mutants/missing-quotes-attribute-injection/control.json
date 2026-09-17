@@ -1,0 +1,5 @@
+{
+  "name": "missing_quotes_attribute_injection",
+  "description": "Security-relevant near-miss: fixes the headline bug the snapshot's BUG comment leads with (adds ampersand-first escaping of &, <, >) but stops short of adding quote escaping. Text-context XSS via <, > and & is prevented, but a value placed inside a quoted HTML attribute can still break out via an unescaped \" or ' and inject new attributes/handlers -- a naive fix that addresses only the most visible symptom.",
+  "expect": "reject"
+}

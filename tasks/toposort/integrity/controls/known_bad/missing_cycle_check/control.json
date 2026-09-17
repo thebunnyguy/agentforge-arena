@@ -1,0 +1,5 @@
+{
+  "name": "missing_cycle_check",
+  "description": "Realistic 'forgot the edge case' bug: implements Kahn's algorithm correctly for acyclic graphs (min-heap over ready nodes for lexicographic tiebreaks) but never checks whether every node was actually emitted. On a cyclic graph the nodes stuck in the cycle simply never become ready and are silently dropped from the result instead of raising CycleError -- no infinite loop, just a shorter, wrong, non-exception return. The hidden cycle-detection tests must reject this.",
+  "expect": "reject"
+}

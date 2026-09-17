@@ -1,0 +1,5 @@
+{
+  "name": "segment_stack_resolution",
+  "description": "Structurally different but behaviorally equivalent correct solution: instead of normalizing the whole joined string with posixpath.normpath and then doing a str.startswith prefix compare, this walks base's segments plus every part's segments onto one explicit list-stack (the same left-to-right resolution normpath performs internally), allowing a transient climb above base that comes back down before the walk ends, and only checks the FINAL resolved position against base -- via list-prefix comparison, not string prefix -- so it also can never be fooled by a same-prefix sibling like '/srv/data-other'.",
+  "expect": "accept"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "shunting_yard_rpn",
+  "description": "Structurally different but behaviorally equivalent correct implementation: a shunting-yard algorithm that converts tokens to RPN (with unary +/- represented as distinct, higher-precedence, right-associative pseudo-operators 'u+'/'u-' resolved via a two-stack shunting yard) and then evaluates the RPN with a single value stack. No recursive-descent grammar, no _Parser class, no eval(). Correctly preserves left-associativity for +-*/ and correct unary-minus semantics at every position (leading, after another operator, and inside parentheses).",
+  "expect": "accept"
+}

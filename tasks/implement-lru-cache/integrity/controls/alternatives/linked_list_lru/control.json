@@ -1,0 +1,5 @@
+{
+  "name": "linked_list_lru",
+  "description": "Behaviorally equivalent to the reference but structurally different: a hand-rolled doubly linked list (sentinel head/tail nodes) plus a dict of key->node, instead of collections.OrderedDict. Recency is tracked by unlink+push-to-front on both get and put; eviction unlinks the node just before the tail sentinel.",
+  "expect": "accept"
+}

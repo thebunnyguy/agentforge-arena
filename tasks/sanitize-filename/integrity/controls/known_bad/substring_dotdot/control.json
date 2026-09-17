@@ -1,0 +1,5 @@
+{
+  "name": "substring_dotdot",
+  "description": "Rejects '..' as a raw substring anywhere in the name instead of checking it as a whole path component. This is a realistic off-by-one on the spec: it correctly rejects traversal like '../etc/passwd', but it ALSO wrongly rejects legitimate filenames that merely contain '..', such as 'safe..file' or 'my..report.txt', which the task explicitly requires to be returned unchanged.",
+  "expect": "reject"
+}

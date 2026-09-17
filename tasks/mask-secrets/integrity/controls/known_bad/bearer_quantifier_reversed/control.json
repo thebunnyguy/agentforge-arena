@@ -1,0 +1,5 @@
+{
+  "name": "bearer_quantifier_reversed",
+  "description": "Misreads 'a token of 8 or more characters' as 'a token of up to 8 characters' and uses {1,8} instead of {8,}. Only the first 8 characters of a longer bearer token get swept into the match, so the tail of the credential (e.g. '1234' in 'abcdefgh1234') is left in the output.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "order_bug_ampersand_last",
+  "description": "Escapes all five characters, but in the natural top-to-bottom order (<, >, \", ', &) instead of ampersand-first. This double-escapes the entities introduced by the earlier replacements (e.g. '<&>' becomes '&amp;lt;&amp;&amp;gt;' instead of '&lt;&amp;&gt;'). A realistic mistake: the agent adds the missing characters without noticing the docstring's explicit ampersand-first requirement.",
+  "expect": "reject"
+}

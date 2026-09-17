@@ -1,0 +1,5 @@
+{
+  "name": "prefix_startswith_no_separator",
+  "description": "Reintroduces the historical prefix-collision bug this task's reference used to have: containment is enforced via a naive norm_joined.startswith(norm_base) with NO trailing-separator check. A sibling directory that merely shares a name prefix (e.g. \"/srv/data-other\") is wrongly treated as being under base \"/srv/data\", because the string \"/srv/data-other/file.txt\" literally starts with the string \"/srv/data\". This is exactly the task-specific security near-miss a partial or naive fix of safe_join is likely to reproduce.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "scheme_blacklist",
+  "description": "Validates the scheme with a blacklist of 'known dangerous' schemes (javascript, data) instead of an allow-list of 'known safe' ones (http, https). Any scheme not on the blacklist -- e.g. 'ftp:' -- slips through to the host check and is wrongly accepted when the host matches. A plausible mistake: fixing the two schemes named in a bug report without generalizing to an allow-list.",
+  "expect": "reject"
+}

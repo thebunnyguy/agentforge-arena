@@ -1,0 +1,5 @@
+{
+  "name": "off_by_one_extra_attempt",
+  "description": "Off-by-one: loops range(attempts + 1), i.e. makes ONE MORE attempt than requested. Invisible when the first success happens before the last allowed attempt, but when every call fails it re-raises the exception from attempt (attempts + 1) instead of the last exception from attempt `attempts`, and calls make_coro() one extra time.",
+  "expect": "reject"
+}

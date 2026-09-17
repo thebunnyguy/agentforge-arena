@@ -1,0 +1,5 @@
+{
+  "name": "host_substring_match",
+  "description": "Matches the host with substring containment (`allowed_host in hostname`) instead of exact equality. Wrongly accepts any host that merely contains the allowed host as a substring, e.g. 'app.example.com.evil.com' -- a domain the attacker fully controls, not just the allowed host itself. A realistic 'looks close enough' mistake when generalizing from a single-example fix.",
+  "expect": "reject"
+}
