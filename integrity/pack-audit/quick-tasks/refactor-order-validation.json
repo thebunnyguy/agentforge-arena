@@ -1,0 +1,213 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "refactor-order-validation",
+  "task_version": "1.0.2",
+  "mode": "quick",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-17T20:40:01.350428+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 3 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 22,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 22,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 22,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+          }
+        ],
+        "n_repeats": 3,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 46,
+        "lines_removed": 35
+      },
+      "duration_ms": 5222
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": true,
+        "n_hidden": 1,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 3371
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "orderkit/**"
+        ],
+        "resolved_local_imports": {
+          "orderkit": "orderkit/__init__.py",
+          "orderkit.process": "orderkit/process.py"
+        },
+        "dynamic_or_star_import_seen": true,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:orderkit/conftest.py",
+          "always_protected:orderkit/sitecustomize.py",
+          "always_protected:orderkit/usercustomize.py",
+          "always_protected:orderkit/pytest.ini",
+          "always_protected:orderkit/tox.ini",
+          "always_protected:orderkit/setup.cfg",
+          "always_protected:orderkit/pyproject.toml",
+          "always_protected:orderkit/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:orderkit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 115
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:9c6ede781f6b08c046a1c4bb39ad1593ca40610cdbf2f1515ff54b1e753e509a"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:9c6ede781f6b08c046a1c4bb39ad1593ca40610cdbf2f1515ff54b1e753e509a"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:9c6ede781f6b08c046a1c4bb39ad1593ca40610cdbf2f1515ff54b1e753e509a"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 9004
+    }
+  ],
+  "mutations": [],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'orderkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "orderkit/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Mutation testing, a determinism sample over declared controls, and the isolation probe were not run (QUICK mode) \u2014 run --full for stronger evidence.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "refactor-order-validation",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:1a8f44a92d988abd17bf34587b2ec1c01c0e9126e0374d36cc593d52d5ba7f49",
+    "snapshot_hash": "sha256:4b29e27e6d180216fded49e1a77d1fadaa0698e43b5152c18e13d6c3aa32f856",
+    "reference_hash": "sha256:b2bf5c07776faa4ff56f7076641c209fd5bca28c0e096bdc6d87520336edd4e8",
+    "grading_hash": "sha256:e16fce909daf4245a05596c7b55dded2bc39d9ee3f3d1a71e0db1b782214e06b",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 17727
+}

@@ -1,0 +1,637 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "async-gather-bounded",
+  "task_version": "1.0.1",
+  "mode": "full",
+  "status": "needs_review",
+  "reason": "mutation.generic_ast_mutants: 5/17 relevant mutant(s) survived (kill_rate=0.71 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+  "created_at": "2026-09-17T20:42:00.708709+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 7,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e006f380ab82cf5a74f35a3fc87a9f1e8df046156c5d12ba924a3b54616802e4"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 7,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e006f380ab82cf5a74f35a3fc87a9f1e8df046156c5d12ba924a3b54616802e4"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 7,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e006f380ab82cf5a74f35a3fc87a9f1e8df046156c5d12ba924a3b54616802e4"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 7,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e006f380ab82cf5a74f35a3fc87a9f1e8df046156c5d12ba924a3b54616802e4"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 7,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e006f380ab82cf5a74f35a3fc87a9f1e8df046156c5d12ba924a3b54616802e4"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 30,
+        "lines_removed": 3
+      },
+      "duration_ms": 8490
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 7,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1882
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "asynckit/**"
+        ],
+        "resolved_local_imports": {
+          "asynckit": "asynckit/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:asynckit/conftest.py",
+          "always_protected:asynckit/sitecustomize.py",
+          "always_protected:asynckit/usercustomize.py",
+          "always_protected:asynckit/pytest.ini",
+          "always_protected:asynckit/tox.ini",
+          "always_protected:asynckit/setup.cfg",
+          "always_protected:asynckit/pyproject.toml",
+          "always_protected:asynckit/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:asynckit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 116
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "warning",
+      "severity": "medium",
+      "description": "5/17 relevant mutant(s) survived (kill_rate=0.71 over 17 relevant of 17 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "evidence": {
+        "mutants_generated": 17,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_relevant": 17,
+        "killed_total": 12,
+        "killed_by_hidden_test": 12,
+        "killed_by_regression_gate": 0,
+        "killed_by_scope_gate": 0,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 5,
+        "survived": [
+          {
+            "mutation_id": "asynckit/bounded.py:13:4:remove_branch_force_false",
+            "file": "asynckit/bounded.py",
+            "lineno": 13,
+            "family": "remove_branch",
+            "description": "remove_branch_force_false: if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\") (if-condition forced to False (branch never taken))"
+          },
+          {
+            "mutation_id": "asynckit/bounded.py:13:4:remove_validation",
+            "file": "asynckit/bounded.py",
+            "lineno": 13,
+            "family": "remove_validation",
+            "description": "remove_validation: if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\") (if-guard's raise removed (body -> pass))"
+          },
+          {
+            "mutation_id": "asynckit/bounded.py:13:7:boundary_operator",
+            "file": "asynckit/bounded.py",
+            "lineno": 13,
+            "family": "boundary_operator",
+            "description": "boundary_operator: limit <= 0 (LtE -> Lt)"
+          },
+          {
+            "mutation_id": "asynckit/bounded.py:24:4:remove_branch_force_false",
+            "file": "asynckit/bounded.py",
+            "lineno": 24,
+            "family": "remove_branch",
+            "description": "remove_branch_force_false: if not factories:\n        return results (if-condition forced to False (branch never taken))"
+          },
+          {
+            "mutation_id": "asynckit/bounded.py:37:55:swap_boolean_literal",
+            "file": "asynckit/bounded.py",
+            "lineno": 37,
+            "family": "swap_boolean_literal",
+            "description": "swap_boolean_literal: True (True -> False)"
+          }
+        ],
+        "kill_rate": 0.7058823529411765,
+        "notes": []
+      },
+      "duration_ms": 31595
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:8db46b638550b22f68308fcacde78bcc386b40295a18d8c9406213da4ff83f18"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:8db46b638550b22f68308fcacde78bcc386b40295a18d8c9406213da4ff83f18"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:8db46b638550b22f68308fcacde78bcc386b40295a18d8c9406213da4ff83f18"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 5166
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "asynckit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 2626
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "asynckit/bounded.py:13:4:remove_branch_force_false",
+      "file": "asynckit/bounded.py",
+      "lineno": 13,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\") (if-condition forced to False (branch never taken))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:37d7a8dc73d7f697f05012f726617019bf5dfcae65bf8db6c3d3bf80b4e3c1ee",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:13:4:remove_branch_force_true",
+      "file": "asynckit/bounded.py",
+      "lineno": 13,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\") (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_empty_list_returns_empty",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:100a056c89ebb9edb883dd53f68806515313a18f3ea1c4f41d441c570b8cb6e2",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:13:4:remove_validation",
+      "file": "asynckit/bounded.py",
+      "lineno": 13,
+      "col_offset": 4,
+      "family": "remove_validation",
+      "description": "remove_validation: if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\") (if-guard's raise removed (body -> pass))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:86e2e9eaa8fb38504d2e33f50e826a7069806c69b6e768290b961487377bf289",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:13:7:boundary_operator",
+      "file": "asynckit/bounded.py",
+      "lineno": 13,
+      "col_offset": 7,
+      "family": "boundary_operator",
+      "description": "boundary_operator: limit <= 0 (LtE -> Lt)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9d47a8af10036fab6241453bd9d094019ee0024cc64204b6a99d5489734b98bb",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:13:16:change_constant_increment",
+      "file": "asynckit/bounded.py",
+      "lineno": 13,
+      "col_offset": 16,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_limit_one_is_fully_serial"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6423e1a137b66671099e65daa9b87b508f29185111af94b5a31e3511826769d0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:16:4:delete_state_update",
+      "file": "asynckit/bounded.py",
+      "lineno": 16,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: factories = list(coro_factories) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_empty_list_returns_empty",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:ed46f38e122bfcb4926af9e3f1a81bd3cfe0cc8b48e614992012e9aaa29a8dcb",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:17:4:delete_state_update",
+      "file": "asynckit/bounded.py",
+      "lineno": 17,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: results = [None] * len(factories) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.14285714285714285,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_empty_list_returns_empty",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:655ef30f4b5aaa41163b55153042ea21e5915363bb16b51911b5356c332d3b15",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:18:4:delete_state_update",
+      "file": "asynckit/bounded.py",
+      "lineno": 18,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: semaphore = asyncio.Semaphore(limit) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.14285714285714285,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a999cae71adb5dc81833a172729e032db701ab3c7f9e9db55341226c4b40bd01",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:22:12:delete_state_update",
+      "file": "asynckit/bounded.py",
+      "lineno": 22,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: results[index] = await factory() (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.14285714285714285,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:760806b826e7354e1f0f03051265f7d2d89e1723c78153eaee2bb0aff2b006cc",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:24:4:remove_branch_force_false",
+      "file": "asynckit/bounded.py",
+      "lineno": 24,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if not factories:\n        return results (if-condition forced to False (branch never taken))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a4bc9ffcaeb787940f6e6b826c89bce5a5c324a21037db46720d20d605796988",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:24:4:remove_branch_force_true",
+      "file": "asynckit/bounded.py",
+      "lineno": 24,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if not factories:\n        return results (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.14285714285714285,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0017f2394ecb16da48bdeda0a7e9387fbcad9373720dd40344f1508bac85a855",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:24:7:drop_not",
+      "file": "asynckit/bounded.py",
+      "lineno": 24,
+      "col_offset": 7,
+      "family": "drop_not",
+      "description": "drop_not: not factories (unary 'not' dropped)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.14285714285714285,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9a2d583cdb70e0324a4bd3f75badfe75d368c5dd36be4a3d126a5e71817da1fd",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:25:8:return_constant",
+      "file": "asynckit/bounded.py",
+      "lineno": 25,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return results (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_empty_list_returns_empty"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:cccc2951ea0f61bc72bce3ab4b6cf4ecdc5cd1b4f67940b5fb79cb6b4be0f70a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:27:4:delete_state_update",
+      "file": "asynckit/bounded.py",
+      "lineno": 27,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: tasks = [\n        asyncio.ensure_future(_run(i, factory))\n        for i, factory in enumerate(factories)\n    ] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.14285714285714285,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_first_exception_propagates",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2b17e2d532098c923b907fffb2d0d45e97de6ed85c31daa27e9ee8743d013f45",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:33:4:drop_exception_handling",
+      "file": "asynckit/bounded.py",
+      "lineno": 33,
+      "col_offset": 4,
+      "family": "drop_exception_handling",
+      "description": "drop_exception_handling: except BaseException:\n        for task in tasks:\n            task.cancel()\n        # Let the cancellations settle so no task is left pending.\n        await asyncio.gather(*tasks, return_exceptions=Tru (except-handler body replaced with pass (error swallowed silently))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_exception_propagates"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:44095bedf27e0c6a58cf139d9ad59270231c5901e55cc965c30637ee46d084f9",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:37:55:swap_boolean_literal",
+      "file": "asynckit/bounded.py",
+      "lineno": 37,
+      "col_offset": 55,
+      "family": "swap_boolean_literal",
+      "description": "swap_boolean_literal: True (True -> False)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:324a60f4d8a0d90db8e8a0a16ea28babc39ae8aa5b9b6d513d76987f6724856f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "asynckit/bounded.py:39:4:return_constant",
+      "file": "asynckit/bounded.py",
+      "lineno": 39,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return results (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2857142857142857,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_limit",
+        "test_limit_one_is_fully_serial",
+        "test_limit_greater_than_length",
+        "test_results_input_order_with_varied_speeds"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:12338ce45e4f5c0b695521eceb2db398dcc4930e77f054eb5a3f85590f9ca6cf",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'asynckit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "asynckit/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "async-gather-bounded",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:efad5a873f3a46c7e3d10fefca79061323a266e3864d738131e7e10e4c57d321",
+    "snapshot_hash": "sha256:0d3085ab0de9e056f5dbd82922874b3b96ad8a3dfbcfd603219dbc0b33403875",
+    "reference_hash": "sha256:3b50b279298f9a4a977c896d11a97fc4caca74313015e53d9ee1a6901c8ccaa6",
+    "grading_hash": "sha256:9c7dd89d7adb8b5db1d236e801e7b2bb6fcb8837720f3c8ea3e447a93594dde1",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 49884
+}

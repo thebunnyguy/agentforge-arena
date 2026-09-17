@@ -1,0 +1,697 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "async-first-success",
+  "task_version": "1.0.1",
+  "mode": "full",
+  "status": "needs_review",
+  "reason": "mutation.generic_ast_mutants: 3/21 relevant mutant(s) survived (kill_rate=0.86 over 21 relevant of 21 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+  "created_at": "2026-09-17T20:41:58.126993+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 36,
+        "lines_removed": 3
+      },
+      "duration_ms": 8125
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 6,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1861
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "afirst/**"
+        ],
+        "resolved_local_imports": {
+          "afirst": "afirst/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:afirst/conftest.py",
+          "always_protected:afirst/sitecustomize.py",
+          "always_protected:afirst/usercustomize.py",
+          "always_protected:afirst/pytest.ini",
+          "always_protected:afirst/tox.ini",
+          "always_protected:afirst/setup.cfg",
+          "always_protected:afirst/pyproject.toml",
+          "always_protected:afirst/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:afirst/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 105
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "warning",
+      "severity": "medium",
+      "description": "3/21 relevant mutant(s) survived (kill_rate=0.86 over 21 relevant of 21 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "evidence": {
+        "mutants_generated": 21,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_relevant": 21,
+        "killed_total": 18,
+        "killed_by_hidden_test": 16,
+        "killed_by_regression_gate": 0,
+        "killed_by_scope_gate": 0,
+        "killed_by_timeout_or_error": 2,
+        "survived_count": 3,
+        "survived": [
+          {
+            "mutation_id": "afirst/first.py:14:4:remove_branch_force_false",
+            "file": "afirst/first.py",
+            "lineno": 14,
+            "family": "remove_branch",
+            "description": "remove_branch_force_false: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-condition forced to False (branch never taken))"
+          },
+          {
+            "mutation_id": "afirst/first.py:14:4:remove_validation",
+            "file": "afirst/first.py",
+            "lineno": 14,
+            "family": "remove_validation",
+            "description": "remove_validation: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-guard's raise removed (body -> pass))"
+          },
+          {
+            "mutation_id": "afirst/first.py:40:4:drop_exception_handling",
+            "file": "afirst/first.py",
+            "lineno": 40,
+            "family": "drop_exception_handling",
+            "description": "drop_exception_handling: except BaseException:\n        await _cancel_all()\n        raise (except-handler body replaced with pass (error swallowed silently))"
+          }
+        ],
+        "kill_rate": 0.8571428571428571,
+        "notes": []
+      },
+      "duration_ms": 77796
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:19ab6acb208677a5c09825164b6a0c46965314b847b87d834d236e55f7e7b3d5"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:19ab6acb208677a5c09825164b6a0c46965314b847b87d834d236e55f7e7b3d5"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:19ab6acb208677a5c09825164b6a0c46965314b847b87d834d236e55f7e7b3d5"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 5292
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "afirst/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 3417
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "afirst/first.py:13:4:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 13,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: factories = list(make_coros) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a31fb8ab5398b8265519aafd7b83c1eec1df0de1ab72cba2111d10dba13f852b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:14:4:remove_branch_force_false",
+      "file": "afirst/first.py",
+      "lineno": 14,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-condition forced to False (branch never taken))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2b7eebf01178f068b07f949a192c808e93573ae6f82291c16e632e7390cf546d",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:14:4:remove_branch_force_true",
+      "file": "afirst/first.py",
+      "lineno": 14,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8822b95c8a8746a567545a7071f7d815025220e978787fc4650dfa31b7ee6a15",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:14:4:remove_validation",
+      "file": "afirst/first.py",
+      "lineno": 14,
+      "col_offset": 4,
+      "family": "remove_validation",
+      "description": "remove_validation: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-guard's raise removed (body -> pass))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b92b92d5264f1dd165ef7a0cf7222241883b7211f0805d3f64b4f13fc85a0ed2",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:14:7:drop_not",
+      "file": "afirst/first.py",
+      "lineno": 14,
+      "col_offset": 7,
+      "family": "drop_not",
+      "description": "drop_not: not factories (unary 'not' dropped)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f2ceadf9dc90036ff86d901cba24c5d8c5fc5e1e75f54c78285c68273679be7f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:17:4:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 17,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: tasks = [asyncio.ensure_future(make()) for make in factories] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:82dd4e6d225d4db0e5a54dc95fad31b0bf25d8b592651d4bcc2ce46cb7246576",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:18:4:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 18,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: index_of = {task: i for i, task in enumerate(tasks)} (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_all_fail_raises_last_exception",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:cc94536efe5af67e653eff8a2ecbd72bca2fff70ee55ab8077c712dcfd337477",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:19:4:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 19,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: errors = [None] * len(tasks) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_all_fail_raises_last_exception",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3c65b92425dc400231c9956ea0d0e59a91a1952c1180d396c7a53dd8da2b08d5",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:25:55:swap_boolean_literal",
+      "file": "afirst/first.py",
+      "lineno": 25,
+      "col_offset": 55,
+      "family": "swap_boolean_literal",
+      "description": "swap_boolean_literal: True (True -> False)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_losers_are_cancelled"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:18aaa1e405fc1fb4a6c134d20150d791e2f6c25deb462077ca13ee6febd3e078",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:27:4:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 27,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: pending = set(tasks) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:14eb6a0bb0d6481fc0ffa553cee18a7e1793f3dc74c1f22f14444519b5c97891",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:30:12:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 30,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: done, pending = await asyncio.wait(\n                pending, return_when=asyncio.FIRST_COMPLETED\n            ) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:99d853b6f56a91f7a06a67b1a892a84d153aab93d24d16638e124fa8f033d6f8",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:34:16:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 34,
+      "col_offset": 16,
+      "family": "delete_state_update",
+      "description": "delete_state_update: exc = task.exception() (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_all_fail_raises_last_exception",
+        "test_losers_are_cancelled",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:aed1d8e97c91ca931bc7b80da2a711ec12fee781de61a7e0071dc99f84d662de",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:35:16:remove_branch_force_false",
+      "file": "afirst/first.py",
+      "lineno": 35,
+      "col_offset": 16,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if exc is None:\n                    result = task.result()\n                    await _cancel_all()\n                    return result (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:cbbaa79d144d7aaa729187451c01088831eaa7c37bcffd39f4aa1ee9e7ca314a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:35:16:remove_branch_force_true",
+      "file": "afirst/first.py",
+      "lineno": 35,
+      "col_offset": 16,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if exc is None:\n                    result = task.result()\n                    await _cancel_all()\n                    return result (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8333333333333334,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0ba72793f8202073cabf5b07bca192a7cdb777ce8f908c2ea25249de1b7d3fb7",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:35:19:invert_comparison",
+      "file": "afirst/first.py",
+      "lineno": 35,
+      "col_offset": 19,
+      "family": "invert_comparison",
+      "description": "invert_comparison: exc is None (Is -> IsNot)",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d36992527dcae3509f5fc2c95e870ccd80f68b3871c8356fdf2510e2e98cb3cc",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:36:20:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 36,
+      "col_offset": 20,
+      "family": "delete_state_update",
+      "description": "delete_state_update: result = task.result() (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_losers_are_cancelled"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:29f1609473297771eaed37d200c3740e5c91405ec6d81751903ce19854bff07e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:38:20:return_constant",
+      "file": "afirst/first.py",
+      "lineno": 38,
+      "col_offset": 20,
+      "family": "return_constant",
+      "description": "return_constant: return result (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_returns_only_success_when_others_fail",
+        "test_returns_first_success",
+        "test_losers_are_cancelled"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fb89c7ea8ace7d03347d1bb62d11c27a4cd4e41d3bf605cc1fefd516d0353452",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:39:16:delete_state_update",
+      "file": "afirst/first.py",
+      "lineno": 39,
+      "col_offset": 16,
+      "family": "delete_state_update",
+      "description": "delete_state_update: errors[index_of[task]] = exc (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_all_fail_raises_last_exception",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0a769895cd61092383b6a80f5e264eccebe87b3f8462c1aea526540c4dc50b93",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:40:4:drop_exception_handling",
+      "file": "afirst/first.py",
+      "lineno": 40,
+      "col_offset": 4,
+      "family": "drop_exception_handling",
+      "description": "drop_exception_handling: except BaseException:\n        await _cancel_all()\n        raise (except-handler body replaced with pass (error swallowed silently))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:456b29a9be214be1febde11da55a105f927e0bd47c3fe08d957040639b613f65",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:45:18:change_constant_increment",
+      "file": "afirst/first.py",
+      "lineno": 45,
+      "col_offset": 18,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_all_fail_raises_last_exception",
+        "test_single_failure_raises",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:5877ffd0496968b46f876ec4296ae4ec5cdec2366f87d9e2b19c6ddb8f050c54",
+      "notes": ""
+    },
+    {
+      "mutation_id": "afirst/first.py:45:18:change_constant_zero",
+      "file": "afirst/first.py",
+      "lineno": 45,
+      "col_offset": 18,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_all_fail_raises_last_exception",
+        "test_all_fail_propagates_input_order_last_not_temporally_last"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fd426c62ef3d6831d3746ae371caa115cf3f2b8a90a3d06e4f20d287bc62b18d",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'afirst/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "afirst/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "async-first-success",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:413fb7d7eedddc22a56a2f2233f26c8ab61229b08c5945f348240e00b0f1ee66",
+    "snapshot_hash": "sha256:9778f900bfaaf8de42a986eaf3dd26998e58e2d6df6f3908f140bca21662b639",
+    "reference_hash": "sha256:9bd72086e237be086e1f97840f451cb1cfaa26043d90ec37df77355bae965fb0",
+    "grading_hash": "sha256:c37474eae0864d3197757a150f3d3937e3a7f592dabb961a9f823b6310e0ce09",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 96611
+}

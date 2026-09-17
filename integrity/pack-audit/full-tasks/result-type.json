@@ -1,0 +1,635 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "result-type",
+  "task_version": "1.0.1",
+  "mode": "full",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-17T20:41:48.846264+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 17,
+        "lines_removed": 8
+      },
+      "duration_ms": 8233
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 9,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1801
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "resultkit/**"
+        ],
+        "resolved_local_imports": {
+          "resultkit": "resultkit/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:resultkit/conftest.py",
+          "always_protected:resultkit/sitecustomize.py",
+          "always_protected:resultkit/usercustomize.py",
+          "always_protected:resultkit/pytest.ini",
+          "always_protected:resultkit/tox.ini",
+          "always_protected:resultkit/setup.cfg",
+          "always_protected:resultkit/pyproject.toml",
+          "always_protected:resultkit/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:resultkit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 131
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 19 relevant mutant(s) were killed (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent).",
+      "evidence": {
+        "mutants_generated": 19,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_relevant": 19,
+        "killed_total": 19,
+        "killed_by_hidden_test": 19,
+        "killed_by_regression_gate": 0,
+        "killed_by_scope_gate": 0,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 34461
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:94e231e578430bcaf43571f9c2542a05bef2399aafa158182c4b7803e23f70d8"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:94e231e578430bcaf43571f9c2542a05bef2399aafa158182c4b7803e23f70d8"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:94e231e578430bcaf43571f9c2542a05bef2399aafa158182c4b7803e23f70d8"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 4826
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "resultkit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 2640
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "resultkit/result.py:18:8:delete_state_update",
+      "file": "resultkit/result.py",
+      "lineno": 18,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._is_ok = is_ok (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_is_ok_true",
+        "test_err_is_ok_false",
+        "test_ok_unwrap_returns_value",
+        "test_err_unwrap_raises_value_error",
+        "test_err_unwrap_or_returns_default",
+        "test_ok_unwrap_or_returns_value",
+        "test_ok_map_transforms_value",
+        "test_err_map_stays_err_without_calling_fn",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:262cae210b34b56d721f097204a7c9bbe4b2d987bedb6214e02c2bc0e61775ae",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:19:8:delete_state_update",
+      "file": "resultkit/result.py",
+      "lineno": 19,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._value = value (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_unwrap_returns_value",
+        "test_ok_unwrap_or_returns_value",
+        "test_ok_map_transforms_value",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a11890d90afa089cd903370dc0ee033939569808161f0226408bacd837edc6da",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:20:8:delete_state_update",
+      "file": "resultkit/result.py",
+      "lineno": 20,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._error = error (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_unwrap_raises_value_error",
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:723205d358d57792ed128487a5a5ea734e9e0b189654594769d33a423a06fe31",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:24:8:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 24,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return cls(True, value=value) (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_is_ok_true",
+        "test_ok_unwrap_returns_value",
+        "test_ok_unwrap_or_returns_value",
+        "test_ok_map_transforms_value",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e527baac73893944f98deb30f9075021c12cd4ef6383d14b37cc919e37d13b3e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:24:19:swap_boolean_literal",
+      "file": "resultkit/result.py",
+      "lineno": 24,
+      "col_offset": 19,
+      "family": "swap_boolean_literal",
+      "description": "swap_boolean_literal: True (True -> False)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_is_ok_true",
+        "test_ok_unwrap_returns_value",
+        "test_ok_unwrap_or_returns_value",
+        "test_ok_map_transforms_value",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4350689a8d29b6cc8bd57e48f1288872a8769d37cb9ba87119600de52ab0b24c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:28:8:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 28,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return cls(False, error=error) (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_is_ok_false",
+        "test_err_unwrap_raises_value_error",
+        "test_err_unwrap_or_returns_default",
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6afa65a3851b87a6a1a97ac0869cd9e28ea8040d982826c6521b7950a8dc4b7a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:28:19:swap_boolean_literal",
+      "file": "resultkit/result.py",
+      "lineno": 28,
+      "col_offset": 19,
+      "family": "swap_boolean_literal",
+      "description": "swap_boolean_literal: False (False -> True)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_is_ok_false",
+        "test_err_unwrap_raises_value_error",
+        "test_err_unwrap_or_returns_default",
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8735d4763cab3398ecbeb484b4e4358c431615ede6d295d26da019989bfac957",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:32:8:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 32,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return self._is_ok (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_is_ok_true",
+        "test_err_is_ok_false",
+        "test_ok_map_transforms_value",
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3128511e4b7bb2df2f105905dda61a9603959d85fa88a48bd08fe51350e521e0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:35:8:remove_branch_force_false",
+      "file": "resultkit/result.py",
+      "lineno": 35,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self._is_ok:\n            return self._value (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_unwrap_returns_value",
+        "test_ok_map_transforms_value",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:27fac296d066c09182f830a3922708ca17af6eb005b6be428fd1a04a43422815",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:35:8:remove_branch_force_true",
+      "file": "resultkit/result.py",
+      "lineno": 35,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self._is_ok:\n            return self._value (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_unwrap_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fcf8185ec50a2e9b79285fa2c274618b444d2a3f3b596a3d42acf6f9e127ff98",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:36:12:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 36,
+      "col_offset": 12,
+      "family": "return_constant",
+      "description": "return_constant: return self._value (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_unwrap_returns_value",
+        "test_ok_map_transforms_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:547340240fb898cd909d14b4dcf86ab6841aea0a7e5b53a19c9ecd2b26a87394",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:40:8:remove_branch_force_false",
+      "file": "resultkit/result.py",
+      "lineno": 40,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self._is_ok:\n            return self._value (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_unwrap_or_returns_value",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2985ccb1e200032606cc059be082db9f1ac4b320d27dbde39452ec2a9090822b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:40:8:remove_branch_force_true",
+      "file": "resultkit/result.py",
+      "lineno": 40,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self._is_ok:\n            return self._value (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_unwrap_or_returns_default",
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:49518bfbd9298f4f79b1a4de57d2d37426f9302b3845ab21afaec3251d141c49",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:41:12:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 41,
+      "col_offset": 12,
+      "family": "return_constant",
+      "description": "return_constant: return self._value (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_unwrap_or_returns_value",
+        "test_ok_with_falsy_value_unwraps_to_that_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7bf69dc312007ca7abf1ba3e9f3f1e35f6c8f3a6f7bb608636099975e39af7f4",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:42:8:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 42,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return default (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_unwrap_or_returns_default",
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:62ceb6c426fb667e3b4b1f2d56b1619e8eadbf039f024eecc174fdee0c6f38ed",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:45:8:remove_branch_force_false",
+      "file": "resultkit/result.py",
+      "lineno": 45,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self._is_ok:\n            return Result.ok(fn(self._value)) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_map_transforms_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:46f2103b7c62aa3bc475c8c7ebc1aa99c11846b5b835bd777d9549a45b870b55",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:45:8:remove_branch_force_true",
+      "file": "resultkit/result.py",
+      "lineno": 45,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self._is_ok:\n            return Result.ok(fn(self._value)) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c14de0fd6dce1e16dcbfd309b675f9db4a640794844e8ad1cfaa12adc9327a50",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:46:12:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 46,
+      "col_offset": 12,
+      "family": "return_constant",
+      "description": "return_constant: return Result.ok(fn(self._value)) (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_ok_map_transforms_value"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c9e71d2baa938a785e782ed831b6c719f414b2d75b87952f6c9389ac08c55dbb",
+      "notes": ""
+    },
+    {
+      "mutation_id": "resultkit/result.py:47:8:return_constant",
+      "file": "resultkit/result.py",
+      "lineno": 47,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return Result.err(self._error) (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_err_map_stays_err_without_calling_fn"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:5c4c60c9cb07c099823c49ad95acf589ac37fe4d7af72fdc8e1d13cf99970483",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'resultkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "resultkit/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "result-type",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:06d694bc78f271c676f408ee546db6baba423aa0e2b86512c876dd16b919db4e",
+    "snapshot_hash": "sha256:88619df6d32369c3265e1bff793b0ef60dc0dbf2b2f072d10e498e0eddc4abb3",
+    "reference_hash": "sha256:f632541f80e8b6eca26239d98d5bb9752abd1a50ea1172eab9e66192a6c00297",
+    "grading_hash": "sha256:4a7a3faa61818d0fc13f51dda4bfba89e7dc5bb85c1179f3625d9d09a7e6b8c4",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 52103
+}

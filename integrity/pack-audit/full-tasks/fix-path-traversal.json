@@ -1,0 +1,738 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "fix-path-traversal",
+  "task_version": "1.0.1",
+  "mode": "full",
+  "status": "needs_review",
+  "reason": "mutation.generic_ast_mutants: 2/15 relevant mutant(s) survived (kill_rate=0.87 over 15 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+  "created_at": "2026-09-17T20:42:17.291808+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 32,
+        "lines_removed": 8
+      },
+      "duration_ms": 8451
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.444), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.4444444444444444,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 9,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1770
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "safepath/**"
+        ],
+        "resolved_local_imports": {
+          "safepath": "safepath/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:safepath/conftest.py",
+          "always_protected:safepath/sitecustomize.py",
+          "always_protected:safepath/usercustomize.py",
+          "always_protected:safepath/pytest.ini",
+          "always_protected:safepath/tox.ini",
+          "always_protected:safepath/setup.cfg",
+          "always_protected:safepath/pyproject.toml",
+          "always_protected:safepath/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:safepath/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 142
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 1
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 9065
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "warning",
+      "severity": "medium",
+      "description": "2/15 relevant mutant(s) survived (kill_rate=0.87 over 15 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "evidence": {
+        "mutants_generated": 15,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_relevant": 15,
+        "killed_total": 13,
+        "killed_by_hidden_test": 4,
+        "killed_by_regression_gate": 9,
+        "killed_by_scope_gate": 0,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 2,
+        "survived": [
+          {
+            "mutation_id": "safepath/join.py:22:8:remove_branch_force_false",
+            "file": "safepath/join.py",
+            "lineno": 22,
+            "family": "remove_branch",
+            "description": "remove_branch_force_false: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-condition forced to False (branch never taken))"
+          },
+          {
+            "mutation_id": "safepath/join.py:22:8:remove_validation",
+            "file": "safepath/join.py",
+            "lineno": 22,
+            "family": "remove_validation",
+            "description": "remove_validation: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-guard's raise removed (body -> pass))"
+          }
+        ],
+        "kill_rate": 0.8666666666666667,
+        "notes": []
+      },
+      "duration_ms": 25309
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:60575102f998129bb750fe7f84b3ea8cdbc971d3aa8250482627bfe4a51b73e3"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:60575102f998129bb750fe7f84b3ea8cdbc971d3aa8250482627bfe4a51b73e3"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:60575102f998129bb750fe7f84b3ea8cdbc971d3aa8250482627bfe4a51b73e3"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:dotdot_literal_check",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:36eedb3123f50b72026ba48cbbc86af6789b26f65d32e4ac5aee0f9420498dc4"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:36eedb3123f50b72026ba48cbbc86af6789b26f65d32e4ac5aee0f9420498dc4"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:36eedb3123f50b72026ba48cbbc86af6789b26f65d32e4ac5aee0f9420498dc4"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:normalized_dotdot_token_check",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.6666666666666666,
+                "functional_pass": false,
+                "fingerprint": "sha256:1368268d65e6c139a01ef2c2e9515ff4bebb6198b0d29916b8d8b108e24d5158"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.6666666666666666,
+                "functional_pass": false,
+                "fingerprint": "sha256:1368268d65e6c139a01ef2c2e9515ff4bebb6198b0d29916b8d8b108e24d5158"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.6666666666666666,
+                "functional_pass": false,
+                "fingerprint": "sha256:1368268d65e6c139a01ef2c2e9515ff4bebb6198b0d29916b8d8b108e24d5158"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:wrong_exception_type",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.5555555555555556,
+                "functional_pass": false,
+                "fingerprint": "sha256:07d8efd5d93b9c931371d23629990d8bd2a4a7ea5430b8717a1f6ec4b5ff0dd9"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.5555555555555556,
+                "functional_pass": false,
+                "fingerprint": "sha256:07d8efd5d93b9c931371d23629990d8bd2a4a7ea5430b8717a1f6ec4b5ff0dd9"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.5555555555555556,
+                "functional_pass": false,
+                "fingerprint": "sha256:07d8efd5d93b9c931371d23629990d8bd2a4a7ea5430b8717a1f6ec4b5ff0dd9"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:prefix_startswith_no_separator",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:fc5ad87b85e198e4147a2fca7bf500be74323be0169912f6ab7a2a4ba6e00a34"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:fc5ad87b85e198e4147a2fca7bf500be74323be0169912f6ab7a2a4ba6e00a34"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:fc5ad87b85e198e4147a2fca7bf500be74323be0169912f6ab7a2a4ba6e00a34"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:segment_stack_resolution",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 28785
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "safepath/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 3265
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "safepath/join.py:19:4:delete_state_update",
+      "file": "safepath/join.py",
+      "lineno": 19,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: norm_base = posixpath.normpath(base) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c0679eb9acf8f0989594bac9c751d1ffe427de1094ff60e7d1a0ae49730838c7",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:22:8:remove_branch_force_false",
+      "file": "safepath/join.py",
+      "lineno": 22,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-condition forced to False (branch never taken))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7ec4d5f4e46af98664d5b018ea2ab246f03fefa9184642f057146377b720ab35",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:22:8:remove_branch_force_true",
+      "file": "safepath/join.py",
+      "lineno": 22,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:15b44ebf5b065caec2fffa6f99f7e234dcd0d19eeca76bc88025ba4a75bf6136",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:22:8:remove_validation",
+      "file": "safepath/join.py",
+      "lineno": 22,
+      "col_offset": 8,
+      "family": "remove_validation",
+      "description": "remove_validation: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-guard's raise removed (body -> pass))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8fc9f5ba27b2f2ca9a83acf72f9fb4d3ff1fca90d5e7d567ef1b8f5ec942c26b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:27:4:delete_state_update",
+      "file": "safepath/join.py",
+      "lineno": 27,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: joined = posixpath.join(norm_base, *parts) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:12a1d3ce127949235da01023859c5ff2a6bbd4374baf8b5db80a9768e8c34541",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:28:4:delete_state_update",
+      "file": "safepath/join.py",
+      "lineno": 28,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: norm_joined = posixpath.normpath(joined) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c87371ffb01245713551db48d870ed496c14a6505b870215253a1169519db163",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:33:4:delete_state_update",
+      "file": "safepath/join.py",
+      "lineno": 33,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sep_prefix = norm_base if norm_base == \"/\" else norm_base + \"/\" (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b3aea2022223c367539617cd17c630bf090870f994cb047ef81934e04df04f9e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:33:30:invert_comparison",
+      "file": "safepath/join.py",
+      "lineno": 33,
+      "col_offset": 30,
+      "family": "invert_comparison",
+      "description": "invert_comparison: norm_base == \"/\" (Eq -> NotEq)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_prefix_collision_sibling_raises",
+        "test_root_base_allows_absolute_descendants"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:531932d7251377192453419ceceb02e3884359ed72165b9255c78c379d9a21ad",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:34:4:remove_branch_force_false",
+      "file": "safepath/join.py",
+      "lineno": 34,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if norm_joined != norm_base and not norm_joined.startswith(sep_prefix):\n        raise ValueError(\n            \"joined path %r escapes base %r\" % (norm_joined, norm_base)\n        ) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_dotdot_escape_raises",
+        "test_deep_dotdot_escape_raises",
+        "test_prefix_collision_sibling_raises"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b7a925277bfdcbc1444fb676ac1fcb18c5e7b82fc6b4db84be6ec5facce73358",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:34:4:remove_branch_force_true",
+      "file": "safepath/join.py",
+      "lineno": 34,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if norm_joined != norm_base and not norm_joined.startswith(sep_prefix):\n        raise ValueError(\n            \"joined path %r escapes base %r\" % (norm_joined, norm_base)\n        ) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:592eb2d689d2485fa47b26dfd24ef5e4a3a5480ecac2eb4982f4ed67987c2b80",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:34:4:remove_validation",
+      "file": "safepath/join.py",
+      "lineno": 34,
+      "col_offset": 4,
+      "family": "remove_validation",
+      "description": "remove_validation: if norm_joined != norm_base and not norm_joined.startswith(sep_prefix):\n        raise ValueError(\n            \"joined path %r escapes base %r\" % (norm_joined, norm_base)\n        ) (if-guard's raise removed (body -> pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_dotdot_escape_raises",
+        "test_deep_dotdot_escape_raises",
+        "test_prefix_collision_sibling_raises"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:92aab60b1c42057339eb6d823d45af4114871528540f2a1c36c51968cda4074a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:34:7:invert_comparison",
+      "file": "safepath/join.py",
+      "lineno": 34,
+      "col_offset": 7,
+      "family": "invert_comparison",
+      "description": "invert_comparison: norm_joined != norm_base (NotEq -> Eq)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_dotdot_escape_raises",
+        "test_deep_dotdot_escape_raises",
+        "test_prefix_collision_sibling_raises"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:41643f020d08b07939cf41af34a79b40387cd96c20ef5b7727f5e4e4104cf184",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:34:7:swap_boolean_condition",
+      "file": "safepath/join.py",
+      "lineno": 34,
+      "col_offset": 7,
+      "family": "swap_boolean_condition",
+      "description": "swap_boolean_condition: norm_joined != norm_base and not norm_joined.startswith(sep_prefix) (And -> Or)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2fdc6acbc2c637acad07320c67de6826ca77e2f480cafefaee35e0f9214f0871",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:34:36:drop_not",
+      "file": "safepath/join.py",
+      "lineno": 34,
+      "col_offset": 36,
+      "family": "drop_not",
+      "description": "drop_not: not norm_joined.startswith(sep_prefix) (unary 'not' dropped)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:18a904e55883796f468fa1ea5e6b091fee8c121a15b218ccaa0a73ce2c81376e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "safepath/join.py:39:4:return_constant",
+      "file": "safepath/join.py",
+      "lineno": 39,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return norm_joined (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:45215a72f4ab2d21ca2b68df065d3073dc091d3e3200fbdb450269bf47adbc16",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "dotdot_literal_check",
+      "kind": "known_bad",
+      "description": "Rejects any individual part containing a literal '..' segment (plus any absolute component), but never normalizes-and-compares against base at all. This over-rejects a legitimate '..' that still resolves within base (e.g. \"reports/../public\"), because it looks only at the raw, pre-join part text rather than the resolved path. A plausible 'forgot the allowed edge case' fix: the author reasoned '..' is always dangerous and blocked it outright instead of checking containment.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_dotdot_within_base_allowed']"
+    },
+    {
+      "name": "normalized_dotdot_token_check",
+      "kind": "known_bad",
+      "description": "Checks for absolute components, then normalizes the joined path and rejects it only if a literal '..' token survives normalization. Since posixpath.normpath collapses every resolvable '..' for an absolute base, this check almost never fires: e.g. base \"/srv/data\", part \"../etc/passwd\" normalizes straight to \"/srv/etc/passwd\" with no '..' left, so the escape sails through silently. A realistic 'missing validation' bug: the author normalizes but never actually compares the result against base.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_dotdot_escape_raises', 'test_deep_dotdot_escape_raises', 'test_prefix_collision_sibling_raises']"
+    },
+    {
+      "name": "wrong_exception_type",
+      "kind": "known_bad",
+      "description": "Containment logic is otherwise correct (mirrors the reference's normalize-then-prefix-check), but raises PermissionError instead of the required ValueError on an escape. A plausible slip: the author copied an access-control pattern from elsewhere in the codebase and kept its exception type instead of switching to ValueError as the task spec requires. Every hidden test that does pytest.raises(ValueError) on an escaping input fails because PermissionError propagates uncaught.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_dotdot_escape_raises', 'test_absolute_component_raises', 'test_deep_dotdot_escape_raises', 'test_prefix_collision_sibling_raises']"
+    },
+    {
+      "name": "prefix_startswith_no_separator",
+      "kind": "semantic_mutant",
+      "description": "Reintroduces the historical prefix-collision bug this task's reference used to have: containment is enforced via a naive norm_joined.startswith(norm_base) with NO trailing-separator check. A sibling directory that merely shares a name prefix (e.g. \"/srv/data-other\") is wrongly treated as being under base \"/srv/data\", because the string \"/srv/data-other/file.txt\" literally starts with the string \"/srv/data\". This is exactly the task-specific security near-miss a partial or naive fix of safe_join is likely to reproduce.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_prefix_collision_sibling_raises']"
+    },
+    {
+      "name": "segment_stack_resolution",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent correct solution: instead of normalizing the whole joined string with posixpath.normpath and then doing a str.startswith prefix compare, this walks base's segments plus every part's segments onto one explicit list-stack (the same left-to-right resolution normpath performs internally), allowing a transient climb above base that comes back down before the walk ends, and only checks the FINAL resolved position against base -- via list-prefix comparison, not string prefix -- so it also can never be fooled by a same-prefix sibling like '/srv/data-other'.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'safepath/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "safepath/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "fix-path-traversal",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:9b4f4f3c9f948215ea88babd13f98d6bf36f0c8373357f8fca97628613dd2c1c",
+    "snapshot_hash": "sha256:c217d60520e70667f258d47390edff450476d7556cdaf7b7ffd24d0259363b77",
+    "reference_hash": "sha256:ec3c760150a3ac399e9925c48092567c0a87ce964bc9f76f48ab7d2352b3a098",
+    "grading_hash": "sha256:eba2604fffb5f510456cbfe0568d158e4879523b7c3a579d25408762bed39470",
+    "controls_hash": "sha256:669a2a2a5dd6f9d8b55b90cb91c4292526e07b7436799a7fc035ec1db9da42f8",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 76891
+}

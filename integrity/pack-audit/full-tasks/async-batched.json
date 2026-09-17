@@ -1,0 +1,523 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "async-batched",
+  "task_version": "1.0.2",
+  "mode": "full",
+  "status": "needs_review",
+  "reason": "mutation.generic_ast_mutants: 1/11 relevant mutant(s) survived (kill_rate=0.91 over 11 relevant of 11 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+  "created_at": "2026-09-17T20:41:53.849340+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 12,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:667e7a76a7496b8eb0943e14296c5e0dc7446789dfefbf2b089323729e36132f"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 12,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:667e7a76a7496b8eb0943e14296c5e0dc7446789dfefbf2b089323729e36132f"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 12,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:667e7a76a7496b8eb0943e14296c5e0dc7446789dfefbf2b089323729e36132f"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 12,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:667e7a76a7496b8eb0943e14296c5e0dc7446789dfefbf2b089323729e36132f"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 12,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:667e7a76a7496b8eb0943e14296c5e0dc7446789dfefbf2b089323729e36132f"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 15,
+        "lines_removed": 3
+      },
+      "duration_ms": 8330
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 12,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1716
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "abatch/**"
+        ],
+        "resolved_local_imports": {
+          "abatch": "abatch/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:abatch/conftest.py",
+          "always_protected:abatch/sitecustomize.py",
+          "always_protected:abatch/usercustomize.py",
+          "always_protected:abatch/pytest.ini",
+          "always_protected:abatch/tox.ini",
+          "always_protected:abatch/setup.cfg",
+          "always_protected:abatch/pyproject.toml",
+          "always_protected:abatch/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:abatch/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 142
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "warning",
+      "severity": "medium",
+      "description": "1/11 relevant mutant(s) survived (kill_rate=0.91 over 11 relevant of 11 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "evidence": {
+        "mutants_generated": 11,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_relevant": 11,
+        "killed_total": 10,
+        "killed_by_hidden_test": 10,
+        "killed_by_regression_gate": 0,
+        "killed_by_scope_gate": 0,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 1,
+        "survived": [
+          {
+            "mutation_id": "abatch/batch.py:14:7:boundary_operator",
+            "file": "abatch/batch.py",
+            "lineno": 14,
+            "family": "boundary_operator",
+            "description": "boundary_operator: batch_size <= 0 (LtE -> Lt)"
+          }
+        ],
+        "kill_rate": 0.9090909090909091,
+        "notes": []
+      },
+      "duration_ms": 21565
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:1de1f6581d17be56c9ea5934968e51cc9ab0b434ff029de6dc9e84f8c24859a9"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:1de1f6581d17be56c9ea5934968e51cc9ab0b434ff029de6dc9e84f8c24859a9"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:1de1f6581d17be56c9ea5934968e51cc9ab0b434ff029de6dc9e84f8c24859a9"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 6124
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "abatch/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 3012
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "abatch/batch.py:14:4:remove_branch_force_false",
+      "file": "abatch/batch.py",
+      "lineno": 14,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if batch_size <= 0:\n        raise ValueError(\"batch_size must be a positive integer\") (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8333333333333334,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_nonpositive_batch_size_rejected[-1]",
+        "test_nonpositive_batch_size_rejected[-100]"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9f8cc7d5574ecb2fb72b3701a424c0d60dff0566d033b005f76d366895fb0732",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:14:4:remove_branch_force_true",
+      "file": "abatch/batch.py",
+      "lineno": 14,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if batch_size <= 0:\n        raise ValueError(\"batch_size must be a positive integer\") (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.25,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_empty_list_returns_empty",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_failed_batch_does_not_start_later_batch",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:35fbb31cce32000d90b9475ab7aabec965342f10128e7bb6c982a1ebe5ec1107",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:14:4:remove_validation",
+      "file": "abatch/batch.py",
+      "lineno": 14,
+      "col_offset": 4,
+      "family": "remove_validation",
+      "description": "remove_validation: if batch_size <= 0:\n        raise ValueError(\"batch_size must be a positive integer\") (if-guard's raise removed (body -> pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8333333333333334,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_nonpositive_batch_size_rejected[-1]",
+        "test_nonpositive_batch_size_rejected[-100]"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f21c7870e2cb81b6dd1fd282ba6cc8531dfec38f3ec422e4a074dcc2ddc9d44a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:14:7:boundary_operator",
+      "file": "abatch/batch.py",
+      "lineno": 14,
+      "col_offset": 7,
+      "family": "boundary_operator",
+      "description": "boundary_operator: batch_size <= 0 (LtE -> Lt)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4daa7abbd77072b5e69921516c253cc1a447400be37b2d97dd5a8896669a4d55",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:14:21:change_constant_increment",
+      "file": "abatch/batch.py",
+      "lineno": 14,
+      "col_offset": 21,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8333333333333334,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_batch_size_one_is_fully_serial",
+        "test_failed_batch_does_not_start_later_batch"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f367b2408a6d2d72e5505acbfb4eba91eb5a0bb8bdafd6e05e7e9ef5a66d602c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:17:4:delete_state_update",
+      "file": "abatch/batch.py",
+      "lineno": 17,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: factories = list(make_coros) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.25,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_empty_list_returns_empty",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_failed_batch_does_not_start_later_batch",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fe71a4d7af8b77bce59d0e42886cc4386c6ccc7289406a093efe45c91ed0b85f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:18:4:delete_state_update",
+      "file": "abatch/batch.py",
+      "lineno": 18,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: results = [] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_empty_list_returns_empty",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6ef4bde2784a0935a26cbfb4860474e196529d47e06b11cb2eab73237fb925b3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:19:23:change_constant_increment",
+      "file": "abatch/batch.py",
+      "lineno": 19,
+      "col_offset": 23,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_failed_batch_does_not_start_later_batch",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f9b88c9deaf630f1713c9fa140b4e3c505b760f06aad8aa4df2a92a6413eaa34",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:20:8:delete_state_update",
+      "file": "abatch/batch.py",
+      "lineno": 20,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: batch = factories[start:start + batch_size] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_failed_batch_does_not_start_later_batch",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:512337ffc9a9f78f4eaf576b593128e86e6406323a858e60136f373a5eebf9b3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:23:8:delete_state_update",
+      "file": "abatch/batch.py",
+      "lineno": 23,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: batch_results = await asyncio.gather(*(make() for make in batch)) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_failed_batch_does_not_start_later_batch",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c4b4a0f6c9cbe26bc5103fa024a1a692a2c4f616982f9a9e4a20da0a325662ec",
+      "notes": ""
+    },
+    {
+      "mutation_id": "abatch/batch.py:25:4:return_constant",
+      "file": "abatch/batch.py",
+      "lineno": 25,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return results (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_results_in_input_order",
+        "test_peak_concurrency_never_exceeds_batch_size",
+        "test_batch_size_one_is_fully_serial",
+        "test_empty_list_returns_empty",
+        "test_batch_size_greater_than_or_equal_to_length",
+        "test_factory_iterable_is_materialized_once",
+        "test_later_batch_factories_are_not_created_early",
+        "test_batch_runs_concurrently_not_serially"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:df57b8459e35d32c9035159bcd0a18ac999c4e309626e6522e7756f3d52d0465",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'abatch/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "abatch/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "async-batched",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:f87fdfc0ca7694d7268ae203f866cf2e04c8088532bbf5783be6ac0a3bc427e3",
+    "snapshot_hash": "sha256:13c980075962a4a39633dc7b123969730887b205bbcd8b168ab5717597261e3b",
+    "reference_hash": "sha256:ef99d8205a2df40255d10b15c546a366a22859ac22c1274724dffd6bb56cae93",
+    "grading_hash": "sha256:4901ad37dae27369d69e364fa32a646d33cd19bbfa36fdbf0ae1b1222ca51acd",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 40903
+}

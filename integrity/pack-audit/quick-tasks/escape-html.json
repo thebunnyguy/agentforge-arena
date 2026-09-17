@@ -1,0 +1,289 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "escape-html",
+  "task_version": "1.0.1",
+  "mode": "quick",
+  "status": "provisional",
+  "reason": "audit mode is QUICK: mutation testing, semantic mutants beyond declared controls, and a wider determinism sample were not run \u2014 run --full for stronger evidence",
+  "created_at": "2026-09-17T20:39:36.771995+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 3 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:259571fa75e488c3ab350b700764ec83a50d58f04e5c5c091962ee12b20352b2"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:259571fa75e488c3ab350b700764ec83a50d58f04e5c5c091962ee12b20352b2"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:259571fa75e488c3ab350b700764ec83a50d58f04e5c5c091962ee12b20352b2"
+          }
+        ],
+        "n_repeats": 3,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 6,
+        "lines_removed": 9
+      },
+      "duration_ms": 5455
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.333), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.3333333333333333,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 9,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1836
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "htmlesc/**"
+        ],
+        "resolved_local_imports": {
+          "htmlesc": "htmlesc/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:htmlesc/conftest.py",
+          "always_protected:htmlesc/sitecustomize.py",
+          "always_protected:htmlesc/usercustomize.py",
+          "always_protected:htmlesc/pytest.ini",
+          "always_protected:htmlesc/tox.ini",
+          "always_protected:htmlesc/setup.cfg",
+          "always_protected:htmlesc/pyproject.toml",
+          "always_protected:htmlesc/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:htmlesc/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 207
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 1
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 8543
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:665eb44a72ab597ce5fd1562f22364dab1c845b1b70c27b5432f9b78eb112c36"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:665eb44a72ab597ce5fd1562f22364dab1c845b1b70c27b5432f9b78eb112c36"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:665eb44a72ab597ce5fd1562f22364dab1c845b1b70c27b5432f9b78eb112c36"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 5138
+    }
+  ],
+  "mutations": [],
+  "controls": [
+    {
+      "name": "missing_semicolon_typo",
+      "kind": "known_bad",
+      "description": "Ampersand-first ordering and all five characters are covered, but the double-quote entity is transcribed as '&quot' (missing the trailing semicolon). A realistic transcription typo when writing out entity strings by hand.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_escapes_double_quote', 'test_combined_attribute_value', 'test_escapes_repeated_ampersands_and_brackets']"
+    },
+    {
+      "name": "missing_single_quote",
+      "kind": "known_bad",
+      "description": "Correctly escapes &, <, >, and \" with ampersand-first ordering, but forgets the single-quote entity (&#x27;). A realistic partial fix: the agent remembers the double quote (the common attribute delimiter) but overlooks that single-quoted attributes need escaping too.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_escapes_single_quote', 'test_combined_attribute_value', 'test_escapes_repeated_ampersands_and_brackets']"
+    },
+    {
+      "name": "order_bug_ampersand_last",
+      "kind": "known_bad",
+      "description": "Escapes all five characters, but in the natural top-to-bottom order (<, >, \", ', &) instead of ampersand-first. This double-escapes the entities introduced by the earlier replacements (e.g. '<&>' becomes '&amp;lt;&amp;&amp;gt;' instead of '&lt;&amp;&gt;'). A realistic mistake: the agent adds the missing characters without noticing the docstring's explicit ampersand-first requirement.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_escapes_angle_brackets', 'test_ampersand_first_no_double_escape', 'test_escapes_double_quote', 'test_escapes_single_quote', 'test_combined_attribute_value', 'test_escapes_repeated_occurrences', 'test_escapes_repeated_ampersands_and_brackets']"
+    },
+    {
+      "name": "missing_quotes_attribute_injection",
+      "kind": "semantic_mutant",
+      "description": "Security-relevant near-miss: fixes the headline bug the snapshot's BUG comment leads with (adds ampersand-first escaping of &, <, >) but stops short of adding quote escaping. Text-context XSS via <, > and & is prevented, but a value placed inside a quoted HTML attribute can still break out via an unescaped \" or ' and inject new attributes/handlers -- a naive fix that addresses only the most visible symptom.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_escapes_double_quote', 'test_escapes_single_quote', 'test_combined_attribute_value', 'test_escapes_repeated_ampersands_and_brackets']"
+    },
+    {
+      "name": "char_by_char_lookup",
+      "kind": "alternative",
+      "description": "Behaviorally equivalent to the reference but structurally different: instead of five sequential str.replace calls over the whole string (which requires careful ampersand-first ordering to avoid double-escaping), this builds the result by scanning the original string once, character by character, and looking each character up in a dict -- so it is naturally immune to the double-escaping ordering hazard rather than avoiding it by ordering. Should be ACCEPTED.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'htmlesc/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "htmlesc/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Mutation testing, a determinism sample over declared controls, and the isolation probe were not run (QUICK mode) \u2014 run --full for stronger evidence.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "escape-html",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:66d2fcb918107efb6566c9e61b0e2993d789ea9e6c34897dbdfe51140eae1ab0",
+    "snapshot_hash": "sha256:8dbe7df4d7039f38f32ea699b281f20194bb58bb447cb2ebb6c0f0f3f29dc3d4",
+    "reference_hash": "sha256:5c98f6e3b7d54f17d426428041b562f79f95c60590cca093f6ac4bf45b3c7d45",
+    "grading_hash": "sha256:0f50556e6b2a3c5ee3786250a43e54801ef879a6134608e193a0b866ea0efdf1",
+    "controls_hash": "sha256:d315c28e37f4e81bb0ee0c0aefb4cbc0a573a318fdc376100e30b1beae6fab35",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 21212
+}

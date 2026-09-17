@@ -1,0 +1,291 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "async-retry",
+  "task_version": "1.0.1",
+  "mode": "quick",
+  "status": "needs_review",
+  "reason": "semantic mutant 'swallows_base_exceptions' survived (should have been rejected by the hidden suite)",
+  "created_at": "2026-09-17T20:39:36.773218+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 3 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 6,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+          }
+        ],
+        "n_repeats": 3,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 10,
+        "lines_removed": 3
+      },
+      "duration_ms": 5460
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 6,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1889
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "Task uses an editable_paths allow-list, which makes gate 7 (no editable, unprotected oracle-helper import) hold structurally: any local module the hidden/regression suites import that isn't the editable code-under-test is already unreachable by any diff without failing the scope gate.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "aretry/**"
+        ],
+        "resolved_local_imports": {
+          "aretry": "aretry/__init__.py"
+        },
+        "dynamic_or_star_import_seen": false,
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 11 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:aretry/conftest.py",
+          "always_protected:aretry/sitecustomize.py",
+          "always_protected:aretry/usercustomize.py",
+          "always_protected:aretry/pytest.ini",
+          "always_protected:aretry/tox.ini",
+          "always_protected:aretry/setup.cfg",
+          "always_protected:aretry/pyproject.toml",
+          "always_protected:aretry/pytest.py",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:aretry/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true
+      },
+      "duration_ms": 204
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "fail",
+      "severity": "critical",
+      "description": "1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: swallows_base_exceptions. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 0
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [
+          "swallows_base_exceptions"
+        ],
+        "warnings": []
+      },
+      "duration_ms": 8492
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:73c41487979ee35e7f7bcdd584cec19dd0c57b025e9628d6c85e8f26b831d033"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:73c41487979ee35e7f7bcdd584cec19dd0c57b025e9628d6c85e8f26b831d033"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:73c41487979ee35e7f7bcdd584cec19dd0c57b025e9628d6c85e8f26b831d033"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 5184
+    }
+  ],
+  "mutations": [],
+  "controls": [
+    {
+      "name": "missing_attempts_validation",
+      "kind": "known_bad",
+      "description": "Forgets the 'attempts must be a positive integer' validation entirely. With attempts=0 the loop body never runs, `last_exc` stays None, and `raise last_exc` raises TypeError('exceptions must derive from BaseException') instead of the required ValueError - a realistic case of an agent implementing the happy-path retry logic and skipping the edge-case input validation called out in the docstring.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8333333333333334,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_zero_attempts_raises_value_error']"
+    },
+    {
+      "name": "off_by_one_extra_attempt",
+      "kind": "known_bad",
+      "description": "Off-by-one: loops range(attempts + 1), i.e. makes ONE MORE attempt than requested. Invisible when the first success happens before the last allowed attempt, but when every call fails it re-raises the exception from attempt (attempts + 1) instead of the last exception from attempt `attempts`, and calls make_coro() one extra time.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_all_attempts_fail_reraises_last', 'test_attempts_one_that_fails_raises']"
+    },
+    {
+      "name": "reused_coroutine_object",
+      "kind": "known_bad",
+      "description": "Calls make_coro() exactly once, before the loop, and re-awaits the SAME coroutine object on every retry instead of calling make_coro() fresh each attempt. A plausible misreading of the 'zero-argument callable' contract by an agent that only skims the docstring. Once a coroutine has been awaited to completion (return or raise), awaiting it again raises RuntimeError('cannot reuse already awaited coroutine') instead of actually retrying, so any test requiring more than one attempt fails or raises the wrong exception.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_succeeds_on_third_try_after_two_failures', 'test_all_attempts_fail_reraises_last', 'test_does_not_retry_after_success']"
+    },
+    {
+      "name": "swallows_base_exceptions",
+      "kind": "semantic_mutant",
+      "description": "Security/robustness-relevant near-miss: broadens `except Exception` to `except BaseException`, so asyncio.CancelledError (a BaseException subclass, not an Exception subclass, since Python 3.8) is caught, swallowed, and retried instead of propagating immediately. This is a realistic 'be extra safe' widening a partial fix might introduce, but it breaks cooperative task cancellation/timeouts: a caller that cancels a task stuck inside retry_call would have the cancellation silently absorbed and the retry loop kept running, which can hang shutdown or hold resources instead of stopping - an availability/DoS-adjacent bug. Every existing hidden test only raises Exception subclasses (ValueError/RuntimeError), so this mutant is expected to slip past the current hidden suite undetected, which is itself the finding this control is meant to surface.",
+      "expected_accept": false,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": false,
+      "status": "fail",
+      "notes": "verdict=accepted"
+    },
+    {
+      "name": "recursive_retry",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent to the reference: recursion with an explicit remaining-attempts counter and a bare `raise` on the last frame, instead of the reference's for-loop with a last_exc accumulator variable. Same observable behavior (result on first success, last exception re-raised on exhaustion, no extra calls after success, ValueError on attempts<=0). Should be ACCEPTED.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package",
+      "category": "isolation",
+      "severity": "high",
+      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
+      "detail": "Injecting 'aretry/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "evidence": {
+        "probe_path": "aretry/_pytest/__init__.py",
+        "touched_protected": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Mutation testing, a determinism sample over declared controls, and the isolation probe were not run (QUICK mode) \u2014 run --full for stronger evidence.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "async-retry",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:3d6e47300146091107964487adb742896c2a796462607c3d70329e8ddd0e8b9a",
+    "snapshot_hash": "sha256:a6f247ca421ca9c0179221c989e7580936615d84f944139554289c8dd4936b16",
+    "reference_hash": "sha256:7fe30e9ba5ec37f35bcc2473558015e413b98e3b7d316daac255e316030ee70a",
+    "grading_hash": "sha256:5b33fe50a7843f35fda9340be13f3696cff6286c78c7a9dadd2301261f016326",
+    "controls_hash": "sha256:5a8469314af043351a40fdded16db27c4f4aa8d7ce72b41e64177e048144b092",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 21252
+}
