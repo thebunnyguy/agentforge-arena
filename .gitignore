@@ -21,3 +21,4 @@ venv/
 reports/*
 !reports/runs.sqlite
 !reports/leaderboard.html
+!reports/*.md

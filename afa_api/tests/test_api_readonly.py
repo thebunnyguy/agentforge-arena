@@ -44,7 +44,7 @@ def test_overview_shape(client):
     assert ov["n_tasks"] == 24
     assert ANCHOR_AGENT in ov["models"]
     assert len(ov["leaderboard"]) == len(ov["models"])
-    assert ov["observability"]["total_runs"] == 600
+    assert ov["observability"]["total_runs"] == 720
 
 
 def test_meta_shape(client):
@@ -104,7 +104,7 @@ def test_anchor_leaderboard_wilson_low(client):
     assert entry["pass_rate"] == 1.0
     assert entry["wilson_low"] == ANCHOR_WILSON_LOW
     assert entry["rank_low"] == 1
-    assert entry["rank_high"] == 1
+    assert entry["rank_high"] == 2
 
 
 def test_run_detail_identity_and_raw_columns(client):

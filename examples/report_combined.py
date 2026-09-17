@@ -30,6 +30,7 @@ MODELS = [
     "deepseek-coder:6.7b",
     "llama3.2:latest",
     "gemma2:2b",
+    "qwen3.5:9b",
 ]
 ORACLE = "oracle (synthetic baseline)"
 NOOP = "noop (synthetic baseline)"
@@ -177,7 +178,7 @@ def build_report(
     html = afa.render_report(
         store,
         tasks_meta,
-        title=f"AgentForge Arena — 5-Model Report ({len(task_ids)}-task pack)",
+        title=f"AgentForge Arena — {len(MODELS)}-Model Report ({len(task_ids)}-task pack)",
         subtitle=subtitle,
         observability=observability,
         agent_observability=agent_observability,

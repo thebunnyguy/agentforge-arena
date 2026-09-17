@@ -40,7 +40,7 @@ from afa_api.main import app, create_app
 ANCHOR_AGENT = "qwen2.5-coder:7b"
 ANCHOR_TASK = "fix-binary-search"
 ANCHOR_WILSON_LOW = 0.5655085052479191  # exact frozen value from rank_by_lcb
-EXPECTED_TOTAL_RUNS = 600
+EXPECTED_TOTAL_RUNS = 720
 EXPECTED_N_TASKS = 24
 MODELS = [
     "qwen2.5-coder:7b",
@@ -48,6 +48,7 @@ MODELS = [
     "deepseek-coder:6.7b",
     "llama3.2:latest",
     "gemma2:2b",
+    "qwen3.5:9b",
 ]
 ORACLE = "oracle (synthetic baseline)"
 NOOP = "noop (synthetic baseline)"
@@ -95,13 +96,13 @@ def _raw_sql_counts(db_path) -> tuple[int, int]:
 
 
 def _report_fn_aggregate():
-    """Independently reload ONLY the anchor cell into a fresh memory store and
-    run the frozen report fns over it. This deliberately does not reuse the
-    app's store, so agreement is meaningful."""
+    """Independently reload the anchor task into a fresh memory store and
+    run the frozen report fns over it. All agents are needed for rank ranges.
+    This does not reuse the app's store, so agreement is meaningful."""
     disk = afa.SqliteRunStore(str(db.DB_PATH))
     mem = afa.SqliteRunStore(":memory:")
     try:
-        for rec in disk.load_runs(agent=ANCHOR_AGENT, task_id=ANCHOR_TASK):
+        for rec in disk.load_runs(task_id=ANCHOR_TASK):
             mem.save_run(rec)
         agg = afa.task_aggregate(mem, ANCHOR_AGENT, ANCHOR_TASK)
         lb = afa.leaderboard(mem, task_id=ANCHOR_TASK)
@@ -145,7 +146,7 @@ def test_three_way_anchor_cell(client):
     assert api_entry["pass_rate"] == rep_entry.pass_rate == 1.0
     assert api_entry["wilson_low"] == rep_entry.wilson_low == ANCHOR_WILSON_LOW
     assert api_entry["rank_low"] == rep_entry.rank_low == 1
-    assert api_entry["rank_high"] == rep_entry.rank_high == 1
+    assert api_entry["rank_high"] == rep_entry.rank_high == 2
     assert api_entry["provisional"] is False
 
 

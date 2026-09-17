@@ -60,7 +60,7 @@ regression. Difficulty spans 2–5.
 
 ## Latest evaluation
 
-The DB contains 600 real model runs: all five local models have exactly 5 runs
+The DB contains 720 real model runs: all six local models have exactly 5 runs
 on each of 24 tasks (120 persisted rows/model). Oracle and noop are generated
 only as explicitly labeled synthetic comparison baselines; no model cells are
 gap-filled or reconstructed.
@@ -69,16 +69,16 @@ gap-filled or reconstructed.
 rank  agent                          n  p_hat    LCB
    1  oracle (synthetic baseline)  120  1.000  0.969
    2  qwen2.5-coder:7b             120  0.558  0.469
- 3-4  deepseek-coder:6.7b          120  0.233  0.167
- 3-5  llama3.2:latest              120  0.183  0.124
- 4-5  qwen2.5-coder:3b             120  0.150  0.097
-   6  gemma2:2b                    120  0.033  0.013
-   7  noop (synthetic baseline)    120  0.000  0.000
+   3  qwen3.5:9b                   120  0.333  0.255
+ 4-5  deepseek-coder:6.7b          120  0.233  0.167
+ 4-6  llama3.2:latest              120  0.183  0.124
+ 5-6  qwen2.5-coder:3b             120  0.150  0.097
+   7  gemma2:2b                    120  0.033  0.013
+   8  noop (synthetic baseline)    120  0.000  0.000
 ```
 
-Honest behaviors on display: ranks 3–5 cluster (overlapping Wilson intervals —
-the math won't fake a separation; the re-grade reshuffled their order without
-truly separating them — `llama3.2` now edges `qwen2.5-coder:3b`);
+Honest behaviors on display: several ranks remain overlapping Wilson-interval
+clusters, so the math does not force a separation;
 `deepseek-coder` is strongest on performance/security and weakest on async/api
 (domain scoring surfaces what one number hides). Infrastructure failures (model
 server unreachable) are voided, never counted against an agent.
@@ -87,6 +87,12 @@ Evaluation provenance (per-run config is not yet uniformly captured — see the
 roadmap): the P0 completion runs used Ollama 0.17.4, temperature 0.8, base seed
 42, `qwen2.5-coder:7b` digest `dae161e27b0e`, and `llama3.2:latest` digest
 `a80c4f17acd5`.
+
+The September 17 `qwen3.5:9b` evaluation used the local Ollama backend,
+temperature 0.6, base seed 42, and five attempts per task. It passed 40/120
+attempts; 36 timed out. Its full result and task terms are in
+[`reports/qwen3.5-9b-evaluation-2026-09-17.md`](reports/qwen3.5-9b-evaluation-2026-09-17.md).
+The evaluated model digest was not recorded.
 
 These numbers reflect the full re-grade across all 24 tasks, each at its current
 task version. The report generator refuses to pool runs from different task
@@ -124,7 +130,7 @@ everything on **one port**, and opens your browser at **http://localhost:8000**.
 Press Ctrl-C to stop.
 
 - **Browse** the leaderboard, domain matrix, and per-run drill-downs over the
-  existing 600 runs — no model needed.
+  existing 720 runs — no model needed.
 - **Run a new evaluation** from the wizard: pick a local backend (Ollama, or any
   local OpenAI-compatible server), choose models / tasks / repeats, and watch
   live progress; results land on the leaderboard.
