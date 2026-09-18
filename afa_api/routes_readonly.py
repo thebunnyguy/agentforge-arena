@@ -13,111 +13,99 @@ Path segments are percent-decoded by FastAPI/Starlette (agents contain a colon,
 e.g. ``qwen2.5-coder:7b`` and ``llama3.2:latest``). Run identity is
 (agent, task_id, idx) — never runs.id.
 
-Stores are loaded ONCE at app startup and stashed on ``app.state`` (see main.py).
-This router only reads them and opens short-lived read-only DB connections for
-the raw columns the report layer omits.
+Each endpoint builds a fresh projection from the configured working DB and
+opens a short-lived read-only connection for raw columns the report layer omits.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from . import db, serialize
-from .store_load import LoadedStores
+from . import serialize
+from .projection import ProjectionUnavailable, db_path_for, open_projection
 
 router = APIRouter(prefix="/api/v1")
 
 
-def _stores(request: Request) -> LoadedStores | None:
-    return getattr(request.app.state, "stores", None)
-
-
-def _load_error(request: Request) -> str | None:
-    return getattr(request.app.state, "load_error", None)
-
-
-def _unavailable(request: Request) -> JSONResponse | None:
-    """If startup refused to load (e.g. mixed-version ValueError), surface it as
-    503 with the exact message rather than 500/silent failure."""
-    if _stores(request) is None:
-        err = _load_error(request) or "stores not loaded"
-        return JSONResponse(status_code=503, content={"error": err})
-    return None
+def _project(request: Request, builder: Callable[..., Any]) -> Any:
+    """Run one serializer against a fresh, current-DB projection."""
+    try:
+        with open_projection(request) as projection:
+            return builder(projection.stores, projection.raw)
+    except ProjectionUnavailable as exc:
+        # Mixed task versions and unreadable DBs are explicit unavailable state,
+        # never an empty successful projection.
+        return JSONResponse(status_code=503, content={"error": str(exc)})
 
 
 @router.get("/healthz")
 def healthz(request: Request) -> dict:
-    stores = _stores(request)
-    return {
-        "status": "ok" if stores is not None else "degraded",
-        "stores_loaded": stores is not None,
-        "load_error": _load_error(request),
-        "db_path": str(db.DB_PATH),
-    }
+    try:
+        with open_projection(request):
+            return {
+                "status": "ok",
+                "stores_loaded": True,
+                "load_error": None,
+                "db_path": str(db_path_for(request)),
+            }
+    except ProjectionUnavailable as exc:
+        return {
+            "status": "degraded",
+            "stores_loaded": False,
+            "load_error": str(exc),
+            "db_path": str(db_path_for(request)),
+        }
 
 
 @router.get("/overview")
 async def overview(request: Request):
-    if (resp := _unavailable(request)) is not None:
-        return resp
-    ro = db.connect_readonly()
-    try:
-        return serialize.build_overview(_stores(request), ro)
-    finally:
-        ro.close()
+    return _project(
+        request,
+        lambda stores, raw: serialize.build_overview(stores, raw),
+    )
 
 
 @router.get("/leaderboard")
 async def leaderboard(request: Request, task_id: str | None = None):
-    if (resp := _unavailable(request)) is not None:
-        return resp
-    ro = db.connect_readonly()
-    try:
-        return serialize.build_leaderboard(_stores(request), ro, task_id=task_id)
-    finally:
-        ro.close()
+    return _project(
+        request,
+        lambda stores, raw: serialize.build_leaderboard(
+            stores, raw, task_id=task_id
+        ),
+    )
 
 
 @router.get("/domains/{agent}")
 async def domains(request: Request, agent: str):
-    if (resp := _unavailable(request)) is not None:
-        return resp
-    ro = db.connect_readonly()
-    try:
-        return serialize.build_domains(_stores(request), ro, agent)
-    finally:
-        ro.close()
+    return _project(
+        request,
+        lambda stores, raw: serialize.build_domains(stores, raw, agent),
+    )
 
 
 @router.get("/cell/{agent}/{task_id}")
 async def cell(request: Request, agent: str, task_id: str):
-    if (resp := _unavailable(request)) is not None:
-        return resp
-    ro = db.connect_readonly()
-    try:
-        return serialize.build_cell(_stores(request), ro, agent, task_id)
-    finally:
-        ro.close()
+    return _project(
+        request,
+        lambda stores, raw: serialize.build_cell(stores, raw, agent, task_id),
+    )
 
 
 @router.get("/run/{agent}/{task_id}/{idx}")
 async def run(request: Request, agent: str, task_id: str, idx: int):
-    if (resp := _unavailable(request)) is not None:
-        return resp
-    ro = db.connect_readonly()
-    try:
-        return serialize.build_run(_stores(request), ro, agent, task_id, idx)
-    finally:
-        ro.close()
+    return _project(
+        request,
+        lambda stores, raw: serialize.build_run(stores, raw, agent, task_id, idx),
+    )
 
 
 @router.get("/meta")
 async def meta(request: Request):
-    if (resp := _unavailable(request)) is not None:
-        return resp
-    ro = db.connect_readonly()
-    try:
-        return serialize.build_meta(_stores(request), ro)
-    finally:
-        ro.close()
+    return _project(
+        request,
+        lambda stores, raw: serialize.build_meta(stores, raw),
+    )

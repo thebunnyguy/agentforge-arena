@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sqlite3
 import sys
 import threading
 from pathlib import Path
@@ -36,6 +37,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from . import db, jobs, worker
 from .db import ROOT
+from .projection import ProjectionUnavailable, db_path_for, open_projection
 from .schemas import (
     TERMINAL_STATES,
     BackendVerifyRequest,
@@ -67,7 +69,7 @@ def _dispatch_worker(request: Request, job_id: str) -> None:
     default is chosen from the job's backend kind inside ``run_job``.
     """
     factory = getattr(request.app.state, "agent_factory", None)
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
+    db_path = db_path_for(request)
 
     def _work() -> None:
         conn = db.connect(db_path)
@@ -81,8 +83,7 @@ def _dispatch_worker(request: Request, job_id: str) -> None:
 
 
 def _conn(request: Request):
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
-    return db.connect(db_path)
+    return db.connect(db_path_for(request))
 
 
 # --------------------------------------------------------------------------- #
@@ -181,7 +182,7 @@ async def job_events(request: Request, job_id: str, since: int | None = None):
     except ValueError:
         cursor = 0
 
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
+    db_path = db_path_for(request)
 
     def _poll(after: int):
         """Open/query/close a read-only connection on ONE thread (sqlite objects
@@ -312,11 +313,16 @@ def regenerate_report(request: Request):
     """
     import report_combined  # type: ignore
 
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
+    db_path = db_path_for(request)
     try:
         html, store, real_counts = report_combined.build_report(db_path=db_path)
     except ValueError as exc:
         return JSONResponse(status_code=409, content={"error": str(exc)})
+    except (OSError, sqlite3.Error) as exc:
+        return JSONResponse(
+            status_code=503,
+            content={"error": f"report database unavailable: {exc}"},
+        )
     try:
         out_path = Path(report_combined.OUTPUT)
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -336,36 +342,32 @@ def regenerate_report(request: Request):
 
 @router.get("/export")
 async def export(request: Request):
-    """Export the current aggregates as JSON (read-only projection).
-
-    Reuses the loaded stores + the frozen report fns; no statistics computed
-    here. ``format=json`` is the only v1 format.
-    """
-    stores = getattr(request.app.state, "stores", None)
-    if stores is None:
-        err = getattr(request.app.state, "load_error", None) or "stores not loaded"
-        return JSONResponse(status_code=503, content={"error": err})
-
+    """Export a fresh aggregate projection from the configured working DB."""
     import afa_runner as afa  # noqa: E402
 
-    leaderboard = [
-        {
-            "agent": e.agent, "pass_rate": e.pass_rate,
-            "wilson_low": e.wilson_low, "wilson_high": e.wilson_high,
-            "n": e.n, "provisional": e.provisional,
-            "rank_low": e.rank_low, "rank_high": e.rank_high,
-        }
-        for e in afa.leaderboard(stores.real)
-    ]
-    return {
-        "format": "json",
-        "snapshot_note": "Snapshot of the current persisted aggregates; "
-                         "synthetic baselines excluded.",
-        "models": stores.models,
-        "task_ids": stores.task_ids,
-        "real_counts": {
-            agent: {"n_runs": n_runs, "n_tasks": n_tasks}
-            for agent, (n_runs, n_tasks) in stores.real_counts.items()
-        },
-        "leaderboard": leaderboard,
-    }
+    try:
+        with open_projection(request) as projection:
+            stores = projection.stores
+            leaderboard = [
+                {
+                    "agent": e.agent, "pass_rate": e.pass_rate,
+                    "wilson_low": e.wilson_low, "wilson_high": e.wilson_high,
+                    "n": e.n, "provisional": e.provisional,
+                    "rank_low": e.rank_low, "rank_high": e.rank_high,
+                }
+                for e in afa.leaderboard(stores.real)
+            ]
+            return {
+                "format": "json",
+                "snapshot_note": "Snapshot of the current persisted aggregates; "
+                                 "synthetic baselines excluded.",
+                "models": stores.models,
+                "task_ids": stores.task_ids,
+                "real_counts": {
+                    agent: {"n_runs": n_runs, "n_tasks": n_tasks}
+                    for agent, (n_runs, n_tasks) in stores.real_counts.items()
+                },
+                "leaderboard": leaderboard,
+            }
+    except ProjectionUnavailable as exc:
+        return JSONResponse(status_code=503, content={"error": str(exc)})

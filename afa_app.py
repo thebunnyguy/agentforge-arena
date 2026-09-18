@@ -33,8 +33,8 @@ PORT = int(os.environ.get("AFA_PORT", "8000"))
 # reports/runs.sqlite is the committed, read-only EVIDENCE database (the 600
 # audited runs). The app works on a separate, gitignored copy so neither
 # browsing nor running new evaluations ever mutates the evidence DB. Set
-# AFA_DB_PATH to override (e.g. point straight at the evidence DB).
-_EVIDENCE_DB = ROOT / "reports" / "runs.sqlite"
+# AFA_DB_PATH to select another writable working DB; binding the built-in
+# evidence file is rejected by the API/worker runtime guard.
 DB_PATH = os.environ.get("AFA_DB_PATH", str(ROOT / "reports" / "app.sqlite"))
 URL = f"http://{HOST}:{PORT}"
 
@@ -100,14 +100,13 @@ def open_browser_when_ready() -> None:
 
 
 def _seed_working_db() -> None:
-    """Copy the read-only evidence DB to the working DB on first run, so the
-    committed reports/runs.sqlite is never mutated by browsing or eval runs."""
-    dst = Path(DB_PATH)
-    if str(dst) == str(_EVIDENCE_DB):
-        return  # user explicitly pointed at the evidence DB; respect it
-    if not dst.exists() and _EVIDENCE_DB.exists():
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(_EVIDENCE_DB, dst)
+    """Bootstrap the selected working DB through the guarded app helper."""
+    from afa_api import db as app_db
+
+    dst = app_db.resolve_db_path(DB_PATH)
+    was_missing = not dst.exists()
+    app_db.ensure_working_db(dst)
+    if was_missing and dst.exists():
         _log(f"seeded working DB from evidence DB -> {dst}")
 
 

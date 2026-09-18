@@ -99,23 +99,39 @@ class SqliteRunStore:
     tests) and execute SQLITE_SCHEMA.
     """
 
-    def __init__(self, path: str | Path = ":memory:") -> None:
-        """Open the connection and create tables. Use sqlite3 with
-        check_same_thread=False off by default; store rows via parameterized
-        SQL only."""
-        # str(path) handles both ":memory:" and a Path to an on-disk DB file.
-        self._conn = sqlite3.connect(str(path))
+    def __init__(
+        self, path: str | Path = ":memory:", *, read_only: bool = False
+    ) -> None:
+        """Open a raw store, optionally against an existing read-only DB.
+
+        Read-only stores use SQLite ``mode=ro`` and never execute schema DDL;
+        writable stores retain the existing idempotent schema setup.
+        """
+        self._read_only = read_only
+        if read_only:
+            if str(path) == ":memory:":
+                raise ValueError("a read-only store requires an on-disk database")
+            uri = Path(path).expanduser().resolve().as_uri() + "?mode=ro"
+            self._conn = sqlite3.connect(uri, uri=True)
+            self._conn.execute("PRAGMA busy_timeout=5000")
+        else:
+            self._conn = sqlite3.connect(str(path))
         self._conn.row_factory = sqlite3.Row
-        # Enforce the declared foreign keys so an orphaned score/diff/result
-        # row can never be written (the raw layer is append-only by discipline).
         self._conn.execute("PRAGMA foreign_keys = ON")
-        # executescript runs the multi-statement DDL (CREATE TABLE/INDEX ...).
-        self._conn.executescript(SQLITE_SCHEMA)
-        self._conn.commit()
+        if not read_only:
+            self._conn.executescript(SQLITE_SCHEMA)
+            self._conn.commit()
+
+    @classmethod
+    def open_readonly(cls, path: str | Path) -> "SqliteRunStore":
+        """Open an existing raw DB without creating or altering its schema."""
+        return cls(path, read_only=True)
 
     def save_run(self, record: RunRecord, report: GradeReport | None = None) -> int:
         """Insert one run + its score + diff (+ test_results from report if given)
         in a single transaction. Return the new runs.id. Implements §10 raw layer."""
+        if self._read_only:
+            raise sqlite3.ProgrammingError("cannot save a run to a read-only store")
         conn = self._conn
         score = record.score
         # Every record produced by run_once/run_group carries its GradeReport.

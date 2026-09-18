@@ -1,8 +1,8 @@
 """Render the combined report from persisted evaluation data.
 
-Every model result comes directly from ``reports/runs.sqlite``. The only
-generated rows are the two explicitly named synthetic bookends: a reference
-oracle that always passes and a no-edit baseline that always fails.
+Every real model result comes directly from the selected working database.
+The only generated rows are the two explicitly named synthetic bookends: a
+reference oracle that always passes and a no-edit baseline that always fails.
 
     python3 examples/report_combined.py
 """
@@ -11,29 +11,38 @@ from __future__ import annotations
 
 import json
 import sys
+from contextlib import ExitStack
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent.parent
-sys.path[:0] = [str(_ROOT / "kernel"), str(_ROOT / "runner")]
+sys.path[:0] = [
+    str(_ROOT),
+    str(_ROOT / "kernel"),
+    str(_ROOT / "runner"),
+]
 
 import afa_runner as afa  # noqa: E402
 from afa_kernel.types import RunScore, RunStatus  # noqa: E402
 from afa_runner.pipeline import RunRecord  # noqa: E402
 
 N = 5
-DB = _ROOT / "reports" / "runs.sqlite"
+# The app-compatible default is a writable working copy; the committed evidence
+# database remains an explicit seed/source, not the implicit runtime target.
+DB = _ROOT / "reports" / "app.sqlite"
 MANIFEST = _ROOT / "tasks" / "manifest.json"
 OUTPUT = _ROOT / "reports" / "leaderboard.html"
-MODELS = [
-    "qwen2.5-coder:7b",
-    "qwen2.5-coder:3b",
-    "deepseek-coder:6.7b",
-    "llama3.2:latest",
-    "gemma2:2b",
-    "qwen3.5:9b",
-]
 ORACLE = "oracle (synthetic baseline)"
 NOOP = "noop (synthetic baseline)"
+
+
+def _selected_db_path(db_path: str | Path | None) -> Path:
+    """Resolve an existing report DB without creating or substituting one."""
+    from afa_api import db as app_db
+
+    selected = app_db.resolve_db_path(db_path)
+    if not selected.is_file():
+        raise FileNotFoundError(f"report database unavailable: {selected}")
+    return selected
 
 
 def _current_task_version(item: dict, manifest_path: str | Path) -> str:
@@ -92,7 +101,7 @@ def _add_synthetic_baseline(
 
 
 def build_report(
-    db_path: str | Path = DB,
+    db_path: str | Path | None = None,
     manifest_path: str | Path = MANIFEST,
 ) -> tuple[str, afa.SqliteRunStore, dict[str, tuple[int, int]]]:
     """Build HTML plus its in-memory aggregate store from persisted DB rows."""
@@ -111,83 +120,108 @@ def build_report(
         for item in manifest
     }
 
-    store = afa.SqliteRunStore(":memory:")
-    disk = afa.SqliteRunStore(str(db_path))
-    real_counts: dict[str, tuple[int, int]] = {}
-    evaluated_versions: dict[str, set[str]] = {task_id: set() for task_id in task_ids}
-    cell_versions: dict[tuple[str, str], set[str]] = {}
+    selected_db = _selected_db_path(db_path)
+    aggregate_scope = ExitStack()
     try:
-        observability = disk.summary()
-        agent_observability = {agent: disk.summary(agent) for agent in MODELS}
-        for agent in MODELS:
-            records = disk.load_runs(agent=agent)
-            real_counts[agent] = (len(records), len({record.task_id for record in records}))
-            for record in records:
-                evaluated_versions.setdefault(record.task_id, set()).add(record.task_version)
-                cell_versions.setdefault((agent, record.task_id), set()).add(
-                    record.task_version
+        # Register the returned in-memory store immediately. pop_all() below
+        # transfers it to the successful caller; every failure closes it here.
+        store = afa.SqliteRunStore(":memory:")
+        aggregate_scope.callback(store.close)
+        disk: afa.SqliteRunStore | None = None
+        real_counts: dict[str, tuple[int, int]] = {}
+        evaluated_versions: dict[str, set[str]] = {
+            task_id: set() for task_id in task_ids
+        }
+        cell_versions: dict[tuple[str, str], set[str]] = {}
+        try:
+            disk = afa.SqliteRunStore.open_readonly(selected_db)
+            models = disk.agents()
+            observability = disk.summary()
+            agent_observability = {agent: disk.summary(agent) for agent in models}
+            for agent in models:
+                records = disk.load_runs(agent=agent)
+                real_counts[agent] = (
+                    len(records),
+                    len({record.task_id for record in records}),
                 )
-                store.save_run(record)
-    finally:
-        disk.close()
+                for record in records:
+                    evaluated_versions.setdefault(record.task_id, set()).add(
+                        record.task_version
+                    )
+                    cell_versions.setdefault((agent, record.task_id), set()).add(
+                        record.task_version
+                    )
+                    store.save_run(record)
+        finally:
+            if disk is not None:
+                disk.close()
 
-    mixed_cells = {
-        cell: sorted(versions)
-        for cell, versions in cell_versions.items()
-        if len(versions) > 1
-    }
-    if mixed_cells:
-        store.close()
-        details = "; ".join(
-            f"{agent}/{task}: {','.join(versions)}"
-            for (agent, task), versions in sorted(mixed_cells.items())
-        )
-        raise ValueError(f"refusing to pool multiple task versions: {details}")
-
-    # These are deterministic comparison bookends, not measured model runs.
-    for task_id in task_ids:
-        version = current_versions[task_id]
-        _add_synthetic_baseline(store, ORACLE, task_id, version, passed=True)
-        _add_synthetic_baseline(store, NOOP, task_id, version, passed=False)
-
-    persisted = "; ".join(
-        f"{agent} {n_runs} runs/{n_tasks} tasks"
-        for agent, (n_runs, n_tasks) in real_counts.items()
-    )
-    mismatches = []
-    for task_id in task_ids:
-        stored = evaluated_versions.get(task_id, set())
-        tasks_meta[task_id]["evaluated_versions"] = sorted(stored)
-        if stored and stored != {current_versions[task_id]}:
-            mismatches.append(
-                f"{task_id} evaluated v{','.join(sorted(stored))} → current "
-                f"v{current_versions[task_id]}"
+        mixed_cells = {
+            cell: sorted(versions)
+            for cell, versions in cell_versions.items()
+            if len(versions) > 1
+        }
+        if mixed_cells:
+            details = "; ".join(
+                f"{agent}/{task}: {','.join(versions)}"
+                for (agent, task), versions in sorted(mixed_cells.items())
             )
-    version_notice = (
-        " Strengthened task versions awaiting reevaluation: "
-        + "; ".join(mismatches)
-        + ". Leaderboard values remain frozen to the stored task versions."
-        if mismatches
-        else ""
-    )
-    subtitle = (
-        f"Persisted DB data only: {persisted}. "
-        "Oracle and noop are explicitly synthetic baselines."
-        + version_notice
-    )
-    html = afa.render_report(
-        store,
-        tasks_meta,
-        title=f"AgentForge Arena — {len(MODELS)}-Model Report ({len(task_ids)}-task pack)",
-        subtitle=subtitle,
-        observability=observability,
-        agent_observability=agent_observability,
-    )
-    return html, store, real_counts
+            raise ValueError(f"refusing to pool multiple task versions: {details}")
+
+        # These are deterministic comparison bookends, not measured model runs.
+        for task_id in task_ids:
+            version = current_versions[task_id]
+            _add_synthetic_baseline(store, ORACLE, task_id, version, passed=True)
+            _add_synthetic_baseline(store, NOOP, task_id, version, passed=False)
+
+        persisted = "; ".join(
+            f"{agent} {n_runs} runs/{n_tasks} tasks"
+            for agent, (n_runs, n_tasks) in real_counts.items()
+        )
+        mismatches = []
+        for task_id in task_ids:
+            stored = evaluated_versions.get(task_id, set())
+            tasks_meta[task_id]["evaluated_versions"] = sorted(stored)
+            if stored and stored != {current_versions[task_id]}:
+                mismatches.append(
+                    f"{task_id} evaluated v{','.join(sorted(stored))} → current "
+                    f"v{current_versions[task_id]}"
+                )
+        version_notice = (
+            " Strengthened task versions awaiting reevaluation: "
+            + "; ".join(mismatches)
+            + ". Leaderboard values remain frozen to the stored task versions."
+            if mismatches
+            else ""
+        )
+        subtitle = (
+            f"Persisted DB data only: {persisted}. "
+            "Oracle and noop are explicitly synthetic baselines."
+            + version_notice
+        )
+        html = afa.render_report(
+            store,
+            tasks_meta,
+            title=f"AgentForge Arena — {len(models)}-Model Report ({len(task_ids)}-task pack)",
+            subtitle=subtitle,
+            observability=observability,
+            agent_observability=agent_observability,
+        )
+        result = (html, store, real_counts)
+        aggregate_scope.pop_all()
+        return result
+    except Exception:
+        aggregate_scope.close()
+        raise
 
 
 def main() -> None:
-    html, store, _real_counts = build_report()
+    # Standalone CLI first use may bootstrap the default working copy. API and
+    # library callers must bind an existing DB and never recover by seeding.
+    from afa_api import db as app_db
+
+    app_db.ensure_working_db()
+    html, store, real_counts = build_report()
     try:
         print("LEADERBOARD (persisted model runs + labeled synthetic baselines):")
         print(afa.format_leaderboard(afa.leaderboard(store)))
@@ -200,7 +234,7 @@ def main() -> None:
         domains = sorted({domain for tags in task_domains.values() for domain, _ in tags})
         print("\nPER-MODEL DOMAIN PROFILE (pass rate; '--' = insufficient):")
         print(f"{'model':<22}" + "".join(f"{domain[:9]:>11}" for domain in domains))
-        for agent in MODELS:
+        for agent in real_counts:
             profile = {
                 score.domain: score
                 for score in afa.domain_profile(store, agent, task_domains)

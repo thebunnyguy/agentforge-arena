@@ -114,15 +114,26 @@ def factory_for(params: JobParams) -> AgentFactory:
 # --------------------------------------------------------------------------- #
 
 def _conn_db_path(conn: sqlite3.Connection) -> str:
-    """Best-effort resolve the on-disk file backing a sqlite connection so the
-    run store writes to the SAME database as the control plane."""
+    """Resolve the on-disk file backing a control-plane connection.
+
+    An opaque connection (for example ``:memory:``) cannot safely share raw
+    persistence with the control plane, so callers must inject a store rather
+    than silently writing to an unrelated configured/default database.
+    """
     try:
-        for _seq, name, file in conn.execute("PRAGMA database_list"):
-            if name == "main":
-                return file or str(db.DB_PATH)
-    except sqlite3.Error:  # pragma: no cover - defensive
-        pass
-    return str(db.DB_PATH)
+        rows = conn.execute("PRAGMA database_list").fetchall()
+    except sqlite3.Error as exc:  # pragma: no cover - defensive
+        raise RuntimeError(
+            "cannot determine the control-plane database; inject an explicit "
+            "run store"
+        ) from exc
+    for row in rows:
+        if row[1] == "main" and row[2]:
+            return str(Path(row[2]).expanduser().resolve())
+    raise RuntimeError(
+        "cannot determine the control-plane database (connection has no "
+        "on-disk main database); inject an explicit run store"
+    )
 
 
 def _completed_indices(
@@ -314,19 +325,18 @@ def claim_and_run(
 def serve(poll_interval: float = 2.0, db_path=None) -> None:
     """Long-running poll loop for the Docker `worker` service.
 
-    Opens ONE app-side connection (WAL + busy_timeout) against the shared
-    reports/runs.sqlite, ensures the additive app tables exist (idempotent),
-    then claims and runs queued jobs one at a time. Adds NO scoring — every
+    Opens ONE app-side connection (WAL + busy_timeout) against the selected
+    working DB, ensures the additive app tables exist (idempotent), then claims
+    and runs queued jobs one at a time. Adds NO scoring — every
     unit goes through the frozen pipeline via run_job/claim_and_run.
 
     The DB path resolves from AFA_DB_PATH (the Docker env contract) and falls
     back to the repo-relative default so this also runs bare on the host.
     """
-    if db_path is None:
-        db_path = os.environ.get("AFA_DB_PATH", str(db.DB_PATH))
+    db_path = db.resolve_db_path(db_path)
 
-    # Work on a copy of the evidence DB (seeded once), never the committed
-    # reports/runs.sqlite. No-op when db_path already is/points at an existing DB.
+    # Work on the selected guarded working DB, seeding it once from evidence
+    # when absent. An existing DB is never replaced.
     db.ensure_working_db(db_path)
 
     # Ensure the frozen raw layer (runs/run_scores/diffs/test_results) exists
