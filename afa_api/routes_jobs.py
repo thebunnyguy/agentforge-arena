@@ -32,9 +32,10 @@ from typing import Any
 
 import httpx
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from . import db, jobs, worker
+from .evaluation_report import build_evaluation_report, render_markdown
 from .db import ROOT
 from .projection import ProjectionUnavailable, db_path_for, open_projection
 from .schemas import (
@@ -190,6 +191,30 @@ def get_trials(request: Request, job_id: str):
 def get_results(request: Request, job_id: str):
     """Stable-ID alias for the minimal evaluation-scoped result facts."""
     return get_trials(request, job_id)
+
+
+@router.get("/jobs/{job_id}/report.json")
+def get_evaluation_report(request: Request, job_id: str):
+    conn = db.connect_readonly(db_path_for(request))
+    try:
+        report = build_evaluation_report(conn, job_id)
+    finally:
+        conn.close()
+    if report is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    return report
+
+
+@router.get("/jobs/{job_id}/report.md")
+def get_evaluation_report_markdown(request: Request, job_id: str):
+    conn = db.connect_readonly(db_path_for(request))
+    try:
+        report = build_evaluation_report(conn, job_id)
+    finally:
+        conn.close()
+    if report is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    return PlainTextResponse(render_markdown(report), media_type="text/markdown")
 
 
 @router.get("/jobs/{job_id}/trials/{task_id}/{idx}")
