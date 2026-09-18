@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "grid-paths",
-  "task_version": "1.0.0",
+  "task_version": "1.0.1",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 6/22 relevant mutant(s) survived (kill_rate=0.73 over 22 relevant of 22 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T21:17:05.847032+00:00",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-18T07:16:07.723450+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 8,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:9aaedf95d03d8d7c96342b16cd6b73381bb23f25e78594b8efbb53717edf31c1"
+            "fingerprint": "sha256:6c29fe9fc7df636426aef86407acb84bd08232af07e0bf6ec0601983b3663007"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 8,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:9aaedf95d03d8d7c96342b16cd6b73381bb23f25e78594b8efbb53717edf31c1"
+            "fingerprint": "sha256:6c29fe9fc7df636426aef86407acb84bd08232af07e0bf6ec0601983b3663007"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 8,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:9aaedf95d03d8d7c96342b16cd6b73381bb23f25e78594b8efbb53717edf31c1"
+            "fingerprint": "sha256:6c29fe9fc7df636426aef86407acb84bd08232af07e0bf6ec0601983b3663007"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 8,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:9aaedf95d03d8d7c96342b16cd6b73381bb23f25e78594b8efbb53717edf31c1"
+            "fingerprint": "sha256:6c29fe9fc7df636426aef86407acb84bd08232af07e0bf6ec0601983b3663007"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 8,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:9aaedf95d03d8d7c96342b16cd6b73381bb23f25e78594b8efbb53717edf31c1"
+            "fingerprint": "sha256:6c29fe9fc7df636426aef86407acb84bd08232af07e0bf6ec0601983b3663007"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 21,
         "lines_removed": 10
       },
-      "duration_ms": 11607
+      "duration_ms": 8628
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -94,10 +94,10 @@
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 8,
+        "n_hidden": 13,
         "diff_exists_gate": false
       },
-      "duration_ms": 2166
+      "duration_ms": 1632
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -130,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,9 +149,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 154
+      "duration_ms": 123
     },
     {
       "check_id": "controls.declared_controls",
@@ -167,67 +168,24 @@
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "6/22 relevant mutant(s) survived (kill_rate=0.73 over 22 relevant of 22 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 22 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 22 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 22,
         "mutants_unsupported": 0,
         "mutants_declared_equivalent": 0,
         "mutants_intercepted_by_regression_or_scope": 0,
         "mutants_relevant": 22,
-        "killed_total": 16,
-        "killed_by_hidden_test": 16,
+        "killed_total": 22,
+        "killed_by_hidden_test": 22,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 6,
-        "survived": [
-          {
-            "mutation_id": "gridpaths/core.py:15:4:remove_branch_force_false",
-            "file": "gridpaths/core.py",
-            "lineno": 15,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if rows <= 0 or cols <= 0:\n        return 0 (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "gridpaths/core.py:15:7:boundary_operator",
-            "file": "gridpaths/core.py",
-            "lineno": 15,
-            "family": "boundary_operator",
-            "description": "boundary_operator: rows <= 0 (LtE -> Lt)"
-          },
-          {
-            "mutation_id": "gridpaths/core.py:15:7:swap_boolean_condition",
-            "file": "gridpaths/core.py",
-            "lineno": 15,
-            "family": "swap_boolean_condition",
-            "description": "swap_boolean_condition: rows <= 0 or cols <= 0 (Or -> And)"
-          },
-          {
-            "mutation_id": "gridpaths/core.py:15:20:boundary_operator",
-            "file": "gridpaths/core.py",
-            "lineno": 15,
-            "family": "boundary_operator",
-            "description": "boundary_operator: cols <= 0 (LtE -> Lt)"
-          },
-          {
-            "mutation_id": "gridpaths/core.py:16:8:return_constant",
-            "file": "gridpaths/core.py",
-            "lineno": 16,
-            "family": "return_constant",
-            "description": "return_constant: return 0 (return <expr> -> return None)"
-          },
-          {
-            "mutation_id": "gridpaths/core.py:16:15:change_constant_increment",
-            "file": "gridpaths/core.py",
-            "lineno": 16,
-            "family": "change_constant",
-            "description": "change_constant_increment: 0 (0 -> 1)"
-          }
-        ],
-        "kill_rate": 0.7272727272727273,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 45121
+      "duration_ms": 41211
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -247,25 +205,25 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:d72c286167acb08f67ec1617c836cbda32d0f643219b9a21de96581942fe39d5"
+                "fingerprint": "sha256:1f6c484dd47738040313e7f0871deca9cc57553b43ccb9364e5f8ab38b0b7599"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:d72c286167acb08f67ec1617c836cbda32d0f643219b9a21de96581942fe39d5"
+                "fingerprint": "sha256:1f6c484dd47738040313e7f0871deca9cc57553b43ccb9364e5f8ab38b0b7599"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:d72c286167acb08f67ec1617c836cbda32d0f643219b9a21de96581942fe39d5"
+                "fingerprint": "sha256:1f6c484dd47738040313e7f0871deca9cc57553b43ccb9364e5f8ab38b0b7599"
               }
             ]
           }
         ]
       },
-      "duration_ms": 5630
+      "duration_ms": 5897
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -283,7 +241,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 3556
+      "duration_ms": 3250
     }
   ],
   "mutations": [
@@ -294,10 +252,16 @@
       "col_offset": 4,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if rows <= 0 or cols <= 0:\n        return 0 (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6153846153846154,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_zero_rows_grid_has_no_cells",
+        "test_zero_cols_grid_has_no_cells",
+        "test_zero_by_zero_grid_has_no_cells",
+        "test_negative_rows_grid_has_no_cells",
+        "test_negative_cols_grid_has_no_cells"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:78138a4a69e3227fafb58c0315bfe0335e4d348aaa42f124f3163d6959ed243d",
       "notes": ""
@@ -310,7 +274,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if rows <= 0 or cols <= 0:\n        return 0 (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.38461538461538464,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -333,10 +297,12 @@
       "col_offset": 7,
       "family": "boundary_operator",
       "description": "boundary_operator: rows <= 0 (LtE -> Lt)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9230769230769231,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_zero_rows_grid_has_no_cells"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:5d7227d39bd031550534f825a2e5c63e7f26225cf3b68a2c54077a65ab1cff05",
       "notes": ""
@@ -348,10 +314,15 @@
       "col_offset": 7,
       "family": "swap_boolean_condition",
       "description": "swap_boolean_condition: rows <= 0 or cols <= 0 (Or -> And)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6923076923076923,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_zero_rows_grid_has_no_cells",
+        "test_zero_cols_grid_has_no_cells",
+        "test_negative_rows_grid_has_no_cells",
+        "test_negative_cols_grid_has_no_cells"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:380c129b8235af9b82b7f351401c3a765e58b23a2224495c28693a8545d41b52",
       "notes": ""
@@ -364,7 +335,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 0 (0 -> 1)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.75,
+      "final_score": 0.8461538461538461,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -381,10 +352,12 @@
       "col_offset": 20,
       "family": "boundary_operator",
       "description": "boundary_operator: cols <= 0 (LtE -> Lt)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9230769230769231,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_zero_cols_grid_has_no_cells"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:1c36fb4393238fd11eb9d24c85f958da15d4a971697fecdc810949b96fc3c5f9",
       "notes": ""
@@ -397,7 +370,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 0 (0 -> 1)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.75,
+      "final_score": 0.8461538461538461,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -414,10 +387,16 @@
       "col_offset": 8,
       "family": "return_constant",
       "description": "return_constant: return 0 (return <expr> -> return None)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6153846153846154,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_zero_rows_grid_has_no_cells",
+        "test_zero_cols_grid_has_no_cells",
+        "test_zero_by_zero_grid_has_no_cells",
+        "test_negative_rows_grid_has_no_cells",
+        "test_negative_cols_grid_has_no_cells"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:f27b045dcaebb5099811a9f49a91fcaaa137684acc9e77b2ff82b2401a340bd8",
       "notes": ""
@@ -429,10 +408,16 @@
       "col_offset": 15,
       "family": "change_constant",
       "description": "change_constant_increment: 0 (0 -> 1)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6153846153846154,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_zero_rows_grid_has_no_cells",
+        "test_zero_cols_grid_has_no_cells",
+        "test_zero_by_zero_grid_has_no_cells",
+        "test_negative_rows_grid_has_no_cells",
+        "test_negative_cols_grid_has_no_cells"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:4cb994b1c3f0e29c83c86bd9e6619f8b81e3279371ed6d12127881a81d3c96c7",
       "notes": ""
@@ -445,7 +430,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: dp = [1] * cols (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.38461538461538464,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -469,7 +454,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.38461538461538464,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -493,7 +478,7 @@
       "family": "change_constant",
       "description": "change_constant_zero: 1 (1 -> 0)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.38461538461538464,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -517,7 +502,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.375,
+      "final_score": 0.6153846153846154,
       "functional_pass": false,
       "killed_by_tests": [
         "test_two_by_two",
@@ -538,7 +523,7 @@
       "family": "change_constant",
       "description": "change_constant_zero: 1 (1 -> 0)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.25,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_two_by_two",
@@ -560,7 +545,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.375,
+      "final_score": 0.6153846153846154,
       "functional_pass": false,
       "killed_by_tests": [
         "test_two_by_two",
@@ -581,7 +566,7 @@
       "family": "change_constant",
       "description": "change_constant_zero: 1 (1 -> 0)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.25,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_two_by_two",
@@ -603,7 +588,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: dp[c] = dp[c] + dp[c - 1] (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.375,
+      "final_score": 0.6153846153846154,
       "functional_pass": false,
       "killed_by_tests": [
         "test_two_by_two",
@@ -624,7 +609,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.6923076923076923,
       "functional_pass": false,
       "killed_by_tests": [
         "test_three_by_three",
@@ -644,7 +629,7 @@
       "family": "change_constant",
       "description": "change_constant_zero: 1 (1 -> 0)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.6923076923076923,
       "functional_pass": false,
       "killed_by_tests": [
         "test_three_by_three",
@@ -664,7 +649,7 @@
       "family": "return_constant",
       "description": "return_constant: return dp[-1] (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.38461538461538464,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -688,7 +673,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.125,
+      "final_score": 0.46153846153846156,
       "functional_pass": false,
       "killed_by_tests": [
         "test_one_by_one",
@@ -711,7 +696,7 @@
       "family": "change_constant",
       "description": "change_constant_zero: 1 (1 -> 0)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.375,
+      "final_score": 0.6153846153846154,
       "functional_pass": false,
       "killed_by_tests": [
         "test_two_by_two",
@@ -728,14 +713,15 @@
   "controls": [],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'gridpaths/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'gridpaths/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "gridpaths/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -747,11 +733,11 @@
   ],
   "provenance": {
     "task_id": "grid-paths",
-    "task_version": "1.0.0",
-    "task_json_hash": "sha256:cb98e9612073d643a7313676f2fe58b0b4309a3b651a9967ade3fc4d88c1ee9e",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:d1809ce45d05b71411ca263c438e1197300660e57664f7006a2579a097663549",
     "snapshot_hash": "sha256:9a19a2b2e806fa13cd53b5f4f6b6e8c429f63abfe1bd914c4bcc04a6b33fa1ad",
     "reference_hash": "sha256:de19860acdfaae5b6ee9da26996ccac150a79706ab61b98b3b02adce536ad051",
-    "grading_hash": "sha256:b902bfc2cdf99b27e51ad4aa30a3df69651247b982c11954e962cd3f0df48e70",
+    "grading_hash": "sha256:01dc6a3e9f475f53944070131cf2aea02d8adb598b142cc4ddf3fea26522bd77",
     "controls_hash": null,
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -759,5 +745,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 68249
+  "duration_ms": 60752
 }

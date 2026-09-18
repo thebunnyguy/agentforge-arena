@@ -1,26 +1,26 @@
 # AgentForge Benchmark Integrity Report
 
 **Task**: `sanitize-filename`  
-**Version**: `1.0.1`  
+**Version**: `1.0.2`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T21:16:29.530953+00:00  
-**Duration**: 115480 ms
+**Timestamp**: 2026-09-18T07:14:35.875102+00:00  
+**Duration**: 146940 ms
 
-## Status: INVALID
+## Status: HEALTHY
 
-**Reason**: known-bad control 'strict_allowlist' was ACCEPTED (should have been rejected by the hidden suite)
+**Reason**: All checks passed with no outstanding findings.
 
 ## Checks
 
 | Check | Category | Status | Severity | Description |
 |---|---|---|---|---|
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
-| `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.300), and scores 0.0 / functional_pass=False, as required. |
+| `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.462), and scores 0.0 / functional_pass=False, as required. |
 | `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['safename/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
-| `controls.declared_controls` | controls | FAIL | critical | 1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: strict_allowlist. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow. |
-| `mutation.generic_ast_mutants` | mutation | WARNING | medium | 2/24 relevant mutant(s) survived (kill_rate=0.92 over 24 relevant of 24 generated). A surviving mutant is not automatic proof of a broken oracle — review whether each represents behavior the task contract actually promises to reject (mission §8); see evidence.survived for exact locations. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list — see findings. |
+| `controls.declared_controls` | controls | PASS | info | All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict. |
+| `mutation.generic_ast_mutants` | mutation | PASS | info | All 22 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 24 generated, 0 unsupported, 2 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite). |
 | `determinism.repeated_grading` | determinism | PASS | info | All 6 sampled artifact(s) graded identically across their repeats. |
 | `isolation.hidden_test_readability` | isolation_limitation | UNVERIFIABLE | high | CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically — real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission §14/§25) and is tracked as a repo-wide 'deliberately still open' item. |
 
@@ -29,7 +29,7 @@
 | Name | Kind | Expected | Verdict | Status | Notes |
 |---|---|---|---|---|---|
 | `sanitize_instead_of_reject` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_traversal_raises', 'test_separator_raises', 'test_backslash_separator_raises', 'test_null_byte_raises'] |
-| `strict_allowlist` | known_bad | reject | accepted | FAIL | verdict=accepted |
+| `strict_allowlist` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_name_with_space_unchanged', 'test_name_with_punctuation_unchanged', 'test_name_with_non_ascii_unchanged'] |
 | `substring_dotdot` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_inner_dots_allowed'] |
 | `posix_separator_only` | semantic_mutant | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_backslash_separator_raises'] |
 | `regex_single_check` | alternative | accept | accepted | PASS | verdict=accepted |
@@ -38,24 +38,15 @@
 
 - Generated: 24
 - Unsupported (base file failed the unparse round-trip self-check): 0
-- Declared equivalent: 0
+- Declared equivalent: 2
 - Intercepted by regression/scope gate (never reached the hidden suite): 0
 - Killed by the hidden suite: 22
-- **Survived: 2**
-
-Survived mutants (review whether the task contract actually promises to reject each):
-
-| File | Line | Family | Description |
-|---|---|---|---|
-| `safename/name.py` | 27 | remove_branch | remove_branch_force_false: if ".." in components:
-        raise ValueError("filename must not contain a '..' component: %r" % (name,)) (if-condition forced to False (branch never taken)) |
-| `safename/name.py` | 27 | remove_validation | remove_validation: if ".." in components:
-        raise ValueError("filename must not contain a '..' component: %r" % (name,)) (if-guard's raise removed (body -> pass)) |
+- **Survived: 0**
 
 ## Findings
 
-- **[HIGH] A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].** (`protected_paths.pytest_shadow_package`)
-  Injecting 'safename/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'safename/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
 
 ## Limitations
 
@@ -66,11 +57,11 @@ Survived mutants (review whether the task contract actually promises to reject e
 ## Provenance
 
 - `task_id`: sanitize-filename
-- `task_version`: 1.0.1
-- `task_json_hash`: sha256:f723e04092f89ddae337a57c6ef209bbe8c7f188eb098cf6532fd839e051b4d4
+- `task_version`: 1.0.2
+- `task_json_hash`: sha256:a1b04cf11490a8a66e56724f72d1d23f129c6b966533703b725b3b582ee92ee3
 - `snapshot_hash`: sha256:bf8f4ced9822a79a82e412c90564b6daaa8e38ef89c6790879fc13c00b5a3a6a
 - `reference_hash`: sha256:e92a20665e0423aab32f3b03e7b7420c610967805ab89d0126b27d2cf3f9d78c
-- `grading_hash`: sha256:c58283d2a63dd28920b0dde61ea2f6115203c203b83de43fcac3d14cec7687b5
+- `grading_hash`: sha256:b3565507739c3c3d9568e5c2ab336b0ae4d9816ade58a40d30009baed1d36978
 - `controls_hash`: sha256:3e50db285dc3e6cec61566a65b742841e46c767ce5b8956b25f8a457a0548c1a
 - `engine_version`: 0.1.0
 - `afa_kernel_version`: 0.1.0

@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "top-k-frequent",
-  "task_version": "1.0.2",
+  "task_version": "1.0.3",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 2/13 relevant mutant(s) survived (kill_rate=0.85 over 13 relevant of 13 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T21:17:44.566810+00:00",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-18T07:16:58.893646+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 17,
+            "n_hidden": 18,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:2361adcb48e4e27606d8b599763c46e405447d67859e5bc187ae0dc10b78818a"
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 17,
+            "n_hidden": 18,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:2361adcb48e4e27606d8b599763c46e405447d67859e5bc187ae0dc10b78818a"
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 17,
+            "n_hidden": 18,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:2361adcb48e4e27606d8b599763c46e405447d67859e5bc187ae0dc10b78818a"
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 17,
+            "n_hidden": 18,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:2361adcb48e4e27606d8b599763c46e405447d67859e5bc187ae0dc10b78818a"
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 17,
+            "n_hidden": 18,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:2361adcb48e4e27606d8b599763c46e405447d67859e5bc187ae0dc10b78818a"
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 26,
         "lines_removed": 12
       },
-      "duration_ms": 9832
+      "duration_ms": 10550
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -94,10 +94,10 @@
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 17,
+        "n_hidden": 18,
         "diff_exists_gate": false
       },
-      "duration_ms": 1943
+      "duration_ms": 2257
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,9 +149,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 202
+      "duration_ms": 205
     },
     {
       "check_id": "controls.declared_controls",
@@ -167,39 +168,24 @@
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "2/13 relevant mutant(s) survived (kill_rate=0.85 over 13 relevant of 13 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 13 generated, 0 unsupported, 1 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 13,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 1,
         "mutants_intercepted_by_regression_or_scope": 0,
-        "mutants_relevant": 13,
-        "killed_total": 11,
-        "killed_by_hidden_test": 11,
+        "mutants_relevant": 12,
+        "killed_total": 12,
+        "killed_by_hidden_test": 12,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 2,
-        "survived": [
-          {
-            "mutation_id": "topk/core.py:17:4:remove_branch_force_false",
-            "file": "topk/core.py",
-            "lineno": 17,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if k <= 0:\n        return [] (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "topk/core.py:17:7:boundary_operator",
-            "file": "topk/core.py",
-            "lineno": 17,
-            "family": "boundary_operator",
-            "description": "boundary_operator: k <= 0 (LtE -> Lt)"
-          }
-        ],
-        "kill_rate": 0.8461538461538461,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 28229
+      "duration_ms": 27655
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -219,25 +205,25 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:152939768321132f61903339860aca86492bc12ce075740264c85f835f37d729"
+                "fingerprint": "sha256:71106570e27008a3f95028c062df4792923d971113ec167f7f5cb575db0548d0"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:152939768321132f61903339860aca86492bc12ce075740264c85f835f37d729"
+                "fingerprint": "sha256:71106570e27008a3f95028c062df4792923d971113ec167f7f5cb575db0548d0"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:152939768321132f61903339860aca86492bc12ce075740264c85f835f37d729"
+                "fingerprint": "sha256:71106570e27008a3f95028c062df4792923d971113ec167f7f5cb575db0548d0"
               }
             ]
           }
         ]
       },
-      "duration_ms": 5694
+      "duration_ms": 5199
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -255,7 +241,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 3277
+      "duration_ms": 2933
     }
   ],
   "mutations": [
@@ -266,10 +252,12 @@
       "col_offset": 4,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if k <= 0:\n        return [] (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_negative_k_returns_empty_regardless_of_distinct_count"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:14b249b765ccda8bbf6e336d46a3a43cac09bcd8a5d31fa7dfd7ebf03044f556",
       "notes": ""
@@ -282,7 +270,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if k <= 0:\n        return [] (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.17647058823529413,
+      "final_score": 0.2222222222222222,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -315,9 +303,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:12f1168a678594828d2d4d15c6ed3ab0d7aa37e25171a3afb1ed27b1ab4c681b",
-      "notes": ""
+      "notes": "declared equivalent: boundary_operator on line 17 (`if k <= 0: return []`) changes the guard to `if k < 0: return []`. The two versions can only disagree on k == 0 (every k < 0 still short-circuits to [] under the mutant, and every k > 0 skips the guard under both). For k == 0 the mutant falls through to compute `counts`, `first_index`, and `ordered` (all pure, side-effect-free reads over `items` -- no mutation, and the sort key is `(-counts[x], first_index[x])`, a tuple of ints, so it never invokes comparison on the items themselves and cannot raise for any hashable input) and then returns `ordered[:0]`. A slice `some_list[:0]` is `[]` for every list, regardless of its length or contents -- this is a fixed property of Python slicing, not something that depends on `items` or on ties/frequencies. So for every input the task contract admits (any sequence of hashable items, k == 0), the mutant's output is provably identical to the reference's early-return `[]`, not merely identical on the cases the current hidden suite happens to exercise. Confirmed empirically: probing k == 0 against inputs of varying size/content, and the sibling remove_branch_force_false mutant at the same line (which removes the guard for ALL k <= 0, including negative k) is correctly killed by test_negative_k_returns_empty_regardless_of_distinct_count, showing the hidden suite does discriminate real guard removals -- it just cannot (and should not) discriminate this specific off-by-one on the guard's boundary, because that boundary is behaviorally inert."
     },
     {
       "mutation_id": "topk/core.py:17:12:change_constant_increment",
@@ -327,7 +315,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 0 (0 -> 1)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9411764705882353,
+      "final_score": 0.9444444444444444,
       "functional_pass": false,
       "killed_by_tests": [
         "test_single_distinct_item"
@@ -344,11 +332,12 @@
       "family": "return_constant",
       "description": "return_constant: return [] (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8823529411764706,
+      "final_score": 0.8333333333333334,
       "functional_pass": false,
       "killed_by_tests": [
         "test_k_zero_returns_empty",
-        "test_negative_k_returns_empty"
+        "test_negative_k_returns_empty",
+        "test_negative_k_returns_empty_regardless_of_distinct_count"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:0d5b069daa9ea89d456b43b68bd475a2ad7b68058c28bb8cf70a3497a49a472e",
@@ -362,7 +351,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: counts = Counter(items) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.11764705882352941,
+      "final_score": 0.16666666666666666,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -393,7 +382,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: first_index = {} (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.17647058823529413,
+      "final_score": 0.2222222222222222,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -423,7 +412,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if x not in first_index:\n            first_index[x] = i (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.17647058823529413,
+      "final_score": 0.2222222222222222,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -453,7 +442,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if x not in first_index:\n            first_index[x] = i (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9411764705882353,
+      "final_score": 0.9444444444444444,
       "functional_pass": false,
       "killed_by_tests": [
         "test_tie_uses_first_not_last_appearance"
@@ -470,7 +459,7 @@
       "family": "invert_comparison",
       "description": "invert_comparison: x not in first_index (NotIn -> In)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.17647058823529413,
+      "final_score": 0.2222222222222222,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -500,7 +489,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: first_index[x] = i (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.17647058823529413,
+      "final_score": 0.2222222222222222,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -530,7 +519,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: ordered = sorted(counts, key=lambda x: (-counts[x], first_index[x])) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.11764705882352941,
+      "final_score": 0.16666666666666666,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -561,7 +550,7 @@
       "family": "return_constant",
       "description": "return_constant: return ordered[:k] (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.11764705882352941,
+      "final_score": 0.16666666666666666,
       "functional_pass": false,
       "killed_by_tests": [
         "test_simple_most_frequent_first",
@@ -588,14 +577,15 @@
   "controls": [],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'topk/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'topk/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "topk/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -607,11 +597,11 @@
   ],
   "provenance": {
     "task_id": "top-k-frequent",
-    "task_version": "1.0.2",
-    "task_json_hash": "sha256:710fb31abaf94f648cbf825515c30333898e1be0896f5e26f19a5565a30a11dd",
+    "task_version": "1.0.3",
+    "task_json_hash": "sha256:22fccffe81359f113e7312304337e2c44cfcf6f15410c82d9b536da10001f9a0",
     "snapshot_hash": "sha256:11d820c237c4b26088b3a254db6180a6e9a46668befd3ccdf39d2b655a59483b",
     "reference_hash": "sha256:20d95c9e137ae74d4d2e40962d1e1d80f7fad753a41d1329081e0040eea5dbcb",
-    "grading_hash": "sha256:02734c9331d8c0c1a42d145133d5986f4d7327344e1248f4d6e7659470628480",
+    "grading_hash": "sha256:1885fd83b8ffa749f88ef88518e3b86bc8ed8b63647cce495179a7bf09f50e27",
     "controls_hash": null,
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -619,5 +609,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 49193
+  "duration_ms": 48814
 }

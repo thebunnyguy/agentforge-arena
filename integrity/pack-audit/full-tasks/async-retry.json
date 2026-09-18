@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "async-retry",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 1/9 relevant mutant(s) survived (kill_rate=0.89 over 9 relevant of 9 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.; semantic mutant 'swallows_base_exceptions' survived (should have been rejected by the hidden suite)",
-  "created_at": "2026-09-17T21:15:24.039581+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:12:08.704503+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 7,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+            "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 7,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+            "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 7,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+            "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 7,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+            "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 7,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+            "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 10,
         "lines_removed": 3
       },
-      "duration_ms": 8385
+      "duration_ms": 20608
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -94,10 +94,10 @@
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 6,
+        "n_hidden": 7,
         "diff_exists_gate": false
       },
-      "duration_ms": 1801
+      "duration_ms": 7638
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 1
+      "duration_ms": 2
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,16 +149,17 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 229
+      "duration_ms": 313
     },
     {
       "check_id": "controls.declared_controls",
       "category": "controls",
-      "status": "fail",
-      "severity": "critical",
-      "description": "1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: swallows_base_exceptions. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
       "evidence": {
         "n_controls": 5,
         "by_kind": {
@@ -168,7 +169,7 @@
           },
           "semantic_mutant": {
             "n": 1,
-            "matched": 0
+            "matched": 1
           },
           "alternative": {
             "n": 1,
@@ -176,42 +177,32 @@
           }
         },
         "errors": [],
-        "fails": [
-          "swallows_base_exceptions"
-        ],
+        "fails": [],
         "warnings": []
       },
-      "duration_ms": 8338
+      "duration_ms": 11229
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "1/9 relevant mutant(s) survived (kill_rate=0.89 over 9 relevant of 9 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 8 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 9 generated, 0 unsupported, 1 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 9,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 1,
         "mutants_intercepted_by_regression_or_scope": 0,
-        "mutants_relevant": 9,
+        "mutants_relevant": 8,
         "killed_total": 8,
         "killed_by_hidden_test": 8,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 1,
-        "survived": [
-          {
-            "mutation_id": "aretry/retry.py:12:4:delete_state_update",
-            "file": "aretry/retry.py",
-            "lineno": 12,
-            "family": "delete_state_update",
-            "description": "delete_state_update: last_exc = None (assignment/state-update statement deleted (replaced with pass))"
-          }
-        ],
-        "kill_rate": 0.8888888888888888,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 16666
+      "duration_ms": 37399
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -231,19 +222,19 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:73c41487979ee35e7f7bcdd584cec19dd0c57b025e9628d6c85e8f26b831d033"
+                "fingerprint": "sha256:e8a7537850166cc6653a128c0d544fa55ac3b13b4f07c867365d5bb280880056"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:73c41487979ee35e7f7bcdd584cec19dd0c57b025e9628d6c85e8f26b831d033"
+                "fingerprint": "sha256:e8a7537850166cc6653a128c0d544fa55ac3b13b4f07c867365d5bb280880056"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:73c41487979ee35e7f7bcdd584cec19dd0c57b025e9628d6c85e8f26b831d033"
+                "fingerprint": "sha256:e8a7537850166cc6653a128c0d544fa55ac3b13b4f07c867365d5bb280880056"
               }
             ]
           },
@@ -255,21 +246,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.8333333333333334,
+                "final_score": 0.8571428571428571,
                 "functional_pass": false,
-                "fingerprint": "sha256:0addd1ca89c863d74bc35317b7223a7251da20c58891bab58485831371af811d"
+                "fingerprint": "sha256:6b7252129e7c7a3698be9d850b654ff7bc103380b2588d7fbfa239fe19958385"
               },
               {
                 "attempt": 1,
-                "final_score": 0.8333333333333334,
+                "final_score": 0.8571428571428571,
                 "functional_pass": false,
-                "fingerprint": "sha256:0addd1ca89c863d74bc35317b7223a7251da20c58891bab58485831371af811d"
+                "fingerprint": "sha256:6b7252129e7c7a3698be9d850b654ff7bc103380b2588d7fbfa239fe19958385"
               },
               {
                 "attempt": 2,
-                "final_score": 0.8333333333333334,
+                "final_score": 0.8571428571428571,
                 "functional_pass": false,
-                "fingerprint": "sha256:0addd1ca89c863d74bc35317b7223a7251da20c58891bab58485831371af811d"
+                "fingerprint": "sha256:6b7252129e7c7a3698be9d850b654ff7bc103380b2588d7fbfa239fe19958385"
               }
             ]
           },
@@ -281,21 +272,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.6666666666666666,
+                "final_score": 0.7142857142857143,
                 "functional_pass": false,
-                "fingerprint": "sha256:c880bbd02514d102ed3fd8d5dbde73cd6d2252f11d9415f44af53d2214f43f8b"
+                "fingerprint": "sha256:1f4ba58fc5c0a51e884af8c023d9a743ffa5746a1405edb50f3c4c868e6f5853"
               },
               {
                 "attempt": 1,
-                "final_score": 0.6666666666666666,
+                "final_score": 0.7142857142857143,
                 "functional_pass": false,
-                "fingerprint": "sha256:c880bbd02514d102ed3fd8d5dbde73cd6d2252f11d9415f44af53d2214f43f8b"
+                "fingerprint": "sha256:1f4ba58fc5c0a51e884af8c023d9a743ffa5746a1405edb50f3c4c868e6f5853"
               },
               {
                 "attempt": 2,
-                "final_score": 0.6666666666666666,
+                "final_score": 0.7142857142857143,
                 "functional_pass": false,
-                "fingerprint": "sha256:c880bbd02514d102ed3fd8d5dbde73cd6d2252f11d9415f44af53d2214f43f8b"
+                "fingerprint": "sha256:1f4ba58fc5c0a51e884af8c023d9a743ffa5746a1405edb50f3c4c868e6f5853"
               }
             ]
           },
@@ -307,21 +298,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.5,
+                "final_score": 0.5714285714285714,
                 "functional_pass": false,
-                "fingerprint": "sha256:fab0bf1a9785a7cd9947014988b5e0ba30b08a6255580f18aa895ae665a5ed76"
+                "fingerprint": "sha256:d13b1c770744413d1676f04274b99ced37b0ccab2ed6c5005a446b82eca710df"
               },
               {
                 "attempt": 1,
-                "final_score": 0.5,
+                "final_score": 0.5714285714285714,
                 "functional_pass": false,
-                "fingerprint": "sha256:fab0bf1a9785a7cd9947014988b5e0ba30b08a6255580f18aa895ae665a5ed76"
+                "fingerprint": "sha256:d13b1c770744413d1676f04274b99ced37b0ccab2ed6c5005a446b82eca710df"
               },
               {
                 "attempt": 2,
-                "final_score": 0.5,
+                "final_score": 0.5714285714285714,
                 "functional_pass": false,
-                "fingerprint": "sha256:fab0bf1a9785a7cd9947014988b5e0ba30b08a6255580f18aa895ae665a5ed76"
+                "fingerprint": "sha256:d13b1c770744413d1676f04274b99ced37b0ccab2ed6c5005a446b82eca710df"
               }
             ]
           },
@@ -333,21 +324,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+                "final_score": 0.8571428571428571,
+                "functional_pass": false,
+                "fingerprint": "sha256:76f6082e96fb0dd61f5d3e0f665bbca724d22bc41455feb44d063c6719db7554"
               },
               {
                 "attempt": 1,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+                "final_score": 0.8571428571428571,
+                "functional_pass": false,
+                "fingerprint": "sha256:76f6082e96fb0dd61f5d3e0f665bbca724d22bc41455feb44d063c6719db7554"
               },
               {
                 "attempt": 2,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+                "final_score": 0.8571428571428571,
+                "functional_pass": false,
+                "fingerprint": "sha256:76f6082e96fb0dd61f5d3e0f665bbca724d22bc41455feb44d063c6719db7554"
               }
             ]
           },
@@ -361,25 +352,25 @@
                 "attempt": 0,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+                "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
               },
               {
                 "attempt": 1,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+                "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
               },
               {
                 "attempt": 2,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:385ebd0c5e26e59a95a3576fea71b15cd92ffde3ed6b95358fb82f1ccc94647e"
+                "fingerprint": "sha256:8cb9ec947aa38650603dcd985f76b56d9802c8c15728fb68b23c1efd3391a3a6"
               }
             ]
           }
         ]
       },
-      "duration_ms": 28775
+      "duration_ms": 67760
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -397,7 +388,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 3021
+      "duration_ms": 4748
     }
   ],
   "mutations": [
@@ -409,7 +400,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if attempts <= 0:\n        raise ValueError(\"attempts must be a positive integer\") (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8333333333333334,
+      "final_score": 0.8571428571428571,
       "functional_pass": false,
       "killed_by_tests": [
         "test_zero_attempts_raises_value_error"
@@ -426,14 +417,15 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if attempts <= 0:\n        raise ValueError(\"attempts must be a positive integer\") (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.16666666666666666,
+      "final_score": 0.14285714285714285,
       "functional_pass": false,
       "killed_by_tests": [
         "test_succeeds_on_first_try",
         "test_succeeds_on_third_try_after_two_failures",
         "test_all_attempts_fail_reraises_last",
         "test_attempts_one_that_fails_raises",
-        "test_does_not_retry_after_success"
+        "test_does_not_retry_after_success",
+        "test_cancelled_error_propagates_without_retry"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:58da507af22bb3d04f5a6cf8256dab843c375e87d9c29d37d6ba59d9a822989a",
@@ -447,7 +439,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if attempts <= 0:\n        raise ValueError(\"attempts must be a positive integer\") (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8333333333333334,
+      "final_score": 0.8571428571428571,
       "functional_pass": false,
       "killed_by_tests": [
         "test_zero_attempts_raises_value_error"
@@ -464,7 +456,7 @@
       "family": "boundary_operator",
       "description": "boundary_operator: attempts <= 0 (LtE -> Lt)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8333333333333334,
+      "final_score": 0.8571428571428571,
       "functional_pass": false,
       "killed_by_tests": [
         "test_zero_attempts_raises_value_error"
@@ -481,7 +473,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 0 (0 -> 1)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8333333333333334,
+      "final_score": 0.8571428571428571,
       "functional_pass": false,
       "killed_by_tests": [
         "test_attempts_one_that_fails_raises"
@@ -501,9 +493,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:cd44a29dd9c0911daa69c8bf96b21d506ee06e500b33281608129c2c71bc4b86",
-      "notes": ""
+      "notes": "declared equivalent: Deletes the `last_exc = None` initializer on line 12 (replaced with pass). The preceding guard `if attempts <= 0: raise ValueError(...)` guarantees the loop `for _ in range(attempts)` always executes at least one iteration for every input the contract admits (attempts is a positive integer). Every iteration either (a) returns successfully, ending the function before `last_exc` is ever read, (b) catches an Exception and assigns `last_exc = exc` before the loop can end, or (c) lets a non-Exception BaseException propagate out of the function immediately (per the clarified contract), never reaching `raise last_exc` at all. Therefore the only code path that reaches `raise last_exc` is one where the except-handler assigned `last_exc` on every one of the >=1 iterations, so the initial `None` value is never read on any reachable path for any contract-admitted input. Removing it is a pure dead-store elimination, not an observable behavior change."
     },
     {
       "mutation_id": "aretry/retry.py:15:12:return_constant",
@@ -513,14 +505,15 @@
       "family": "return_constant",
       "description": "return_constant: return await make_coro() (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.16666666666666666,
+      "final_score": 0.14285714285714285,
       "functional_pass": false,
       "killed_by_tests": [
         "test_succeeds_on_first_try",
         "test_succeeds_on_third_try_after_two_failures",
         "test_all_attempts_fail_reraises_last",
         "test_attempts_one_that_fails_raises",
-        "test_does_not_retry_after_success"
+        "test_does_not_retry_after_success",
+        "test_cancelled_error_propagates_without_retry"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:fdb8f8b44f6a9b5afc4111727509a915e057ce84a650bf4c56188449e46ff2eb",
@@ -534,7 +527,7 @@
       "family": "drop_exception_handling",
       "description": "drop_exception_handling: except Exception as exc:  # noqa: BLE001 - we deliberately retry on any error\n            last_exc = exc (except-handler body replaced with pass (error swallowed silently))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7142857142857143,
       "functional_pass": false,
       "killed_by_tests": [
         "test_all_attempts_fail_reraises_last",
@@ -552,7 +545,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: last_exc = exc (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7142857142857143,
       "functional_pass": false,
       "killed_by_tests": [
         "test_all_attempts_fail_reraises_last",
@@ -570,7 +563,7 @@
       "description": "Forgets the 'attempts must be a positive integer' validation entirely. With attempts=0 the loop body never runs, `last_exc` stays None, and `raise last_exc` raises TypeError('exceptions must derive from BaseException') instead of the required ValueError - a realistic case of an agent implementing the happy-path retry logic and skipping the edge-case input validation called out in the docstring.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8333333333333334,
+      "final_score": 0.8571428571428571,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -582,7 +575,7 @@
       "description": "Off-by-one: loops range(attempts + 1), i.e. makes ONE MORE attempt than requested. Invisible when the first success happens before the last allowed attempt, but when every call fails it re-raises the exception from attempt (attempts + 1) instead of the last exception from attempt `attempts`, and calls make_coro() one extra time.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7142857142857143,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -594,7 +587,7 @@
       "description": "Calls make_coro() exactly once, before the loop, and re-awaits the SAME coroutine object on every retry instead of calling make_coro() fresh each attempt. A plausible misreading of the 'zero-argument callable' contract by an agent that only skims the docstring. Once a coroutine has been awaited to completion (return or raise), awaiting it again raises RuntimeError('cannot reuse already awaited coroutine') instead of actually retrying, so any test requiring more than one attempt fails or raises the wrong exception.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.5714285714285714,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -605,12 +598,12 @@
       "kind": "semantic_mutant",
       "description": "Security/robustness-relevant near-miss: broadens `except Exception` to `except BaseException`, so asyncio.CancelledError (a BaseException subclass, not an Exception subclass, since Python 3.8) is caught, swallowed, and retried instead of propagating immediately. This is a realistic 'be extra safe' widening a partial fix might introduce, but it breaks cooperative task cancellation/timeouts: a caller that cancels a task stuck inside retry_call would have the cancellation silently absorbed and the retry loop kept running, which can hang shutdown or hold resources instead of stopping - an availability/DoS-adjacent bug. Every existing hidden test only raises Exception subclasses (ValueError/RuntimeError), so this mutant is expected to slip past the current hidden suite undetected, which is itself the finding this control is meant to surface.",
       "expected_accept": false,
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "matched_expectation": false,
-      "status": "fail",
-      "notes": "verdict=accepted"
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_cancelled_error_propagates_without_retry']"
     },
     {
       "name": "recursive_retry",
@@ -627,14 +620,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'aretry/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'aretry/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "aretry/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -645,11 +639,11 @@
   ],
   "provenance": {
     "task_id": "async-retry",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:3d6e47300146091107964487adb742896c2a796462607c3d70329e8ddd0e8b9a",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:6ee7aca3bcabb8779542a9ab74eac65bccfb0bbf848f685078b141d74a97cc9f",
     "snapshot_hash": "sha256:a6f247ca421ca9c0179221c989e7580936615d84f944139554289c8dd4936b16",
     "reference_hash": "sha256:7fe30e9ba5ec37f35bcc2473558015e413b98e3b7d316daac255e316030ee70a",
-    "grading_hash": "sha256:5b33fe50a7843f35fda9340be13f3696cff6286c78c7a9dadd2301261f016326",
+    "grading_hash": "sha256:bd3d8907bb93f3d781ff711a33da6be49e144baf0fa734a4acefff8ffdaaf553",
     "controls_hash": "sha256:5a8469314af043351a40fdded16db27c4f4aa8d7ce72b41e64177e048144b092",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -657,5 +651,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 67312
+  "duration_ms": 149874
 }

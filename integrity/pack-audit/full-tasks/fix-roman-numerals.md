@@ -4,12 +4,12 @@
 **Version**: `1.0.0`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T21:15:24.039424+00:00  
-**Duration**: 98102 ms
+**Timestamp**: 2026-09-18T07:12:08.705006+00:00  
+**Duration**: 199587 ms
 
-## Status: NEEDS_REVIEW
+## Status: HEALTHY
 
-**Reason**: mutation.generic_ast_mutants: 1/17 relevant mutant(s) survived (kill_rate=0.94 over 17 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle — review whether each represents behavior the task contract actually promises to reject (mission §8); see evidence.survived for exact locations.
+**Reason**: All checks passed with no outstanding findings.
 
 ## Checks
 
@@ -18,9 +18,9 @@
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.222), and scores 0.0 / functional_pass=False, as required. |
 | `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['romankit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list — see findings. |
 | `controls.declared_controls` | controls | PASS | info | All 4 declared control(s) matched their declared expectation via a genuine hidden-test verdict. |
-| `mutation.generic_ast_mutants` | mutation | WARNING | medium | 1/17 relevant mutant(s) survived (kill_rate=0.94 over 17 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle — review whether each represents behavior the task contract actually promises to reject (mission §8); see evidence.survived for exact locations. |
+| `mutation.generic_ast_mutants` | mutation | PASS | info | All 16 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 27 generated, 0 unsupported, 1 declared-equivalent, 10 intercepted by the regression/scope gate before reaching the hidden suite). |
 | `determinism.repeated_grading` | determinism | PASS | info | All 5 sampled artifact(s) graded identically across their repeats. |
 | `isolation.hidden_test_readability` | isolation_limitation | UNVERIFIABLE | high | CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically — real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission §14/§25) and is tracked as a repo-wide 'deliberately still open' item. |
 
@@ -37,21 +37,15 @@
 
 - Generated: 27
 - Unsupported (base file failed the unparse round-trip self-check): 0
-- Declared equivalent: 0
+- Declared equivalent: 1
 - Intercepted by regression/scope gate (never reached the hidden suite): 10
 - Killed by the hidden suite: 16
-- **Survived: 1**
-
-Survived mutants (review whether the task contract actually promises to reject each):
-
-| File | Line | Family | Description |
-|---|---|---|---|
-| `romankit/parse.py` | 20 | change_constant | change_constant_increment: 0 (0 -> 1) |
+- **Survived: 0**
 
 ## Findings
 
-- **[HIGH] A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].** (`protected_paths.pytest_shadow_package`)
-  Injecting 'romankit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'romankit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
 
 ## Limitations
 

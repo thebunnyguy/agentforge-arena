@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "toposort",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "invalid",
-  "reason": "known-bad control 'first_dependency_only' was ACCEPTED (should have been rejected by the hidden suite)",
-  "created_at": "2026-09-17T21:18:14.097104+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:17:02.817007+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -78,7 +78,7 @@
         "lines_added": 38,
         "lines_removed": 7
       },
-      "duration_ms": 9065
+      "duration_ms": 10047
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -97,7 +97,7 @@
         "n_hidden": 13,
         "diff_exists_gate": false
       },
-      "duration_ms": 2040
+      "duration_ms": 2271
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -130,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,22 +149,23 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 163
+      "duration_ms": 195
     },
     {
       "check_id": "controls.declared_controls",
       "category": "controls",
-      "status": "fail",
-      "severity": "critical",
-      "description": "1/4 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: first_dependency_only. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 4 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
       "evidence": {
         "n_controls": 4,
         "by_kind": {
           "known_bad": {
             "n": 3,
-            "matched": 2
+            "matched": 3
           },
           "alternative": {
             "n": 1,
@@ -172,42 +173,32 @@
           }
         },
         "errors": [],
-        "fails": [
-          "first_dependency_only"
-        ],
+        "fails": [],
         "warnings": []
       },
-      "duration_ms": 7361
+      "duration_ms": 7201
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "1/23 relevant mutant(s) survived (kill_rate=0.96 over 23 relevant of 23 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 22 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 23 generated, 0 unsupported, 1 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 23,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 1,
         "mutants_intercepted_by_regression_or_scope": 0,
-        "mutants_relevant": 23,
+        "mutants_relevant": 22,
         "killed_total": 22,
         "killed_by_hidden_test": 21,
         "killed_by_timeout_or_error": 1,
-        "survived_count": 1,
-        "survived": [
-          {
-            "mutation_id": "graphkit/topo.py:26:19:change_constant_increment",
-            "file": "graphkit/topo.py",
-            "lineno": 26,
-            "family": "change_constant",
-            "description": "change_constant_increment: 0 (0 -> 1)"
-          }
-        ],
-        "kill_rate": 0.9565217391304348,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 54698
+      "duration_ms": 65010
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -251,21 +242,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+                "final_score": 0.9230769230769231,
+                "functional_pass": false,
+                "fingerprint": "sha256:7732d2d01287d4a8cfd5cebaa5d281f92ddaa20b43402fb72dccd7c4d7ad3471"
               },
               {
                 "attempt": 1,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+                "final_score": 0.9230769230769231,
+                "functional_pass": false,
+                "fingerprint": "sha256:7732d2d01287d4a8cfd5cebaa5d281f92ddaa20b43402fb72dccd7c4d7ad3471"
               },
               {
                 "attempt": 2,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+                "final_score": 0.9230769230769231,
+                "functional_pass": false,
+                "fingerprint": "sha256:7732d2d01287d4a8cfd5cebaa5d281f92ddaa20b43402fb72dccd7c4d7ad3471"
               }
             ]
           },
@@ -349,7 +340,7 @@
           }
         ]
       },
-      "duration_ms": 18825
+      "duration_ms": 22255
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -367,7 +358,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2256
+      "duration_ms": 2543
     }
   ],
   "mutations": [
@@ -496,9 +487,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:6f5b93860b972d3d6d8e7e617f62a7f09c6e9bc3d2687c72b4b291655d72bfbc",
-      "notes": ""
+      "notes": "declared equivalent: Mutates the initial value in `indegree = {n: 0 for n in nodes}` from 0 to 1 (graphkit/topo.py:26:19, change_constant_increment). This dict comprehension's keys are exactly `nodes`, and every single key in `nodes` is unconditionally overwritten immediately afterward by `for node, deps in deps_of.items(): indegree[node] = len(deps)` -- deps_of is itself built as `{n: set(...) for n in nodes}`, so deps_of.items() iterates precisely the same key set as nodes/indegree. No node's indegree value is ever read between the comprehension and that overwrite loop. Therefore the initial placeholder value (0 vs 1) is provably never observed for any input graph -- this is a true equivalent mutant, not a surviving behavioral gap, and cannot be turned into a failing hidden-test case because no input distinguishes the two versions."
     },
     {
       "mutation_id": "graphkit/topo.py:28:8:delete_state_update",
@@ -927,12 +918,12 @@
       "kind": "known_bad",
       "description": "Realistic incomplete-loop bug: only the FIRST dependency in each node's dependency list is wired into the graph; any additional dependencies in the same list are silently ignored (e.g. written as `deps[0]` instead of iterating the whole list). Cycle detection and lexicographic tiebreaks are otherwise implemented correctly. This is exactly the failure mode the hidden test_multiple_implicit_dependencies docstring calls out ('an impl that registers only the FIRST implicit dep of each list misses core').",
       "expected_accept": false,
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "matched_expectation": false,
-      "status": "fail",
-      "notes": "verdict=accepted"
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9230769230769231,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_multiple_implicit_dependencies']"
     },
     {
       "name": "insertion_order_tiebreak",
@@ -973,14 +964,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'graphkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'graphkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "graphkit/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -991,11 +983,11 @@
   ],
   "provenance": {
     "task_id": "toposort",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:6efcd98642b65eb514a7316cfeba74f772ff936cce5e16b898f49c0357068553",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:01a6cebaf8a210b514c8692fac7abaa9be0a99818791046c7923344c37e1f7ac",
     "snapshot_hash": "sha256:221cfc6b802532f4f136d9a032e8c0f5ea3e3d98ce19fe971e56da8ee4de1cc6",
     "reference_hash": "sha256:ac230b4610894bf7af079ae3e3f292c4d76ef9461a6d780b90efc809e881af14",
-    "grading_hash": "sha256:1f3a4707d4625b60caccb6af61de27d6ea1671a3a9edd103e9479d1c8d1d4e1d",
+    "grading_hash": "sha256:6e4f427f9a456e158918b22935cbacdd96b7c396f73ccd30dae1882ec312ac70",
     "controls_hash": "sha256:c36ab1ae8a46590f0c01c2e6fea36f5714a661d5d4cd1232b805f0cd4e5d3c79",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -1003,5 +995,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 94486
+  "duration_ms": 109611
 }

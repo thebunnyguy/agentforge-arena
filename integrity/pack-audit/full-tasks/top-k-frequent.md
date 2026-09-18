@@ -1,15 +1,15 @@
 # AgentForge Benchmark Integrity Report
 
 **Task**: `top-k-frequent`  
-**Version**: `1.0.2`  
+**Version**: `1.0.3`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T21:17:44.566810+00:00  
-**Duration**: 49193 ms
+**Timestamp**: 2026-09-18T07:16:58.893646+00:00  
+**Duration**: 48814 ms
 
-## Status: NEEDS_REVIEW
+## Status: PROVISIONAL
 
-**Reason**: mutation.generic_ast_mutants: 2/13 relevant mutant(s) survived (kill_rate=0.85 over 13 relevant of 13 generated). A surviving mutant is not automatic proof of a broken oracle — review whether each represents behavior the task contract actually promises to reject (mission §8); see evidence.survived for exact locations.
+**Reason**: controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.
 
 ## Checks
 
@@ -18,9 +18,9 @@
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required. |
 | `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['topk/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list — see findings. |
 | `controls.declared_controls` | controls | SKIPPED | medium | No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks. |
-| `mutation.generic_ast_mutants` | mutation | WARNING | medium | 2/13 relevant mutant(s) survived (kill_rate=0.85 over 13 relevant of 13 generated). A surviving mutant is not automatic proof of a broken oracle — review whether each represents behavior the task contract actually promises to reject (mission §8); see evidence.survived for exact locations. |
+| `mutation.generic_ast_mutants` | mutation | PASS | info | All 12 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 13 generated, 0 unsupported, 1 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite). |
 | `determinism.repeated_grading` | determinism | PASS | info | All 1 sampled artifact(s) graded identically across their repeats. |
 | `isolation.hidden_test_readability` | isolation_limitation | UNVERIFIABLE | high | CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically — real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission §14/§25) and is tracked as a repo-wide 'deliberately still open' item. |
 
@@ -28,23 +28,15 @@
 
 - Generated: 13
 - Unsupported (base file failed the unparse round-trip self-check): 0
-- Declared equivalent: 0
+- Declared equivalent: 1
 - Intercepted by regression/scope gate (never reached the hidden suite): 0
-- Killed by the hidden suite: 11
-- **Survived: 2**
-
-Survived mutants (review whether the task contract actually promises to reject each):
-
-| File | Line | Family | Description |
-|---|---|---|---|
-| `topk/core.py` | 17 | remove_branch | remove_branch_force_false: if k <= 0:
-        return [] (if-condition forced to False (branch never taken)) |
-| `topk/core.py` | 17 | boundary_operator | boundary_operator: k <= 0 (LtE -> Lt) |
+- Killed by the hidden suite: 12
+- **Survived: 0**
 
 ## Findings
 
-- **[HIGH] A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].** (`protected_paths.pytest_shadow_package`)
-  Injecting 'topk/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'topk/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
 
 ## Limitations
 
@@ -56,11 +48,11 @@ Survived mutants (review whether the task contract actually promises to reject e
 ## Provenance
 
 - `task_id`: top-k-frequent
-- `task_version`: 1.0.2
-- `task_json_hash`: sha256:710fb31abaf94f648cbf825515c30333898e1be0896f5e26f19a5565a30a11dd
+- `task_version`: 1.0.3
+- `task_json_hash`: sha256:22fccffe81359f113e7312304337e2c44cfcf6f15410c82d9b536da10001f9a0
 - `snapshot_hash`: sha256:11d820c237c4b26088b3a254db6180a6e9a46668befd3ccdf39d2b655a59483b
 - `reference_hash`: sha256:20d95c9e137ae74d4d2e40962d1e1d80f7fad753a41d1329081e0040eea5dbcb
-- `grading_hash`: sha256:02734c9331d8c0c1a42d145133d5986f4d7327344e1248f4d6e7659470628480
+- `grading_hash`: sha256:1885fd83b8ffa749f88ef88518e3b86bc8ed8b63647cce495179a7bf09f50e27
 - `controls_hash`: None
 - `engine_version`: 0.1.0
 - `afa_kernel_version`: 0.1.0

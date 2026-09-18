@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "refactor-order-validation",
-  "task_version": "1.0.2",
+  "task_version": "1.0.3",
   "mode": "full",
   "status": "needs_review",
-  "reason": "hidden_import_closure.gate7: The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/process.py']. Static import analysis cannot tell 'this is the intended code under test' apart from 'this is an oracle helper an agent could rewrite' when more than one file is reachable \u2014 review manually (framework \u00a78.2 gate 7).; mutation.generic_ast_mutants: 4/8 relevant mutant(s) survived (kill_rate=0.50 over 8 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T21:17:33.260089+00:00",
+  "reason": "hidden_import_closure.gate7: The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/process.py']. Static import analysis cannot tell 'this is the intended code under test' apart from 'this is an oracle helper an agent could rewrite' when more than one file is reachable \u2014 review manually (framework \u00a78.2 gate 7).",
+  "created_at": "2026-09-18T07:16:57.083796+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 22,
+            "n_hidden": 23,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+            "fingerprint": "sha256:90dd66fae75e25655ca62eaa1c126cf819fc6561a7fb6a9fe6cf9df8b7bc7354"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 22,
+            "n_hidden": 23,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+            "fingerprint": "sha256:90dd66fae75e25655ca62eaa1c126cf819fc6561a7fb6a9fe6cf9df8b7bc7354"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 22,
+            "n_hidden": 23,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+            "fingerprint": "sha256:90dd66fae75e25655ca62eaa1c126cf819fc6561a7fb6a9fe6cf9df8b7bc7354"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 22,
+            "n_hidden": 23,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+            "fingerprint": "sha256:90dd66fae75e25655ca62eaa1c126cf819fc6561a7fb6a9fe6cf9df8b7bc7354"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 22,
+            "n_hidden": 23,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d056aa925d02cfcdada20745744d44b4a3747dac98772056e4a05fc883e93410"
+            "fingerprint": "sha256:90dd66fae75e25655ca62eaa1c126cf819fc6561a7fb6a9fe6cf9df8b7bc7354"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 46,
         "lines_removed": 35
       },
-      "duration_ms": 9865
+      "duration_ms": 9972
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -97,7 +97,7 @@
         "n_hidden": 1,
         "diff_exists_gate": false
       },
-      "duration_ms": 3505
+      "duration_ms": 3345
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -133,7 +133,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -152,9 +152,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 152
+      "duration_ms": 149
     },
     {
       "check_id": "controls.declared_controls",
@@ -170,55 +171,26 @@
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "4/8 relevant mutant(s) survived (kill_rate=0.50 over 8 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 7 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 60 generated, 0 unsupported, 1 declared-equivalent, 52 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
-        "mutants_generated": 40,
+        "mutants_generated": 60,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
-        "mutants_intercepted_by_regression_or_scope": 32,
-        "mutants_relevant": 8,
-        "killed_total": 4,
-        "killed_by_hidden_test": 4,
+        "mutants_declared_equivalent": 1,
+        "mutants_intercepted_by_regression_or_scope": 52,
+        "mutants_relevant": 7,
+        "killed_total": 7,
+        "killed_by_hidden_test": 7,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 4,
-        "survived": [
-          {
-            "mutation_id": "orderkit/__init__.py:4:0:delete_state_update",
-            "file": "orderkit/__init__.py",
-            "lineno": 4,
-            "family": "delete_state_update",
-            "description": "delete_state_update: __all__ = [\"process_order\", \"to_cents\", \"format_cents\"] (assignment/state-update statement deleted (replaced with pass))"
-          },
-          {
-            "mutation_id": "orderkit/money.py:14:42:change_constant_increment",
-            "file": "orderkit/money.py",
-            "lineno": 14,
-            "family": "change_constant",
-            "description": "change_constant_increment: 100 (100 -> 101)"
-          },
-          {
-            "mutation_id": "orderkit/process.py:20:8:remove_branch_force_false",
-            "file": "orderkit/process.py",
-            "lineno": 20,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if not isinstance(item, dict):\n            raise ValueError(\"each item must be a dict\") (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "orderkit/process.py:20:8:remove_validation",
-            "file": "orderkit/process.py",
-            "lineno": 20,
-            "family": "remove_validation",
-            "description": "remove_validation: if not isinstance(item, dict):\n            raise ValueError(\"each item must be a dict\") (if-guard's raise removed (body -> pass))"
-          }
-        ],
-        "kill_rate": 0.5,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": [
-          "mutation candidate cap reached: generated 72 candidates, graded only the first 40 (deterministic order by file/line/operator); 32 candidate(s) NOT graded this run."
+          "mutation candidate cap reached: generated 72 candidates, graded only the first 60 (deterministic order by file/line/operator); 12 candidate(s) NOT graded this run."
         ]
       },
-      "duration_ms": 74552
+      "duration_ms": 107364
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -256,7 +228,7 @@
           }
         ]
       },
-      "duration_ms": 7433
+      "duration_ms": 7549
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -274,7 +246,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2401
+      "duration_ms": 2547
     }
   ],
   "mutations": [
@@ -289,9 +261,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:a329c655d8d86379860af97b55475a83cd7ce95b39b79d61e60bdc405ed6c632",
-      "notes": ""
+      "notes": "declared equivalent: delete_state_update removes the `__all__ = [\"process_order\", \"to_cents\", \"format_cents\"]` assignment entirely (orderkit/__init__.py:4). Strictly, `from orderkit import *` DOES differ: without `__all__`, Python's default star-import rule additionally exports the `process` and `money` submodule names that got bound into the package namespace by the relative imports on lines 1-2 (plus any other non-underscore-prefixed name present), whereas with `__all__` present only the three listed names are exported. But no clause of task.json's description, no docstring in reference/, and neither grading suite ever performs or depends on a wildcard import: grading/test_regression.py does `from orderkit import process_order, to_cents, format_cents` and grading/test_hidden.py does `from orderkit.process import validate_items, subtotal, apply_coupon, process_order` -- both explicit imports, byte-for-byte unaffected by __all__'s presence or absence. The one input (`import *`) for which this mutant is NOT behaviorally equivalent lies entirely outside the domain the written contract and its grading suites exercise, so it does not constitute a surviving gap against that contract."
     },
     {
       "mutation_id": "orderkit/money.py:9:4:return_constant",
@@ -360,9 +332,9 @@
       "col_offset": 42,
       "family": "change_constant",
       "description": "change_constant_increment: 100 (100 -> 101)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
       "killed_by_tests": [],
       "declared_equivalent": false,
       "diff_hash": "sha256:573dfc3c7e1469c6d89dc84340159587af2200a752797508130b4ed41d163bdc",
@@ -525,10 +497,12 @@
       "col_offset": 8,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if not isinstance(item, dict):\n            raise ValueError(\"each item must be a dict\") (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9565217391304348,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_validate_items_rejects_non_dict_container_items"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:cf98fa76ac645df2571c8aabbef50d2aa83fddd0d9a737e3c7cd3bc82bd86f30",
       "notes": ""
@@ -555,10 +529,12 @@
       "col_offset": 8,
       "family": "remove_validation",
       "description": "remove_validation: if not isinstance(item, dict):\n            raise ValueError(\"each item must be a dict\") (if-guard's raise removed (body -> pass))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9565217391304348,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_validate_items_rejects_non_dict_container_items"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:fd3fc0ee0fcf1501df010c69e1c561f10a68394064f7177aeff558a6df2bdb0a",
       "notes": ""
@@ -586,7 +562,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if \"price\" not in item or \"qty\" not in item:\n            raise ValueError(\"each item must have 'price' and 'qty'\") (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9545454545454546,
+      "final_score": 0.9565217391304348,
       "functional_pass": false,
       "killed_by_tests": [
         "test_validate_items_rejects_missing_keys"
@@ -618,7 +594,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if \"price\" not in item or \"qty\" not in item:\n            raise ValueError(\"each item must have 'price' and 'qty'\") (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9545454545454546,
+      "final_score": 0.9565217391304348,
       "functional_pass": false,
       "killed_by_tests": [
         "test_validate_items_rejects_missing_keys"
@@ -650,7 +626,7 @@
       "family": "swap_boolean_condition",
       "description": "swap_boolean_condition: \"price\" not in item or \"qty\" not in item (Or -> And)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9545454545454546,
+      "final_score": 0.9565217391304348,
       "functional_pass": false,
       "killed_by_tests": [
         "test_validate_items_rejects_missing_keys"
@@ -787,7 +763,7 @@
       "family": "boundary_operator",
       "description": "boundary_operator: price <= 0 (LtE -> Lt)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9545454545454546,
+      "final_score": 0.9565217391304348,
       "functional_pass": false,
       "killed_by_tests": [
         "test_validate_items_rejects_bad_price"
@@ -885,19 +861,322 @@
       "declared_equivalent": false,
       "diff_hash": "sha256:612bb9b0d00e837bfadebb67721df6ed448050e4c0bb45a5375dcb668822e005",
       "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:28:64:boundary_operator",
+      "file": "orderkit/process.py",
+      "lineno": 28,
+      "col_offset": 64,
+      "family": "boundary_operator",
+      "description": "boundary_operator: qty <= 0 (LtE -> Lt)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9565217391304348,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_validate_items_rejects_bad_qty"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:64a72bc017c3ffcc4ecb950a5733149e73c4be16959d6d7a9c35316c6c851bb3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:28:71:change_constant_increment",
+      "file": "orderkit/process.py",
+      "lineno": 28,
+      "col_offset": 71,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:140e2e04df85b5c38bcf6b41cb203b4176f4a16ab5a233445d0a368dfba74609",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:34:4:delete_state_update",
+      "file": "orderkit/process.py",
+      "lineno": 34,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sub = 0 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:232fb57bc8490d4c7e393a60d259a1e02ed5ba18c3dde60f2cb7d6c63f55c5b2",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:34:10:change_constant_increment",
+      "file": "orderkit/process.py",
+      "lineno": 34,
+      "col_offset": 10,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b5037bca15b63b2550ea01a9a626a32376eddaa65daff26df58cb1c5b9b33041",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:36:8:delete_state_update",
+      "file": "orderkit/process.py",
+      "lineno": 36,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sub += to_cents(item[\"price\"]) * item[\"qty\"] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:39d0e65717c24331356e9b49aa79499429c8720b14b407558cf31f07e869decb",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:37:4:return_constant",
+      "file": "orderkit/process.py",
+      "lineno": 37,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return sub (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:213a6639b029e585e411a8d5702bd172d3c38331661449564f4b898b893e8c80",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:46:4:remove_branch_force_false",
+      "file": "orderkit/process.py",
+      "lineno": 46,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if coupon is None:\n        return amount (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:bd03870590b2363e6db0703e9080b9da5a09b0937c73d9b0e5aa7e9d83b7e1c7",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:46:4:remove_branch_force_true",
+      "file": "orderkit/process.py",
+      "lineno": 46,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if coupon is None:\n        return amount (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fb308473d010e343cdce0099b41c587620b03dc09fac510a71ee3d18eb40384e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:46:7:invert_comparison",
+      "file": "orderkit/process.py",
+      "lineno": 46,
+      "col_offset": 7,
+      "family": "invert_comparison",
+      "description": "invert_comparison: coupon is None (Is -> IsNot)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a81f369b13ad73b45bf719bd339b1bb37473e93e477a02852239e180a72904d0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:47:8:return_constant",
+      "file": "orderkit/process.py",
+      "lineno": 47,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return amount (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0d61b618f51c854546705f0236c013855a4ee991108bd2a74d92051dd57d43d0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:48:4:delete_state_update",
+      "file": "orderkit/process.py",
+      "lineno": 48,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: ctype = coupon[\"type\"] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8e68a4386e12bc3d098cdad77a034808d14ebe6e48d989dd923766abeca9d408",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:49:4:delete_state_update",
+      "file": "orderkit/process.py",
+      "lineno": 49,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: value = coupon[\"value\"] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3fe89b1a81781ec9c8fb38dc5ed37dbac8b577ac858e93b164bfe83507e7c8db",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:50:4:remove_branch_force_false",
+      "file": "orderkit/process.py",
+      "lineno": 50,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if ctype == \"percent\":\n        total = amount - int(round(amount * value / 100))\n    elif ctype == \"flat\":\n        total = amount - int(round(value))\n    else:\n        raise ValueError(\"unknown coupon (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4c9a60dff977bdb85175337f9accd21eccd4e48cddb67779790f0459febfb763",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:50:4:remove_branch_force_true",
+      "file": "orderkit/process.py",
+      "lineno": 50,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if ctype == \"percent\":\n        total = amount - int(round(amount * value / 100))\n    elif ctype == \"flat\":\n        total = amount - int(round(value))\n    else:\n        raise ValueError(\"unknown coupon (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:62798da85584dc4de2a09396b7a4055574e567644db4d1d133f409318b639426",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:50:7:invert_comparison",
+      "file": "orderkit/process.py",
+      "lineno": 50,
+      "col_offset": 7,
+      "family": "invert_comparison",
+      "description": "invert_comparison: ctype == \"percent\" (Eq -> NotEq)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a95945a490e9fa9bc43c049a7d1eec947a4139713b4372ecc5d9e6e795a14772",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:51:8:delete_state_update",
+      "file": "orderkit/process.py",
+      "lineno": 51,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: total = amount - int(round(amount * value / 100)) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:87bccb60fa0c89f4457138b43e976d98fb02b19cf3e5e3c0a32fa8c93f2e7d92",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:51:52:change_constant_increment",
+      "file": "orderkit/process.py",
+      "lineno": 51,
+      "col_offset": 52,
+      "family": "change_constant",
+      "description": "change_constant_increment: 100 (100 -> 101)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:15e35d12c98265810aa16ff2e6490b36d5ede34b1b8a44f0132303b722a4936e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:51:52:change_constant_zero",
+      "file": "orderkit/process.py",
+      "lineno": 51,
+      "col_offset": 52,
+      "family": "change_constant",
+      "description": "change_constant_zero: 100 (100 -> 0)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:14a88541ef31911f3a8ecde52ede535eb78e6f6851755f73c2ab7c6f0cbbaedc",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:52:4:remove_branch_force_false",
+      "file": "orderkit/process.py",
+      "lineno": 52,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: elif ctype == \"flat\":\n        total = amount - int(round(value))\n    else:\n        raise ValueError(\"unknown coupon type: {0}\".format(ctype)) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c4a7817e733b0a8bbfb509b2a2e9ceb80960bc76c87971b0825caf16492ff0ad",
+      "notes": ""
+    },
+    {
+      "mutation_id": "orderkit/process.py:52:4:remove_branch_force_true",
+      "file": "orderkit/process.py",
+      "lineno": 52,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: elif ctype == \"flat\":\n        total = amount - int(round(value))\n    else:\n        raise ValueError(\"unknown coupon type: {0}\".format(ctype)) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:44490bdb863c085d727af62e23aa7b1bd4b2e119a7f9ff65c54069fcb10f37cf",
+      "notes": ""
     }
   ],
   "controls": [],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'orderkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'orderkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "orderkit/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -909,11 +1188,11 @@
   ],
   "provenance": {
     "task_id": "refactor-order-validation",
-    "task_version": "1.0.2",
-    "task_json_hash": "sha256:1a8f44a92d988abd17bf34587b2ec1c01c0e9126e0374d36cc593d52d5ba7f49",
+    "task_version": "1.0.3",
+    "task_json_hash": "sha256:12b6a81e03122e235be61fdc1b4ba5699402c31336c17b61b45fc12d3ff2c34f",
     "snapshot_hash": "sha256:4b29e27e6d180216fded49e1a77d1fadaa0698e43b5152c18e13d6c3aa32f856",
     "reference_hash": "sha256:b2bf5c07776faa4ff56f7076641c209fd5bca28c0e096bdc6d87520336edd4e8",
-    "grading_hash": "sha256:e16fce909daf4245a05596c7b55dded2bc39d9ee3f3d1a71e0db1b782214e06b",
+    "grading_hash": "sha256:e947850412d5f52e298e8f33d51289e994640fc355dca540c7c6cf753379c0ba",
     "controls_hash": null,
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -921,5 +1200,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 97922
+  "duration_ms": 130942
 }

@@ -684,3 +684,118 @@ a one-line basename addition like the `pytest.py` fix from mission 1), for
 a scenario with zero current exposure. Documented as a residual, currently
 inert limitation instead, exactly as mission-2 §14 anticipates ("or
 whether it must remain a documented LocalSandbox limitation").
+
+## 2026-09-18 — An OS-level file-access outage hit mid-remediation
+
+Partway through applying the two remediation workflows' results, every tool
+touching `/Users/manuk/Downloads/...` (Bash subprocesses AND the Read/Edit
+tools themselves) started failing with `EPERM: Operation not permitted` —
+first for `python3`/`ls`/`cat`, then escalating to `Read`/`Edit`, while
+`stat`/`touch` kept working on the exact same paths. `git status`/`git -C
+... status` failed at `Unable to read current working directory`, a total
+block, not a file-specific one. Independently confirmed by three concurrent
+subagents (fixing `async-timeout`, `paginator`, `query-builder`) hitting the
+identical symptom at the same time, ruling out a single-process fluke.
+
+Best-supported diagnosis (not fully confirmed, since it resolved before
+root-causing further): a macOS TCC "Files and Folders / Downloads Folder"
+permission revoked mid-session for whatever process runs these tools' shells
+— `stat`/`touch` can succeed under TCC gating that still blocks `open`/
+`readdir`, which matches the exact split observed. The system volume was
+also at 100% capacity (889Gi/926Gi) at the time, a plausibly-contributing
+but not fully explanatory factor on its own.
+
+**Handling**: every in-flight subagent correctly stopped mutating files the
+moment tool calls started failing, hand-backed a structured report of what
+it had confirmed vs. designed-but-unverified, and did not attempt to route
+around the block through a peer session (recognized and declined as
+permission laundering). Three subagents' completed edits (paginator,
+query-builder, result-type) had already landed via the Edit tool before the
+outage and survived it intact. One (async-timeout) had only reached the
+design stage; its prepared fix (reviewed and found correct before applying)
+was manually applied by the orchestrating session once access returned.
+
+**Side effect discovered on recovery**: this session's own `/private/tmp`
+scratchpad area (holding the structured JSON returned by the first
+remediation workflow) was gone once access returned — apparently cleared
+during whatever recovery/remount happened, not something any agent deleted.
+The remediation manifest below was rebuilt from git history instead (the
+commit messages for `e2e4513`/`36650d7` already carried the full per-task
+finding/classification/action detail) plus a fresh `runs.sqlite` query —
+a durable source that didn't depend on ephemeral session state surviving.
+**Lesson for next time**: anything meant to outlive a single tool call
+should land in the git-tracked working tree or a committed file as soon as
+it's ready, not held only in an agent's return value or scratch directory.
+
+## 2026-09-18 — Post-remediation FULL pack audit (commit `36650d7`)
+
+Ran `python -m afa_integrity audit --all --full --max-mutants 60` against
+the fully-remediated tree. Before vs. after mission 2:
+
+```
+              BEFORE (bf475b9)   AFTER (36650d7)
+HEALTHY               2                15
+NEEDS_REVIEW          14                2
+PROVISIONAL           5                 7
+INVALID               3                 0
+```
+
+**INVALID: 3 → 0.** All three originally-INVALID tasks are now HEALTHY.
+**NEEDS_REVIEW: 14 → 2** — `fix-list-dedup` (mutation adequacy could not be
+assessed this run: every generated mutant was intercepted by the
+regression/scope gate before reaching the hidden suite — an engine-reported
+limitation, not a new defect) and `refactor-order-validation` (the gate7
+import-closure WARNING, already investigated and confirmed
+`BENIGN_IMPORT_CLOSURE` — the engine has no mechanism to auto-clear a
+structurally-correct WARNING once a human has reviewed it, which is
+intentional: silently downgrading it would be exactly the "make the grader
+look healthy" behavior mission 2's north star prohibits).
+
+**PROVISIONAL: 5 → 7** (up, not down) — this is correct, not a regression.
+Several tasks that were NEEDS_REVIEW before (their hidden suite got fixed,
+clearing the mutation/gap findings) still have zero declared controls, so
+they land in PROVISIONAL rather than HEALTHY: `async-first-success`,
+`async-gather-bounded`, `grid-paths`, `merge-intervals`, `top-k-frequent`
+(all newly PROVISIONAL, having graduated out of NEEDS_REVIEW) plus
+`async-batched` and `two-sum-indices` (unchanged, already PROVISIONAL).
+None of these were force-fed controls just to inflate the HEALTHY count —
+per the mission's own instruction, "quality > quantity" and PROVISIONAL for
+"no controls declared" is an honest, correct state, not a defect to hide.
+
+**Evidence storage policy applied** (`docs/AUDIT_EVIDENCE_POLICY.md`):
+kept per-task detailed JSON+MD for the 18 version-changed tasks (all
+manifest-relevant) plus `fix-binary-search` and `fix-roman-numerals` (both
+newly HEALTHY via declared-equivalent-mutant/controls work worth a
+permanent worked example); dropped the routine, untouched-by-mission-2
+`escape-html`, `implement-lru-cache`, `async-batched`, `two-sum-indices`
+per-task files (their one-line pack-summary entry already says everything
+needed; full evidence is one CLI command away on demand).
+
+## Remediation manifest (`integrity/pack-audit/remediation-manifest.{json,md}`)
+
+18 tasks, 540 historical runs (6 models × 5 reps × 18 tasks) no longer
+directly comparable to their new task version, 51 model/task cells that
+previously scored a functional PASS and are the highest-priority
+re-evaluation targets (queried fresh from `reports/runs.sqlite`, not
+estimated). One correction applied during manifest assembly: `toposort`'s
+own remediation report had concluded `reevaluation_required: false`,
+reasoning that because the integrity engine's synthetic-control audit
+already flagged it INVALID, no real historical run was affected — a
+category error (the engine's synthetic verdict says nothing about the 30
+real historical runs, all of which scored `functional_pass=False` anyway,
+since toposort is a task no model in the pack has ever solved). Corrected
+to `true`, consistent with every other version-bumped task, with the
+reasoning error documented in the manifest entry itself.
+
+Spot-checked (not assumed) whether any REAL historical submission actually
+exploited the two most severe fixed gaps, by reading the actual stored
+patches: none of `sanitize-filename`'s 10 historically-passing submissions
+use a character-allowlist pattern, and none of `validate-redirect-url`'s 4
+use substring/`in`-based host matching (all use exact `==`) — so while the
+fixes close genuinely real vulnerability classes (confirmed via synthetic
+controls empirically accepted by the old suite), no *currently stored*
+score is definitively known to be wrong for these two tasks specifically.
+Re-evaluation is still required to make any *current* claim (the grading
+instrument changed), but this is an honest, evidence-checked distinction
+between "the gap is real" and "we know a specific stored score is wrong" —
+not an assumption in either direction.

@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "async-first-success",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 3/21 relevant mutant(s) survived (kill_rate=0.86 over 21 relevant of 21 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T21:16:36.441082+00:00",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-18T07:14:53.991522+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+            "fingerprint": "sha256:ae8c8ca7f4de8f23043c8d8c51a9467b5ba96c5c1f33f0740c42bfa8d58fa140"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+            "fingerprint": "sha256:ae8c8ca7f4de8f23043c8d8c51a9467b5ba96c5c1f33f0740c42bfa8d58fa140"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+            "fingerprint": "sha256:ae8c8ca7f4de8f23043c8d8c51a9467b5ba96c5c1f33f0740c42bfa8d58fa140"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+            "fingerprint": "sha256:ae8c8ca7f4de8f23043c8d8c51a9467b5ba96c5c1f33f0740c42bfa8d58fa140"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:c099b32686cc213d2fbf91251a38907e8c3901c388370c4108ea5db5761138a5"
+            "fingerprint": "sha256:ae8c8ca7f4de8f23043c8d8c51a9467b5ba96c5c1f33f0740c42bfa8d58fa140"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 36,
         "lines_removed": 3
       },
-      "duration_ms": 11034
+      "duration_ms": 15302
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -94,10 +94,10 @@
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 6,
+        "n_hidden": 8,
         "diff_exists_gate": false
       },
-      "duration_ms": 2082
+      "duration_ms": 8477
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 2
+      "duration_ms": 4
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,9 +149,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 145
+      "duration_ms": 290
     },
     {
       "check_id": "controls.declared_controls",
@@ -167,46 +168,24 @@
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "3/21 relevant mutant(s) survived (kill_rate=0.86 over 21 relevant of 21 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 21 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 21 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 21,
         "mutants_unsupported": 0,
         "mutants_declared_equivalent": 0,
         "mutants_intercepted_by_regression_or_scope": 0,
         "mutants_relevant": 21,
-        "killed_total": 18,
-        "killed_by_hidden_test": 16,
+        "killed_total": 21,
+        "killed_by_hidden_test": 19,
         "killed_by_timeout_or_error": 2,
-        "survived_count": 3,
-        "survived": [
-          {
-            "mutation_id": "afirst/first.py:14:4:remove_branch_force_false",
-            "file": "afirst/first.py",
-            "lineno": 14,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "afirst/first.py:14:4:remove_validation",
-            "file": "afirst/first.py",
-            "lineno": 14,
-            "family": "remove_validation",
-            "description": "remove_validation: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-guard's raise removed (body -> pass))"
-          },
-          {
-            "mutation_id": "afirst/first.py:40:4:drop_exception_handling",
-            "file": "afirst/first.py",
-            "lineno": 40,
-            "family": "drop_exception_handling",
-            "description": "drop_exception_handling: except BaseException:\n        await _cancel_all()\n        raise (except-handler body replaced with pass (error swallowed silently))"
-          }
-        ],
-        "kill_rate": 0.8571428571428571,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 89502
+      "duration_ms": 107123
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -226,25 +205,25 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:19ab6acb208677a5c09825164b6a0c46965314b847b87d834d236e55f7e7b3d5"
+                "fingerprint": "sha256:8190fb4028300cc0018591879d61945e3ce9f8a38854998f4d870d8b6790211c"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:19ab6acb208677a5c09825164b6a0c46965314b847b87d834d236e55f7e7b3d5"
+                "fingerprint": "sha256:8190fb4028300cc0018591879d61945e3ce9f8a38854998f4d870d8b6790211c"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:19ab6acb208677a5c09825164b6a0c46965314b847b87d834d236e55f7e7b3d5"
+                "fingerprint": "sha256:8190fb4028300cc0018591879d61945e3ce9f8a38854998f4d870d8b6790211c"
               }
             ]
           }
         ]
       },
-      "duration_ms": 5699
+      "duration_ms": 7131
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -262,7 +241,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 3244
+      "duration_ms": 3729
     }
   ],
   "mutations": [
@@ -282,6 +261,8 @@
         "test_all_fail_raises_last_exception",
         "test_losers_are_cancelled",
         "test_single_failure_raises",
+        "test_empty_make_coros_raises_value_error",
+        "test_external_cancellation_cancels_children_and_propagates",
         "test_all_fail_propagates_input_order_last_not_temporally_last"
       ],
       "declared_equivalent": false,
@@ -295,10 +276,12 @@
       "col_offset": 4,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_empty_make_coros_raises_value_error"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:2b7eebf01178f068b07f949a192c808e93573ae6f82291c16e632e7390cf546d",
       "notes": ""
@@ -311,7 +294,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.125,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -319,6 +302,7 @@
         "test_all_fail_raises_last_exception",
         "test_losers_are_cancelled",
         "test_single_failure_raises",
+        "test_external_cancellation_cancels_children_and_propagates",
         "test_all_fail_propagates_input_order_last_not_temporally_last"
       ],
       "declared_equivalent": false,
@@ -332,10 +316,12 @@
       "col_offset": 4,
       "family": "remove_validation",
       "description": "remove_validation: if not factories:\n        raise ValueError(\"make_coros must be non-empty\") (if-guard's raise removed (body -> pass))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_empty_make_coros_raises_value_error"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:b92b92d5264f1dd165ef7a0cf7222241883b7211f0805d3f64b4f13fc85a0ed2",
       "notes": ""
@@ -356,6 +342,8 @@
         "test_all_fail_raises_last_exception",
         "test_losers_are_cancelled",
         "test_single_failure_raises",
+        "test_empty_make_coros_raises_value_error",
+        "test_external_cancellation_cancels_children_and_propagates",
         "test_all_fail_propagates_input_order_last_not_temporally_last"
       ],
       "declared_equivalent": false,
@@ -370,7 +358,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: tasks = [asyncio.ensure_future(make()) for make in factories] (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.125,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -378,6 +366,7 @@
         "test_all_fail_raises_last_exception",
         "test_losers_are_cancelled",
         "test_single_failure_raises",
+        "test_external_cancellation_cancels_children_and_propagates",
         "test_all_fail_propagates_input_order_last_not_temporally_last"
       ],
       "declared_equivalent": false,
@@ -392,7 +381,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: index_of = {task: i for i, task in enumerate(tasks)} (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.3333333333333333,
+      "final_score": 0.5,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -412,7 +401,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: errors = [None] * len(tasks) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.3333333333333333,
+      "final_score": 0.5,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -432,7 +421,7 @@
       "family": "swap_boolean_literal",
       "description": "swap_boolean_literal: True (True -> False)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.625,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -451,7 +440,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: pending = set(tasks) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.125,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -459,6 +448,7 @@
         "test_all_fail_raises_last_exception",
         "test_losers_are_cancelled",
         "test_single_failure_raises",
+        "test_external_cancellation_cancels_children_and_propagates",
         "test_all_fail_propagates_input_order_last_not_temporally_last"
       ],
       "declared_equivalent": false,
@@ -473,7 +463,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: done, pending = await asyncio.wait(\n                pending, return_when=asyncio.FIRST_COMPLETED\n            ) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.125,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -481,6 +471,7 @@
         "test_all_fail_raises_last_exception",
         "test_losers_are_cancelled",
         "test_single_failure_raises",
+        "test_external_cancellation_cancels_children_and_propagates",
         "test_all_fail_propagates_input_order_last_not_temporally_last"
       ],
       "declared_equivalent": false,
@@ -495,7 +486,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: exc = task.exception() (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.25,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -532,7 +523,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if exc is None:\n                    result = task.result()\n                    await _cancel_all()\n                    return result (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8333333333333334,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail"
@@ -564,7 +555,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: result = task.result() (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.625,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -583,7 +574,7 @@
       "family": "return_constant",
       "description": "return_constant: return result (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.625,
       "functional_pass": false,
       "killed_by_tests": [
         "test_returns_only_success_when_others_fail",
@@ -602,7 +593,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: errors[index_of[task]] = exc (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.625,
       "functional_pass": false,
       "killed_by_tests": [
         "test_all_fail_raises_last_exception",
@@ -620,10 +611,12 @@
       "col_offset": 4,
       "family": "drop_exception_handling",
       "description": "drop_exception_handling: except BaseException:\n        await _cancel_all()\n        raise (except-handler body replaced with pass (error swallowed silently))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_external_cancellation_cancels_children_and_propagates"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:456b29a9be214be1febde11da55a105f927e0bd47c3fe08d957040639b613f65",
       "notes": ""
@@ -636,7 +629,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5,
+      "final_score": 0.625,
       "functional_pass": false,
       "killed_by_tests": [
         "test_all_fail_raises_last_exception",
@@ -655,7 +648,7 @@
       "family": "change_constant",
       "description": "change_constant_zero: 1 (1 -> 0)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.75,
       "functional_pass": false,
       "killed_by_tests": [
         "test_all_fail_raises_last_exception",
@@ -669,14 +662,15 @@
   "controls": [],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'afirst/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'afirst/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "afirst/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -688,11 +682,11 @@
   ],
   "provenance": {
     "task_id": "async-first-success",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:413fb7d7eedddc22a56a2f2233f26c8ab61229b08c5945f348240e00b0f1ee66",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:6c29f8f9ab76cf092b702b63cfdb5f83814a8c240a16f27350ff164804dd0f8d",
     "snapshot_hash": "sha256:9778f900bfaaf8de42a986eaf3dd26998e58e2d6df6f3908f140bca21662b639",
     "reference_hash": "sha256:9bd72086e237be086e1f97840f451cb1cfaa26043d90ec37df77355bae965fb0",
-    "grading_hash": "sha256:c37474eae0864d3197757a150f3d3937e3a7f592dabb961a9f823b6310e0ce09",
+    "grading_hash": "sha256:07a500c25ffc4863bca3aaab4c33917439e4799f8fe21b10eb234bdcf526de52",
     "controls_hash": null,
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -700,5 +694,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 111719
+  "duration_ms": 142069
 }

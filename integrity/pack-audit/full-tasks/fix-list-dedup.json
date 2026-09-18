@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "fix-list-dedup",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
   "status": "needs_review",
-  "reason": "noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework \u00a78.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check \u2014 it is not equivalent to the binary hidden_all_passed gate above.; mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
-  "created_at": "2026-09-17T21:15:24.038586+00:00",
+  "reason": "mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
+  "created_at": "2026-09-18T07:12:08.704666+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:3cb17615d7b0113cd60c33c4269237df4b6792f4c74fd720cda605e016676519"
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:3cb17615d7b0113cd60c33c4269237df4b6792f4c74fd720cda605e016676519"
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:3cb17615d7b0113cd60c33c4269237df4b6792f4c74fd720cda605e016676519"
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:3cb17615d7b0113cd60c33c4269237df4b6792f4c74fd720cda605e016676519"
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 6,
+            "n_hidden": 8,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:3cb17615d7b0113cd60c33c4269237df4b6792f4c74fd720cda605e016676519"
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
           }
         ],
         "n_repeats": 5,
@@ -78,26 +78,26 @@
         "lines_added": 9,
         "lines_removed": 5
       },
-      "duration_ms": 8381
+      "duration_ms": 20609
     },
     {
       "check_id": "noop.unmodified_baseline",
       "category": "negative_control",
-      "status": "warning",
-      "severity": "high",
-      "description": "The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework \u00a78.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check \u2014 it is not equivalent to the binary hidden_all_passed gate above.",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.167), and scores 0.0 / functional_pass=False, as required.",
       "evidence": {
         "final_score": 0.0,
         "functional_pass": false,
-        "t_hidden": 0.5,
+        "t_hidden": 0.16666666666666666,
         "regression_all_passed": true,
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 6,
+        "n_hidden": 8,
         "diff_exists_gate": false
       },
-      "duration_ms": 1745
+      "duration_ms": 7565
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -130,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,9 +149,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 216
+      "duration_ms": 403
     },
     {
       "check_id": "controls.declared_controls",
@@ -184,7 +185,7 @@
         "kill_rate": null,
         "notes": []
       },
-      "duration_ms": 11672
+      "duration_ms": 16659
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -204,25 +205,25 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:f1aecfa319853f60b154962d62674f5cca27837f20467b0b3697bb9c47b06b98"
+                "fingerprint": "sha256:da764868ffadd98d42038ad195e78edce45b7271220ba77a895252ad5d449f9c"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:f1aecfa319853f60b154962d62674f5cca27837f20467b0b3697bb9c47b06b98"
+                "fingerprint": "sha256:da764868ffadd98d42038ad195e78edce45b7271220ba77a895252ad5d449f9c"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:f1aecfa319853f60b154962d62674f5cca27837f20467b0b3697bb9c47b06b98"
+                "fingerprint": "sha256:da764868ffadd98d42038ad195e78edce45b7271220ba77a895252ad5d449f9c"
               }
             ]
           }
         ]
       },
-      "duration_ms": 4897
+      "duration_ms": 7886
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -240,7 +241,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2972
+      "duration_ms": 9952
     }
   ],
   "mutations": [
@@ -338,14 +339,15 @@
   "controls": [],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'listkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'listkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "listkit/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -357,11 +359,11 @@
   ],
   "provenance": {
     "task_id": "fix-list-dedup",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:4585844052dd0167f8cac54821b0312e68fe43e6ed638f8961252c7bfc68043b",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:c5b8344467d5ef86bd6da5d505ce96e407502cff4827fcd3ab13aa2a63850a49",
     "snapshot_hash": "sha256:bc096636c1ab273604c142e71f78abb349a3a564d4ad30df425b54d7bde37efa",
     "reference_hash": "sha256:4e1907024a54fdd10ed7dbd65e9e03def5ad7afcfc75781c626382479aa8e617",
-    "grading_hash": "sha256:dfbde90c3059114428f7318e72d7ffd327053e3d0d0b29e1017acc9a49818397",
+    "grading_hash": "sha256:55b532ba25b7036204296912f6bc46d350271d617dcded9a4f32f186853854c7",
     "controls_hash": null,
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -369,5 +371,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 29897
+  "duration_ms": 63125
 }

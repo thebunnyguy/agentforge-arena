@@ -4,9 +4,9 @@
   "task_id": "fix-roman-numerals",
   "task_version": "1.0.0",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 1/17 relevant mutant(s) survived (kill_rate=0.94 over 17 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T21:15:24.039424+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:12:08.705006+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -78,7 +78,7 @@
         "lines_added": 11,
         "lines_removed": 7
       },
-      "duration_ms": 8383
+      "duration_ms": 20603
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -97,7 +97,7 @@
         "n_hidden": 9,
         "diff_exists_gate": false
       },
-      "duration_ms": 1743
+      "duration_ms": 7564
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -130,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,9 +149,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 306
+      "duration_ms": 446
     },
     {
       "check_id": "controls.declared_controls",
@@ -175,37 +176,29 @@
         "fails": [],
         "warnings": []
       },
-      "duration_ms": 6677
+      "duration_ms": 8420
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "1/17 relevant mutant(s) survived (kill_rate=0.94 over 17 relevant of 27 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 16 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 27 generated, 0 unsupported, 1 declared-equivalent, 10 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 27,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 1,
         "mutants_intercepted_by_regression_or_scope": 10,
-        "mutants_relevant": 17,
+        "mutants_relevant": 16,
         "killed_total": 16,
         "killed_by_hidden_test": 16,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 1,
-        "survived": [
-          {
-            "mutation_id": "romankit/parse.py:20:11:change_constant_increment",
-            "file": "romankit/parse.py",
-            "lineno": 20,
-            "family": "change_constant",
-            "description": "change_constant_increment: 0 (0 -> 1)"
-          }
-        ],
-        "kill_rate": 0.9411764705882353,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 45512
+      "duration_ms": 99581
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -347,7 +340,7 @@
           }
         ]
       },
-      "duration_ms": 30745
+      "duration_ms": 58862
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -365,7 +358,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 4626
+      "duration_ms": 3947
     }
   ],
   "mutations": [
@@ -695,9 +688,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:c2d58d46cf629401aa77dea168973816d2f285b37fc8c4a7dcdeaafbe9d45185",
-      "notes": ""
+      "notes": "declared equivalent: change_constant_increment at romankit/parse.py:20:11 changes the sentinel initializer `prev = 0` to `prev = 1`. `prev` is read exactly once per loop iteration, in `if value < prev`, and its initializer value is only ever observed on the FIRST iteration of `for ch in reversed(s)` -- every later iteration reads whatever the previous iteration left in `prev` (either unchanged, on the `total -= value` branch, or overwritten with that iteration's `value`, on the `total += value` branch), never the original initializer. On the first iteration, `value = _VALUES[ch]` is drawn from `_VALUES.values() = {1, 5, 10, 50, 100, 500, 1000}`, whose minimum is 1. `1 < 0` is False and `1 < 1` is False, so for EVERY possible first-iteration value the comparison takes the same (else) branch under both prev=0 and prev=1, after which `prev` is set to that same `value` in both versions -- the two runs are in byte-identical state after iteration 1 and every subsequent iteration is therefore identical too. The two remaining edge cases are also unaffected: an empty string never enters the loop, so `total` returns 0 regardless of `prev`'s initial value; and a character not in `_VALUES` raises KeyError on `_VALUES[ch]` before the comparison is ever reached, identically in both versions. This holds for every input to `from_roman`, not merely well-formed Roman numerals, so it is a true equivalent mutant: no behavioral hidden test could ever distinguish it, because no input exists on which the two versions diverge."
     },
     {
       "mutation_id": "romankit/parse.py:22:8:delete_state_update",
@@ -900,14 +893,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'romankit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'romankit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "romankit/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -930,5 +924,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 98102
+  "duration_ms": 199587
 }

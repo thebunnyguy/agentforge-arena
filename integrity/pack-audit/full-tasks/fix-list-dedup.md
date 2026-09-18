@@ -1,24 +1,24 @@
 # AgentForge Benchmark Integrity Report
 
 **Task**: `fix-list-dedup`  
-**Version**: `1.0.1`  
+**Version**: `1.0.2`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T21:15:24.038586+00:00  
-**Duration**: 29897 ms
+**Timestamp**: 2026-09-18T07:12:08.704666+00:00  
+**Duration**: 63125 ms
 
 ## Status: NEEDS_REVIEW
 
-**Reason**: noop.unmodified_baseline: The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework §8.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check — it is not equivalent to the binary hidden_all_passed gate above.; mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.
+**Reason**: mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.
 
 ## Checks
 
 | Check | Category | Status | Severity | Description |
 |---|---|---|---|---|
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
-| `noop.unmodified_baseline` | negative_control | WARNING | high | The unmodified snapshot's weighted hidden pass fraction (T_hidden=0.500) is >= the documented 0.5 ceiling (framework §8.2 gate 2, 08-benchmark-design.md:74): a large fraction of hidden-test weight already passes on doing nothing, so a near-empty or trivial submission could bank substantial continuous score without solving the core requirement. This condition is documented but was never computed anywhere in the codebase before this check — it is not equivalent to the binary hidden_all_passed gate above. |
+| `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.167), and scores 0.0 / functional_pass=False, as required. |
 | `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['listkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list — see findings. |
 | `controls.declared_controls` | controls | SKIPPED | medium | No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks. |
 | `mutation.generic_ast_mutants` | mutation | WARNING | medium | No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run. |
 | `determinism.repeated_grading` | determinism | PASS | info | All 1 sampled artifact(s) graded identically across their repeats. |
@@ -35,8 +35,8 @@
 
 ## Findings
 
-- **[HIGH] A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].** (`protected_paths.pytest_shadow_package`)
-  Injecting 'listkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'listkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
 
 ## Limitations
 
@@ -48,11 +48,11 @@
 ## Provenance
 
 - `task_id`: fix-list-dedup
-- `task_version`: 1.0.1
-- `task_json_hash`: sha256:4585844052dd0167f8cac54821b0312e68fe43e6ed638f8961252c7bfc68043b
+- `task_version`: 1.0.2
+- `task_json_hash`: sha256:c5b8344467d5ef86bd6da5d505ce96e407502cff4827fcd3ab13aa2a63850a49
 - `snapshot_hash`: sha256:bc096636c1ab273604c142e71f78abb349a3a564d4ad30df425b54d7bde37efa
 - `reference_hash`: sha256:4e1907024a54fdd10ed7dbd65e9e03def5ad7afcfc75781c626382479aa8e617
-- `grading_hash`: sha256:dfbde90c3059114428f7318e72d7ffd327053e3d0d0b29e1017acc9a49818397
+- `grading_hash`: sha256:55b532ba25b7036204296912f6bc46d350271d617dcded9a4f32f186853854c7
 - `controls_hash`: None
 - `engine_version`: 0.1.0
 - `afa_kernel_version`: 0.1.0

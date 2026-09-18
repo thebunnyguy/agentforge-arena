@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "result-type",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "provisional",
-  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
-  "created_at": "2026-09-17T21:16:26.269559+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:14:24.714027+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+            "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+            "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+            "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+            "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:d80170124c6c2d4a88ac7355622b48187d70fc3ec60c8a4456faa56351d9b329"
+            "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 17,
         "lines_removed": 8
       },
-      "duration_ms": 8863
+      "duration_ms": 19065
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -94,10 +94,10 @@
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 9,
+        "n_hidden": 10,
         "diff_exists_gate": false
       },
-      "duration_ms": 2295
+      "duration_ms": 2497
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 1
+      "duration_ms": 2
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,20 +149,38 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 184
+      "duration_ms": 189
     },
     {
       "check_id": "controls.declared_controls",
       "category": "controls",
-      "status": "skipped",
-      "severity": "medium",
-      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
       "evidence": {
-        "n_controls": 0
+        "n_controls": 6,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 2,
+            "matched": 2
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
       },
-      "duration_ms": 0
+      "duration_ms": 23718
     },
     {
       "check_id": "mutation.generic_ast_mutants",
@@ -184,14 +202,14 @@
         "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 46050
+      "duration_ms": 66852
     },
     {
       "check_id": "determinism.repeated_grading",
       "category": "determinism",
       "status": "pass",
       "severity": "info",
-      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "description": "All 7 sampled artifact(s) graded identically across their repeats.",
       "evidence": {
         "samples": [
           {
@@ -204,25 +222,181 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:94e231e578430bcaf43571f9c2542a05bef2399aafa158182c4b7803e23f70d8"
+                "fingerprint": "sha256:dbc1988ce5fc3f489eaddb66905965b6788272f9c58da8fca69122b47e856b93"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:94e231e578430bcaf43571f9c2542a05bef2399aafa158182c4b7803e23f70d8"
+                "fingerprint": "sha256:dbc1988ce5fc3f489eaddb66905965b6788272f9c58da8fca69122b47e856b93"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:94e231e578430bcaf43571f9c2542a05bef2399aafa158182c4b7803e23f70d8"
+                "fingerprint": "sha256:dbc1988ce5fc3f489eaddb66905965b6788272f9c58da8fca69122b47e856b93"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:map_calls_fn_on_err",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:92d58a816c5db6a19277508bcaf36d99e35b3f6eaa986c1585184f1dedcff5a7"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:92d58a816c5db6a19277508bcaf36d99e35b3f6eaa986c1585184f1dedcff5a7"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:92d58a816c5db6a19277508bcaf36d99e35b3f6eaa986c1585184f1dedcff5a7"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:unwrap_err_returns_none",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:05e9d1ef14875cc110b84df1685e2d235dfe65146c74efa07da9a002534be3f7"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:05e9d1ef14875cc110b84df1685e2d235dfe65146c74efa07da9a002534be3f7"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:05e9d1ef14875cc110b84df1685e2d235dfe65146c74efa07da9a002534be3f7"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:unwrap_or_guard_reversed",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.6,
+                "functional_pass": false,
+                "fingerprint": "sha256:8d592fa8175155256a722e41c52a17e8ad81061ecb7a507a9c61502ff873597c"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.6,
+                "functional_pass": false,
+                "fingerprint": "sha256:8d592fa8175155256a722e41c52a17e8ad81061ecb7a507a9c61502ff873597c"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.6,
+                "functional_pass": false,
+                "fingerprint": "sha256:8d592fa8175155256a722e41c52a17e8ad81061ecb7a507a9c61502ff873597c"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:map_mutates_in_place",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:32df5fb4c22e0ce765418da29a9c3c32c159e3e8e43bd5489b83fe73ccb6ecf1"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:32df5fb4c22e0ce765418da29a9c3c32c159e3e8e43bd5489b83fe73ccb6ecf1"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:32df5fb4c22e0ce765418da29a9c3c32c159e3e8e43bd5489b83fe73ccb6ecf1"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:unwrap_or_truthiness_bypass",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:8ccc3c050ff89724a3fa0f940ac93048417a5cee50abc62e17fef711f6014a5c"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:8ccc3c050ff89724a3fa0f940ac93048417a5cee50abc62e17fef711f6014a5c"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.9,
+                "functional_pass": false,
+                "fingerprint": "sha256:8ccc3c050ff89724a3fa0f940ac93048417a5cee50abc62e17fef711f6014a5c"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:ok_err_subclasses",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:e687e8b51e5ed6b65cb12bf1422ffe4ea99ec7b8cdd2a74249f70402fb268e8f"
               }
             ]
           }
         ]
       },
-      "duration_ms": 6007
+      "duration_ms": 36777
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -240,7 +414,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 3577
+      "duration_ms": 3078
     }
   ],
   "mutations": [
@@ -263,7 +437,8 @@
         "test_ok_unwrap_or_returns_value",
         "test_ok_map_transforms_value",
         "test_err_map_stays_err_without_calling_fn",
-        "test_ok_with_falsy_value_unwraps_to_that_value"
+        "test_ok_with_falsy_value_unwraps_to_that_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:262cae210b34b56d721f097204a7c9bbe4b2d987bedb6214e02c2bc0e61775ae",
@@ -277,13 +452,14 @@
       "family": "delete_state_update",
       "description": "delete_state_update: self._value = value (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5555555555555556,
+      "final_score": 0.5,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_unwrap_returns_value",
         "test_ok_unwrap_or_returns_value",
         "test_ok_map_transforms_value",
-        "test_ok_with_falsy_value_unwraps_to_that_value"
+        "test_ok_with_falsy_value_unwraps_to_that_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:a11890d90afa089cd903370dc0ee033939569808161f0226408bacd837edc6da",
@@ -297,7 +473,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: self._error = error (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_unwrap_raises_value_error",
@@ -315,14 +491,15 @@
       "family": "return_constant",
       "description": "return_constant: return cls(True, value=value) (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.4444444444444444,
+      "final_score": 0.4,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_is_ok_true",
         "test_ok_unwrap_returns_value",
         "test_ok_unwrap_or_returns_value",
         "test_ok_map_transforms_value",
-        "test_ok_with_falsy_value_unwraps_to_that_value"
+        "test_ok_with_falsy_value_unwraps_to_that_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:e527baac73893944f98deb30f9075021c12cd4ef6383d14b37cc919e37d13b3e",
@@ -336,14 +513,15 @@
       "family": "swap_boolean_literal",
       "description": "swap_boolean_literal: True (True -> False)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.4444444444444444,
+      "final_score": 0.4,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_is_ok_true",
         "test_ok_unwrap_returns_value",
         "test_ok_unwrap_or_returns_value",
         "test_ok_map_transforms_value",
-        "test_ok_with_falsy_value_unwraps_to_that_value"
+        "test_ok_with_falsy_value_unwraps_to_that_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:4350689a8d29b6cc8bd57e48f1288872a8769d37cb9ba87119600de52ab0b24c",
@@ -357,7 +535,7 @@
       "family": "return_constant",
       "description": "return_constant: return cls(False, error=error) (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5555555555555556,
+      "final_score": 0.6,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_is_ok_false",
@@ -377,7 +555,7 @@
       "family": "swap_boolean_literal",
       "description": "swap_boolean_literal: False (False -> True)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5555555555555556,
+      "final_score": 0.6,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_is_ok_false",
@@ -397,13 +575,14 @@
       "family": "return_constant",
       "description": "return_constant: return self._is_ok (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5555555555555556,
+      "final_score": 0.5,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_is_ok_true",
         "test_err_is_ok_false",
         "test_ok_map_transforms_value",
-        "test_err_map_stays_err_without_calling_fn"
+        "test_err_map_stays_err_without_calling_fn",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:3128511e4b7bb2df2f105905dda61a9603959d85fa88a48bd08fe51350e521e0",
@@ -417,12 +596,13 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if self._is_ok:\n            return self._value (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.6,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_unwrap_returns_value",
         "test_ok_map_transforms_value",
-        "test_ok_with_falsy_value_unwraps_to_that_value"
+        "test_ok_with_falsy_value_unwraps_to_that_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:27fac296d066c09182f830a3922708ca17af6eb005b6be428fd1a04a43422815",
@@ -436,7 +616,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if self._is_ok:\n            return self._value (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.9,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_unwrap_raises_value_error"
@@ -453,11 +633,12 @@
       "family": "return_constant",
       "description": "return_constant: return self._value (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.7,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_unwrap_returns_value",
-        "test_ok_map_transforms_value"
+        "test_ok_map_transforms_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:547340240fb898cd909d14b4dcf86ab6841aea0a7e5b53a19c9ecd2b26a87394",
@@ -471,7 +652,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if self._is_ok:\n            return self._value (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_unwrap_or_returns_value",
@@ -489,7 +670,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if self._is_ok:\n            return self._value (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_unwrap_or_returns_default",
@@ -507,7 +688,7 @@
       "family": "return_constant",
       "description": "return_constant: return self._value (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
         "test_ok_unwrap_or_returns_value",
@@ -525,7 +706,7 @@
       "family": "return_constant",
       "description": "return_constant: return default (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_unwrap_or_returns_default",
@@ -543,10 +724,11 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if self._is_ok:\n            return Result.ok(fn(self._value)) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_ok_map_transforms_value"
+        "test_ok_map_transforms_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:46f2103b7c62aa3bc475c8c7ebc1aa99c11846b5b835bd777d9549a45b870b55",
@@ -560,7 +742,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if self._is_ok:\n            return Result.ok(fn(self._value)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.9,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_map_stays_err_without_calling_fn"
@@ -577,10 +759,11 @@
       "family": "return_constant",
       "description": "return_constant: return Result.ok(fn(self._value)) (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_ok_map_transforms_value"
+        "test_ok_map_transforms_value",
+        "test_ok_map_returns_new_result_without_mutating_original"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:c9e71d2baa938a785e782ed831b6c719f414b2d75b87952f6c9389ac08c55dbb",
@@ -594,7 +777,7 @@
       "family": "return_constant",
       "description": "return_constant: return Result.err(self._error) (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.9,
       "functional_pass": false,
       "killed_by_tests": [
         "test_err_map_stays_err_without_calling_fn"
@@ -604,39 +787,112 @@
       "notes": ""
     }
   ],
-  "controls": [],
+  "controls": [
+    {
+      "name": "map_calls_fn_on_err",
+      "kind": "known_bad",
+      "description": "Realistic bug: forgets the is_ok guard in map() and applies fn unconditionally to whatever value/error is stored, instead of no-op'ing on err results. On an err result this calls fn(self._error) and wraps the result in a NEW ok Result, silently turning a failure into a success and invoking fn on data the contract says must never be touched. The hidden suite's test_err_map_stays_err_without_calling_fn (which records calls made to fn and asserts the result stays is_ok=False) must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_err_map_stays_err_without_calling_fn']"
+    },
+    {
+      "name": "unwrap_err_returns_none",
+      "kind": "known_bad",
+      "description": "Realistic bug: unwrap() forgets that an err result must raise ValueError, and instead returns the stored error value directly (a common mistake when someone assumes unwrap() should always 'give back what's inside', mirroring unwrap_or's shape instead of the ok/err contract). The hidden suite's test_err_unwrap_raises_value_error (pytest.raises(ValueError)) must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_err_unwrap_raises_value_error']"
+    },
+    {
+      "name": "unwrap_or_guard_reversed",
+      "kind": "known_bad",
+      "description": "Realistic bug: the is_ok branch in unwrap_or() is flipped, so an ok result returns the caller's default instead of its stored value, and an err result returns its (nonexistent/None) value instead of the default. A plausible copy-paste/negation slip when writing the two branches. The hidden suite's test_ok_unwrap_or_returns_value and test_err_unwrap_or_returns_default must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_err_unwrap_or_returns_default', 'test_ok_unwrap_or_returns_value', 'test_err_map_stays_err_without_calling_fn', 'test_ok_with_falsy_value_unwraps_to_that_value']"
+    },
+    {
+      "name": "map_mutates_in_place",
+      "kind": "semantic_mutant",
+      "description": "Task-specific semantic mutant probing whether the hidden suite actually enforces the contract's 'returns a NEW ok Result' wording for map() on an ok result. This mutant mutates self._value in place and returns self instead of constructing a fresh Result, so the original Result object is silently changed as a side effect (aliasing bug: any other reference to the original ok result observes the mapped value too). Every visible/hidden assertion only inspects the RETURNED object's is_ok/unwrap(), never object identity or whether the original Result was left untouched, so this is expected to test whether that specific contract clause is actually graded.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_ok_map_returns_new_result_without_mutating_original']"
+    },
+    {
+      "name": "unwrap_or_truthiness_bypass",
+      "kind": "semantic_mutant",
+      "description": "Task-specific semantic mutant: unwrap_or() branches on the truthiness of the stored value instead of the is_ok flag ('return self._value if self._value else default'). This passes for any ok result holding a truthy value and happens to also pass for err results (whose _value is None, hence falsy), so it looks correct under casual testing and even under a naive happy-path suite. It only breaks the explicit falsy-value contract: Result.ok(0).unwrap_or(99) wrongly returns 99, and Result.ok(False).unwrap_or('default') wrongly returns 'default'. The hidden suite's test_ok_with_falsy_value_unwraps_to_that_value (added specifically to pin 'branch on ok-ness, not on the truthiness of the value') must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_ok_with_falsy_value_unwraps_to_that_value']"
+    },
+    {
+      "name": "ok_err_subclasses",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent design: instead of the reference's single Result class carrying an is_ok flag plus value/error slots, this splits Result into a base class and two concrete subclasses, _Ok and _Err, each implementing is_ok/unwrap/unwrap_or/map for its own case. Result.ok()/Result.err() are factory classmethods that construct the appropriate subclass. Control flow moves from branching on a stored boolean to dispatching via subclass method overrides, but every observable behavior (is_ok, unwrap, unwrap_or, map's no-op-without-calling-fn on err) matches the contract exactly.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'resultkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'resultkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "resultkit/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
   "limitations": [
     "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
-    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
     "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
     "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
   ],
   "provenance": {
     "task_id": "result-type",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:06d694bc78f271c676f408ee546db6baba423aa0e2b86512c876dd16b919db4e",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:747fa068d75e4a5d5215a36c09eceab1418193ccf002fa22d969a9f5f8918dff",
     "snapshot_hash": "sha256:88619df6d32369c3265e1bff793b0ef60dc0dbf2b2f072d10e498e0eddc4abb3",
     "reference_hash": "sha256:f632541f80e8b6eca26239d98d5bb9752abd1a50ea1172eab9e66192a6c00297",
-    "grading_hash": "sha256:4a7a3faa61818d0fc13f51dda4bfba89e7dc5bb85c1179f3625d9d09a7e6b8c4",
-    "controls_hash": null,
+    "grading_hash": "sha256:70f22bb2c35b33355415761c7f00d82cce99ec47aca8d6366f240296f20a5ddf",
+    "controls_hash": "sha256:7c2825ec0c055ae29d9d942a5fadeeb16db571c92083826a203542f683af410d",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
     "afa_runner_version": "0.2.0",
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 66989
+  "duration_ms": 152367
 }

@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "sanitize-filename",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "invalid",
-  "reason": "known-bad control 'strict_allowlist' was ACCEPTED (should have been rejected by the hidden suite)",
-  "created_at": "2026-09-17T21:16:29.530953+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:14:35.875102+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 10,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+            "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 10,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+            "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 10,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+            "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 10,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+            "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 10,
+            "n_hidden": 13,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+            "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
           }
         ],
         "n_repeats": 5,
@@ -78,26 +78,26 @@
         "lines_added": 17,
         "lines_removed": 7
       },
-      "duration_ms": 9881
+      "duration_ms": 18054
     },
     {
       "check_id": "noop.unmodified_baseline",
       "category": "negative_control",
       "status": "pass",
       "severity": "info",
-      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.300), and scores 0.0 / functional_pass=False, as required.",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.462), and scores 0.0 / functional_pass=False, as required.",
       "evidence": {
         "final_score": 0.0,
         "functional_pass": false,
-        "t_hidden": 0.3,
+        "t_hidden": 0.46153846153846156,
         "regression_all_passed": true,
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 10,
+        "n_hidden": 13,
         "diff_exists_gate": false
       },
-      "duration_ms": 2212
+      "duration_ms": 2670
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 2
+      "duration_ms": 6
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,22 +149,23 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 230
+      "duration_ms": 229
     },
     {
       "check_id": "controls.declared_controls",
       "category": "controls",
-      "status": "fail",
-      "severity": "critical",
-      "description": "1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: strict_allowlist. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
       "evidence": {
         "n_controls": 5,
         "by_kind": {
           "known_bad": {
             "n": 3,
-            "matched": 2
+            "matched": 3
           },
           "semantic_mutant": {
             "n": 1,
@@ -176,49 +177,32 @@
           }
         },
         "errors": [],
-        "fails": [
-          "strict_allowlist"
-        ],
+        "fails": [],
         "warnings": []
       },
-      "duration_ms": 10271
+      "duration_ms": 21309
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "2/24 relevant mutant(s) survived (kill_rate=0.92 over 24 relevant of 24 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 22 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 24 generated, 0 unsupported, 2 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 24,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 2,
         "mutants_intercepted_by_regression_or_scope": 0,
-        "mutants_relevant": 24,
+        "mutants_relevant": 22,
         "killed_total": 22,
         "killed_by_hidden_test": 22,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 2,
-        "survived": [
-          {
-            "mutation_id": "safename/name.py:27:4:remove_branch_force_false",
-            "file": "safename/name.py",
-            "lineno": 27,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if \"..\" in components:\n        raise ValueError(\"filename must not contain a '..' component: %r\" % (name,)) (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "safename/name.py:27:4:remove_validation",
-            "file": "safename/name.py",
-            "lineno": 27,
-            "family": "remove_validation",
-            "description": "remove_validation: if \"..\" in components:\n        raise ValueError(\"filename must not contain a '..' component: %r\" % (name,)) (if-guard's raise removed (body -> pass))"
-          }
-        ],
-        "kill_rate": 0.9166666666666666,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 55620
+      "duration_ms": 69022
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -238,19 +222,19 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:749dbd511186677dab98bd978e4f012b822af292fdfcb5b845abd61ca71a14fb"
+                "fingerprint": "sha256:808b4bfae9ca045bd5f68a4bf71f44e04215d4a24968ac0554b6ec1b87153795"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:749dbd511186677dab98bd978e4f012b822af292fdfcb5b845abd61ca71a14fb"
+                "fingerprint": "sha256:808b4bfae9ca045bd5f68a4bf71f44e04215d4a24968ac0554b6ec1b87153795"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:749dbd511186677dab98bd978e4f012b822af292fdfcb5b845abd61ca71a14fb"
+                "fingerprint": "sha256:808b4bfae9ca045bd5f68a4bf71f44e04215d4a24968ac0554b6ec1b87153795"
               }
             ]
           },
@@ -262,21 +246,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.6,
+                "final_score": 0.6923076923076923,
                 "functional_pass": false,
-                "fingerprint": "sha256:881cd9640becb1fda8a276e440ae2551df7ff9642f1ef37eb577f8ad486282bd"
+                "fingerprint": "sha256:8d7e0db70f6c8864552b2b717d466350da54b0daf315f520312eb4af6c72857c"
               },
               {
                 "attempt": 1,
-                "final_score": 0.6,
+                "final_score": 0.6923076923076923,
                 "functional_pass": false,
-                "fingerprint": "sha256:881cd9640becb1fda8a276e440ae2551df7ff9642f1ef37eb577f8ad486282bd"
+                "fingerprint": "sha256:8d7e0db70f6c8864552b2b717d466350da54b0daf315f520312eb4af6c72857c"
               },
               {
                 "attempt": 2,
-                "final_score": 0.6,
+                "final_score": 0.6923076923076923,
                 "functional_pass": false,
-                "fingerprint": "sha256:881cd9640becb1fda8a276e440ae2551df7ff9642f1ef37eb577f8ad486282bd"
+                "fingerprint": "sha256:8d7e0db70f6c8864552b2b717d466350da54b0daf315f520312eb4af6c72857c"
               }
             ]
           },
@@ -288,21 +272,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+                "final_score": 0.7692307692307693,
+                "functional_pass": false,
+                "fingerprint": "sha256:4bde8a8409c1c4f212d53e25dcba77806e493ccf0d977581fbe42777cfe4a820"
               },
               {
                 "attempt": 1,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+                "final_score": 0.7692307692307693,
+                "functional_pass": false,
+                "fingerprint": "sha256:4bde8a8409c1c4f212d53e25dcba77806e493ccf0d977581fbe42777cfe4a820"
               },
               {
                 "attempt": 2,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+                "final_score": 0.7692307692307693,
+                "functional_pass": false,
+                "fingerprint": "sha256:4bde8a8409c1c4f212d53e25dcba77806e493ccf0d977581fbe42777cfe4a820"
               }
             ]
           },
@@ -314,21 +298,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.9,
+                "final_score": 0.9230769230769231,
                 "functional_pass": false,
-                "fingerprint": "sha256:f2554efabc0f75a9dabc0c68a29594d39bccb51e7a646fed7a23cf89e866ca8b"
+                "fingerprint": "sha256:b78dac6ee2f213972a0b0992e77037b78cc1ae6c7c162be506edb284cdb7a88f"
               },
               {
                 "attempt": 1,
-                "final_score": 0.9,
+                "final_score": 0.9230769230769231,
                 "functional_pass": false,
-                "fingerprint": "sha256:f2554efabc0f75a9dabc0c68a29594d39bccb51e7a646fed7a23cf89e866ca8b"
+                "fingerprint": "sha256:b78dac6ee2f213972a0b0992e77037b78cc1ae6c7c162be506edb284cdb7a88f"
               },
               {
                 "attempt": 2,
-                "final_score": 0.9,
+                "final_score": 0.9230769230769231,
                 "functional_pass": false,
-                "fingerprint": "sha256:f2554efabc0f75a9dabc0c68a29594d39bccb51e7a646fed7a23cf89e866ca8b"
+                "fingerprint": "sha256:b78dac6ee2f213972a0b0992e77037b78cc1ae6c7c162be506edb284cdb7a88f"
               }
             ]
           },
@@ -340,21 +324,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.9,
+                "final_score": 0.9230769230769231,
                 "functional_pass": false,
-                "fingerprint": "sha256:5c89560abe6e9e6a77474f92a789dcb0fd90802653e7b9c57d4dac33855614f3"
+                "fingerprint": "sha256:b3fa92f55a7cd3b1baa3a13422f337dc761ae20123ee6190281a28ec22c16ea1"
               },
               {
                 "attempt": 1,
-                "final_score": 0.9,
+                "final_score": 0.9230769230769231,
                 "functional_pass": false,
-                "fingerprint": "sha256:5c89560abe6e9e6a77474f92a789dcb0fd90802653e7b9c57d4dac33855614f3"
+                "fingerprint": "sha256:b3fa92f55a7cd3b1baa3a13422f337dc761ae20123ee6190281a28ec22c16ea1"
               },
               {
                 "attempt": 2,
-                "final_score": 0.9,
+                "final_score": 0.9230769230769231,
                 "functional_pass": false,
-                "fingerprint": "sha256:5c89560abe6e9e6a77474f92a789dcb0fd90802653e7b9c57d4dac33855614f3"
+                "fingerprint": "sha256:b3fa92f55a7cd3b1baa3a13422f337dc761ae20123ee6190281a28ec22c16ea1"
               }
             ]
           },
@@ -368,25 +352,25 @@
                 "attempt": 0,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+                "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
               },
               {
                 "attempt": 1,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+                "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
               },
               {
                 "attempt": 2,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:4b7a3c2321ab352ed31fdd55c9578f94824a1a2709697aeaeb6bfb3e8ab48b61"
+                "fingerprint": "sha256:aa97fcc746103753d1e14be8f5b8a42840b940bec3b6153fabc1bcacd66e0d55"
               }
             ]
           }
         ]
       },
-      "duration_ms": 33849
+      "duration_ms": 32190
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -404,7 +388,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 3301
+      "duration_ms": 3320
     }
   ],
   "mutations": [
@@ -416,7 +400,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if not name:\n        raise ValueError(\"filename must not be empty\") (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "killed_by_tests": [
         "test_empty_raises"
@@ -433,12 +417,15 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if not name:\n        raise ValueError(\"filename must not be empty\") (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:464c687a2c975d53afd42f4397811c37e5d0e84bec074e9f46717c39411518cc",
@@ -452,7 +439,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if not name:\n        raise ValueError(\"filename must not be empty\") (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "killed_by_tests": [
         "test_empty_raises"
@@ -469,13 +456,16 @@
       "family": "drop_not",
       "description": "drop_not: not name (unary 'not' dropped)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6,
+      "final_score": 0.46153846153846156,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
         "test_empty_raises",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:90a7532feed89cd68627a9c8f8a6526ecaac9457a1a3a2c15ee70ba09183d2f6",
@@ -489,7 +479,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if \"\\x00\" in name:\n        raise ValueError(\"filename must not contain a null byte\") (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "killed_by_tests": [
         "test_null_byte_raises"
@@ -506,12 +496,15 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if \"\\x00\" in name:\n        raise ValueError(\"filename must not contain a null byte\") (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:fcc0d91e59134ef13b9882bcbe36f02cc0ce314eb5f5abe4fd7e9ccbbb340c08",
@@ -525,7 +518,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if \"\\x00\" in name:\n        raise ValueError(\"filename must not contain a null byte\") (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "killed_by_tests": [
         "test_null_byte_raises"
@@ -542,13 +535,16 @@
       "family": "invert_comparison",
       "description": "invert_comparison: \"\\x00\" in name (In -> NotIn)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6,
+      "final_score": 0.46153846153846156,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
         "test_null_byte_raises",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:2e32ca2443eb1157f935f491a79630d1197408708c2d90a1e55605481ca79636",
@@ -562,7 +558,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if \"/\" in name or \"\\\\\" in name:\n        raise ValueError(\"filename must not contain a path separator: %r\" % (name,)) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8,
+      "final_score": 0.8461538461538461,
       "functional_pass": false,
       "killed_by_tests": [
         "test_separator_raises",
@@ -580,12 +576,15 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if \"/\" in name or \"\\\\\" in name:\n        raise ValueError(\"filename must not contain a path separator: %r\" % (name,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:425923a89e803901630dda86562c75a20d7ec6bb44376b1eac86d9999418ede9",
@@ -599,7 +598,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if \"/\" in name or \"\\\\\" in name:\n        raise ValueError(\"filename must not contain a path separator: %r\" % (name,)) (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8,
+      "final_score": 0.8461538461538461,
       "functional_pass": false,
       "killed_by_tests": [
         "test_separator_raises",
@@ -617,13 +616,16 @@
       "family": "invert_comparison",
       "description": "invert_comparison: \"/\" in name (In -> NotIn)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6,
+      "final_score": 0.46153846153846156,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
         "test_separator_raises",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:69778170fb818873217d5946a3a4ca410ab89478d6e5b58792dafdf81f65dfe1",
@@ -637,7 +639,7 @@
       "family": "swap_boolean_condition",
       "description": "swap_boolean_condition: \"/\" in name or \"\\\\\" in name (Or -> And)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8,
+      "final_score": 0.8461538461538461,
       "functional_pass": false,
       "killed_by_tests": [
         "test_separator_raises",
@@ -655,13 +657,16 @@
       "family": "invert_comparison",
       "description": "invert_comparison: \"\\\\\" in name (In -> NotIn)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6,
+      "final_score": 0.46153846153846156,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
         "test_backslash_separator_raises",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:e675bee1fd9377c5f848b9e8e27b2e914dba6c42b4344379e55af8097a30c496",
@@ -675,7 +680,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if name in (\".\", \"..\"):\n        raise ValueError(\"filename must not be a relative directory ref: %r\" % (name,)) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "killed_by_tests": [
         "test_single_dot_raises"
@@ -692,12 +697,15 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if name in (\".\", \"..\"):\n        raise ValueError(\"filename must not be a relative directory ref: %r\" % (name,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:9b9a2f2f5de0c0f2094592393115ac665454b721b9786117d0f05aa3508bab6f",
@@ -711,7 +719,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if name in (\".\", \"..\"):\n        raise ValueError(\"filename must not be a relative directory ref: %r\" % (name,)) (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "killed_by_tests": [
         "test_single_dot_raises"
@@ -728,13 +736,16 @@
       "family": "invert_comparison",
       "description": "invert_comparison: name in (\".\", \"..\") (In -> NotIn)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6,
+      "final_score": 0.46153846153846156,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
         "test_single_dot_raises",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:2735bd596a298147d740dab2637bf5737bb4479d6eff6647cb98ac3846761c8c",
@@ -748,12 +759,15 @@
       "family": "delete_state_update",
       "description": "delete_state_update: components = name.replace(\"\\\\\", \"/\").split(\"/\") (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:f62f51723caf84b2838cc95a9951a803bb046b49c88d6fb9954b9b735b656c73",
@@ -770,9 +784,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:95faa7465d726408f7d5b05dadf403f8e49bfabd543fa8798c9924ddd760587a",
-      "notes": ""
+      "notes": "declared equivalent: remove_branch_force_false on line 27 (`if \"..\" in components:`) forces this branch to never be taken. Tracing control flow in the reference: any name containing '/' or '\\\\' is already rejected earlier (line 21), so by the time line 26 runs (`components = name.replace(\"\\\\\", \"/\").split(\"/\")`), name contains neither separator and components is always exactly [name] (a single-element list). Therefore `\"..\" in components` is equivalent to `name == \"..\"`, which was already rejected earlier still (line 23's `name in (\".\", \"..\")` check). The condition at line 27 is provably always False for every input that reaches it, on any input the task contract cares about -- it is dead code given the current (correct) check ordering, so forcing it to never fire changes nothing. Confirmed empirically: the sibling remove_branch_force_true mutant at the same line (which forces the branch to always fire) IS correctly killed by the hidden suite (breaks plain names), and invert_comparison at the same line is also correctly killed -- both because they change behavior on inputs that DO reach line 27, unlike force_false/remove_validation which only affect the (empty) set of inputs for which the guard would have been True."
     },
     {
       "mutation_id": "safename/name.py:27:4:remove_branch_force_true",
@@ -782,12 +796,15 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if \"..\" in components:\n        raise ValueError(\"filename must not contain a '..' component: %r\" % (name,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:5f52b99f927360dc45078dccb4d1108a1bbd15731df8010ca94482d078ab66be",
@@ -804,9 +821,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:70a167de79f220588ebd7139c72f0dac8bcebb5cf2221f4cca1d019c0fdd8090",
-      "notes": ""
+      "notes": "declared equivalent: remove_validation on line 27 (`if \"..\" in components: raise ...`) replaces the raise with a no-op, i.e. it removes the ValueError but leaves the (always-False, per the reasoning above) condition check in place. Since the guard's condition can never be True for any input that reaches it -- every name with a separator was already rejected at line 21, and the only name for which `\"..\" in components` could otherwise be True is the literal string \"..\", which was already rejected at line 23 -- the raise this mutant deletes could never have executed on any input in the first place. Behaviorally identical to the reference for every input, not just the existing test cases."
     },
     {
       "mutation_id": "safename/name.py:27:7:invert_comparison",
@@ -816,12 +833,15 @@
       "family": "invert_comparison",
       "description": "invert_comparison: \"..\" in components (In -> NotIn)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:9330b412af379f482a9f8fd810a6b6e01c5ce60b94e228f3a11bf0419bdee5e7",
@@ -835,12 +855,15 @@
       "family": "return_constant",
       "description": "return_constant: return name (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7,
+      "final_score": 0.5384615384615384,
       "functional_pass": false,
       "killed_by_tests": [
         "test_plain_name_unchanged",
         "test_other_plain_name_unchanged",
-        "test_inner_dots_allowed"
+        "test_inner_dots_allowed",
+        "test_name_with_space_unchanged",
+        "test_name_with_punctuation_unchanged",
+        "test_name_with_non_ascii_unchanged"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:b399bbbd574feccfd2d1a04cb7138ab8b5091320c5bd40d9408c322688c355fc",
@@ -854,7 +877,7 @@
       "description": "Misreads the task as 'sanitize' rather than 'reject': strips null bytes, normalizes backslashes to slashes, and returns only the basename instead of raising ValueError. So 'a/b', '../etc/passwd', and 'x\\x00y' are silently rewritten and returned rather than rejected, violating the required raise-on-unsafe-input contract.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6,
+      "final_score": 0.6923076923076923,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -865,12 +888,12 @@
       "kind": "known_bad",
       "description": "Adds an extra character allowlist (only [A-Za-z0-9._-] permitted) on top of the correct traversal/separator/null-byte checks, rejecting otherwise-safe names such as 'my file.txt' (space), 'r\u00e9sum\u00e9.pdf' (non-ASCII), or 'report (1).txt' (parentheses). The task spec says the name must be returned UNCHANGED unless it matches one of the five listed unsafe conditions; an extra character allowlist is not one of them, so this over-rejects valid input.",
       "expected_accept": false,
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "matched_expectation": false,
-      "status": "fail",
-      "notes": "verdict=accepted"
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7692307692307693,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_name_with_space_unchanged', 'test_name_with_punctuation_unchanged', 'test_name_with_non_ascii_unchanged']"
     },
     {
       "name": "substring_dotdot",
@@ -878,7 +901,7 @@
       "description": "Rejects '..' as a raw substring anywhere in the name instead of checking it as a whole path component. This is a realistic off-by-one on the spec: it correctly rejects traversal like '../etc/passwd', but it ALSO wrongly rejects legitimate filenames that merely contain '..', such as 'safe..file' or 'my..report.txt', which the task explicitly requires to be returned unchanged.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -890,7 +913,7 @@
       "description": "Security-relevant near-miss: uses os.sep/os.altsep to detect path separators instead of literal '/' and '\\\\'. On a POSIX grading host, os.sep is '/' and os.altsep is None, so a backslash is never recognized as a separator and 'a\\\\b' (or a Windows-style traversal payload like '..\\\\..\\\\secret') is accepted unchanged instead of being rejected. A partial or platform-naive fix for path-separator rejection is realistically likely to make exactly this mistake.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9,
+      "final_score": 0.9230769230769231,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -911,14 +934,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'safename/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'safename/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "safename/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -929,11 +953,11 @@
   ],
   "provenance": {
     "task_id": "sanitize-filename",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:f723e04092f89ddae337a57c6ef209bbe8c7f188eb098cf6532fd839e051b4d4",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:a1b04cf11490a8a66e56724f72d1d23f129c6b966533703b725b3b582ee92ee3",
     "snapshot_hash": "sha256:bf8f4ced9822a79a82e412c90564b6daaa8e38ef89c6790879fc13c00b5a3a6a",
     "reference_hash": "sha256:e92a20665e0423aab32f3b03e7b7420c610967805ab89d0126b27d2cf3f9d78c",
-    "grading_hash": "sha256:c58283d2a63dd28920b0dde61ea2f6115203c203b83de43fcac3d14cec7687b5",
+    "grading_hash": "sha256:b3565507739c3c3d9568e5c2ab336b0ae4d9816ade58a40d30009baed1d36978",
     "controls_hash": "sha256:3e50db285dc3e6cec61566a65b742841e46c767ce5b8956b25f8a457a0548c1a",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -941,5 +965,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 115480
+  "duration_ms": 146940
 }

@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "validate-redirect-url",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "invalid",
-  "reason": "known-bad control 'host_substring_match' was ACCEPTED (should have been rejected by the hidden suite)",
-  "created_at": "2026-09-17T21:18:25.012518+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:17:08.477696+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 11,
+            "n_hidden": 16,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+            "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 11,
+            "n_hidden": 16,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+            "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 11,
+            "n_hidden": 16,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+            "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 11,
+            "n_hidden": 16,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+            "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 11,
+            "n_hidden": 16,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+            "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
           }
         ],
         "n_repeats": 5,
@@ -78,26 +78,26 @@
         "lines_added": 40,
         "lines_removed": 7
       },
-      "duration_ms": 9055
+      "duration_ms": 9975
     },
     {
       "check_id": "noop.unmodified_baseline",
       "category": "negative_control",
       "status": "pass",
       "severity": "info",
-      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.364), and scores 0.0 / functional_pass=False, as required.",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.250), and scores 0.0 / functional_pass=False, as required.",
       "evidence": {
         "final_score": 0.0,
         "functional_pass": false,
-        "t_hidden": 0.36363636363636365,
+        "t_hidden": 0.25,
         "regression_all_passed": true,
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 11,
+        "n_hidden": 16,
         "diff_exists_gate": false
       },
-      "duration_ms": 1598
+      "duration_ms": 1709
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 1
+      "duration_ms": 2
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,22 +149,23 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 103
+      "duration_ms": 129
     },
     {
       "check_id": "controls.declared_controls",
       "category": "controls",
-      "status": "fail",
-      "severity": "critical",
-      "description": "1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: host_substring_match. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
       "evidence": {
         "n_controls": 5,
         "by_kind": {
           "known_bad": {
             "n": 3,
-            "matched": 2
+            "matched": 3
           },
           "semantic_mutant": {
             "n": 1,
@@ -176,98 +177,32 @@
           }
         },
         "errors": [],
-        "fails": [
-          "host_substring_match"
-        ],
+        "fails": [],
         "warnings": []
       },
-      "duration_ms": 7750
+      "duration_ms": 9157
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "9/31 relevant mutant(s) survived (kill_rate=0.71 over 31 relevant of 31 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 28 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 31 generated, 0 unsupported, 3 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 31,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 3,
         "mutants_intercepted_by_regression_or_scope": 0,
-        "mutants_relevant": 31,
-        "killed_total": 22,
-        "killed_by_hidden_test": 22,
+        "mutants_relevant": 28,
+        "killed_total": 28,
+        "killed_by_hidden_test": 28,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 9,
-        "survived": [
-          {
-            "mutation_id": "saferedirect/redirect.py:18:4:remove_branch_force_false",
-            "file": "saferedirect/redirect.py",
-            "lineno": 18,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if not isinstance(target, str) or not target:\n        raise ValueError(\"redirect target must be a non-empty string\") (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:18:4:remove_validation",
-            "file": "saferedirect/redirect.py",
-            "lineno": 18,
-            "family": "remove_validation",
-            "description": "remove_validation: if not isinstance(target, str) or not target:\n        raise ValueError(\"redirect target must be a non-empty string\") (if-guard's raise removed (body -> pass))"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:18:7:swap_boolean_condition",
-            "file": "saferedirect/redirect.py",
-            "lineno": 18,
-            "family": "swap_boolean_condition",
-            "description": "swap_boolean_condition: not isinstance(target, str) or not target (Or -> And)"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:23:4:remove_branch_force_false",
-            "file": "saferedirect/redirect.py",
-            "lineno": 23,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if target.startswith(\"//\"):\n        raise ValueError(\"protocol-relative redirect is not allowed: %r\" % (target,)) (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:23:4:remove_validation",
-            "file": "saferedirect/redirect.py",
-            "lineno": 23,
-            "family": "remove_validation",
-            "description": "remove_validation: if target.startswith(\"//\"):\n        raise ValueError(\"protocol-relative redirect is not allowed: %r\" % (target,)) (if-guard's raise removed (body -> pass))"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:29:7:swap_boolean_condition",
-            "file": "saferedirect/redirect.py",
-            "lineno": 29,
-            "family": "swap_boolean_condition",
-            "description": "swap_boolean_condition: not parsed.scheme and not parsed.netloc (And -> Or)"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:30:8:remove_branch_force_true",
-            "file": "saferedirect/redirect.py",
-            "lineno": 30,
-            "family": "remove_branch",
-            "description": "remove_branch_force_true: if target.startswith(\"/\"):\n            return target (if-condition forced to True (branch always taken))"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:43:4:remove_branch_force_false",
-            "file": "saferedirect/redirect.py",
-            "lineno": 43,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if not parsed.netloc:\n        raise ValueError(\"redirect target must have a host: %r\" % (target,)) (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "saferedirect/redirect.py:43:4:remove_validation",
-            "file": "saferedirect/redirect.py",
-            "lineno": 43,
-            "family": "remove_validation",
-            "description": "remove_validation: if not parsed.netloc:\n        raise ValueError(\"redirect target must have a host: %r\" % (target,)) (if-guard's raise removed (body -> pass))"
-          }
-        ],
-        "kill_rate": 0.7096774193548387,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 44569
+      "duration_ms": 57030
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -287,19 +222,19 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:9de0ea037ffd7d6f5645289fd6668db44172e24a5f0bbb11569f155cd31befe6"
+                "fingerprint": "sha256:6b1adb2e520fc8dc6b38eb706837fd1bbee6fe8eb754ac02a016d5b490acee3b"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:9de0ea037ffd7d6f5645289fd6668db44172e24a5f0bbb11569f155cd31befe6"
+                "fingerprint": "sha256:6b1adb2e520fc8dc6b38eb706837fd1bbee6fe8eb754ac02a016d5b490acee3b"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:9de0ea037ffd7d6f5645289fd6668db44172e24a5f0bbb11569f155cd31befe6"
+                "fingerprint": "sha256:6b1adb2e520fc8dc6b38eb706837fd1bbee6fe8eb754ac02a016d5b490acee3b"
               }
             ]
           },
@@ -311,21 +246,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:dc255f4f06373126eb28dc537f88560e30a42bb1aa4531f374655624e8b7f53e"
               },
               {
                 "attempt": 1,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:dc255f4f06373126eb28dc537f88560e30a42bb1aa4531f374655624e8b7f53e"
               },
               {
                 "attempt": 2,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:dc255f4f06373126eb28dc537f88560e30a42bb1aa4531f374655624e8b7f53e"
               }
             ]
           },
@@ -337,21 +272,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.9090909090909091,
+                "final_score": 0.875,
                 "functional_pass": false,
-                "fingerprint": "sha256:c8437dbd61282446a6080350ee729bdb4a1b9f3ca2a72c66d157ded90bed1bc9"
+                "fingerprint": "sha256:271efbcce0517d8b552d88b9b924d70649857f9e19b5e0597eb4623547cb16f6"
               },
               {
                 "attempt": 1,
-                "final_score": 0.9090909090909091,
+                "final_score": 0.875,
                 "functional_pass": false,
-                "fingerprint": "sha256:c8437dbd61282446a6080350ee729bdb4a1b9f3ca2a72c66d157ded90bed1bc9"
+                "fingerprint": "sha256:271efbcce0517d8b552d88b9b924d70649857f9e19b5e0597eb4623547cb16f6"
               },
               {
                 "attempt": 2,
-                "final_score": 0.9090909090909091,
+                "final_score": 0.875,
                 "functional_pass": false,
-                "fingerprint": "sha256:c8437dbd61282446a6080350ee729bdb4a1b9f3ca2a72c66d157ded90bed1bc9"
+                "fingerprint": "sha256:271efbcce0517d8b552d88b9b924d70649857f9e19b5e0597eb4623547cb16f6"
               }
             ]
           },
@@ -363,21 +298,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.9090909090909091,
+                "final_score": 0.9375,
                 "functional_pass": false,
-                "fingerprint": "sha256:c98fb225b1f748d49007d1cb919677dca7d163b371daabdf66a5c8fef820347c"
+                "fingerprint": "sha256:4a57fdd8de1bd828ac44814fbc094dc8d17f04b70d9b5334bd355c71c8c0120c"
               },
               {
                 "attempt": 1,
-                "final_score": 0.9090909090909091,
+                "final_score": 0.9375,
                 "functional_pass": false,
-                "fingerprint": "sha256:c98fb225b1f748d49007d1cb919677dca7d163b371daabdf66a5c8fef820347c"
+                "fingerprint": "sha256:4a57fdd8de1bd828ac44814fbc094dc8d17f04b70d9b5334bd355c71c8c0120c"
               },
               {
                 "attempt": 2,
-                "final_score": 0.9090909090909091,
+                "final_score": 0.9375,
                 "functional_pass": false,
-                "fingerprint": "sha256:c98fb225b1f748d49007d1cb919677dca7d163b371daabdf66a5c8fef820347c"
+                "fingerprint": "sha256:4a57fdd8de1bd828ac44814fbc094dc8d17f04b70d9b5334bd355c71c8c0120c"
               }
             ]
           },
@@ -389,21 +324,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.7272727272727273,
+                "final_score": 0.8125,
                 "functional_pass": false,
-                "fingerprint": "sha256:32aa10d023fd6a0486699c6b17524f8020e09eabe85ab0fc40b56a1b61c4de4d"
+                "fingerprint": "sha256:38ab0b5c07bfff1c4dfbc1c8f52bcd1cf3b8f04cf9fd1f1942901cfeb61492b0"
               },
               {
                 "attempt": 1,
-                "final_score": 0.7272727272727273,
+                "final_score": 0.8125,
                 "functional_pass": false,
-                "fingerprint": "sha256:32aa10d023fd6a0486699c6b17524f8020e09eabe85ab0fc40b56a1b61c4de4d"
+                "fingerprint": "sha256:38ab0b5c07bfff1c4dfbc1c8f52bcd1cf3b8f04cf9fd1f1942901cfeb61492b0"
               },
               {
                 "attempt": 2,
-                "final_score": 0.7272727272727273,
+                "final_score": 0.8125,
                 "functional_pass": false,
-                "fingerprint": "sha256:32aa10d023fd6a0486699c6b17524f8020e09eabe85ab0fc40b56a1b61c4de4d"
+                "fingerprint": "sha256:38ab0b5c07bfff1c4dfbc1c8f52bcd1cf3b8f04cf9fd1f1942901cfeb61492b0"
               }
             ]
           },
@@ -417,25 +352,25 @@
                 "attempt": 0,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+                "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
               },
               {
                 "attempt": 1,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+                "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
               },
               {
                 "attempt": 2,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:e7b18c15af4cc1fb426f312edeb81932a491a602fb6a1bfbe21f970fba83315e"
+                "fingerprint": "sha256:1e6fb693f6ae7dec9fbad648d20098a528e90c4c3158503295099490fb3343c5"
               }
             ]
           }
         ]
       },
-      "duration_ms": 22424
+      "duration_ms": 26698
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -453,7 +388,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2232
+      "duration_ms": 2423
     }
   ],
   "mutations": [
@@ -464,10 +399,12 @@
       "col_offset": 4,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if not isinstance(target, str) or not target:\n        raise ValueError(\"redirect target must be a non-empty string\") (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9375,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_non_string_target_raises"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:2a09a2097ecdeadc7a080e6907b545acda6a151111e655f95a83edf0a9e70fd6",
       "notes": ""
@@ -480,7 +417,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if not isinstance(target, str) or not target:\n        raise ValueError(\"redirect target must be a non-empty string\") (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6363636363636364,
+      "final_score": 0.75,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -499,10 +436,12 @@
       "col_offset": 4,
       "family": "remove_validation",
       "description": "remove_validation: if not isinstance(target, str) or not target:\n        raise ValueError(\"redirect target must be a non-empty string\") (if-guard's raise removed (body -> pass))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9375,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_non_string_target_raises"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:81492980f951724e98dd80495322bbed2b1aaa0d6d68be20aa724765c2ef3de3",
       "notes": ""
@@ -515,13 +454,14 @@
       "family": "drop_not",
       "description": "drop_not: not isinstance(target, str) (unary 'not' dropped)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6363636363636364,
+      "final_score": 0.6875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
         "test_relative_path_with_query_ok",
         "test_same_host_absolute_ok",
-        "test_http_same_host_absolute_ok"
+        "test_http_same_host_absolute_ok",
+        "test_non_string_target_raises"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:9d2313a966a2fc4b5624c15f78dccd14bd192decaf1ced249dc77358e98b2dea",
@@ -534,10 +474,12 @@
       "col_offset": 7,
       "family": "swap_boolean_condition",
       "description": "swap_boolean_condition: not isinstance(target, str) or not target (Or -> And)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9375,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_non_string_target_raises"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:09642a3efbea57a34cef9ea4d5662a6988d6dc677545a0ebc892a4a186377b36",
       "notes": ""
@@ -550,7 +492,7 @@
       "family": "drop_not",
       "description": "drop_not: not target (unary 'not' dropped)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6363636363636364,
+      "final_score": 0.75,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -569,10 +511,12 @@
       "col_offset": 4,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if target.startswith(\"//\"):\n        raise ValueError(\"protocol-relative redirect is not allowed: %r\" % (target,)) (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9375,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_multi_slash_protocol_relative_raises"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:90227c127e5ab62d77c9040db650e553145ff74424df382e788c4539d774e166",
       "notes": ""
@@ -585,7 +529,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if target.startswith(\"//\"):\n        raise ValueError(\"protocol-relative redirect is not allowed: %r\" % (target,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6363636363636364,
+      "final_score": 0.75,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -604,10 +548,12 @@
       "col_offset": 4,
       "family": "remove_validation",
       "description": "remove_validation: if target.startswith(\"//\"):\n        raise ValueError(\"protocol-relative redirect is not allowed: %r\" % (target,)) (if-guard's raise removed (body -> pass))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9375,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_multi_slash_protocol_relative_raises"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:0d231462bdb85252d31fd7329722edefab329aa4d52f391affc29873c43f69e2",
       "notes": ""
@@ -620,7 +566,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: parsed = urlparse(target) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.09090909090909091,
+      "final_score": 0.1875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -632,7 +578,10 @@
         "test_hosted_javascript_scheme_raises",
         "test_hosted_data_scheme_raises",
         "test_non_http_scheme_to_allowed_host_raises",
-        "test_http_same_host_absolute_ok"
+        "test_http_same_host_absolute_ok",
+        "test_host_containing_allowed_host_as_substring_raises",
+        "test_host_with_allowed_host_as_bare_prefix_raises",
+        "test_relative_path_without_leading_slash_raises"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:5a02370832b39e27e44670712a2ed052f6de2cdbefe6c9d518aed24d879602ee",
@@ -646,7 +595,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if not parsed.scheme and not parsed.netloc:\n        if target.startswith(\"/\"):\n            return target\n        raise ValueError(\"redirect target must be an absolute path: %r\" % (target,)) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -664,7 +613,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if not parsed.scheme and not parsed.netloc:\n        if target.startswith(\"/\"):\n            return target\n        raise ValueError(\"redirect target must be an absolute path: %r\" % (target,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -682,7 +631,7 @@
       "family": "drop_not",
       "description": "drop_not: not parsed.scheme (unary 'not' dropped)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -703,9 +652,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:5b23a59b50de9c9a184c79e1cb2a01851308cfb46a0c2fcddb64030cacd82189",
-      "notes": ""
+      "notes": "declared equivalent: swap_boolean_condition at redirect.py:29:7 changes `if not parsed.scheme and not parsed.netloc:` to `if not parsed.scheme or not parsed.netloc:` (And -> Or). By the time this line runs, target has already passed the line-18 non-empty-string guard and the line-23 `target.startswith(\"//\")` guard. Given urlparse's grammar, a non-empty netloc can only ever be produced from a scheme-less input by a literal '//' prefix (RFC 3986 authority component requires the '//' marker), and any such input was already rejected at line 23 -- so at line 29, `scheme == ''` implies `netloc == ''` for every surviving input, making the AND and OR conditions identical (both True) whenever scheme is empty. The two conditions can only diverge when scheme is non-empty and netloc is empty (AND is False, OR is True) -- e.g. 'javascript:alert(1)', 'mailto:x@y', 'ftp:foo'. For every such input, urlparse's scheme grammar (ALPHA (ALPHA|DIGIT|+|-|.)*) requires the first character to be alphabetic, so target can never start with '/' when scheme is non-empty. The mutant's newly-entered branch therefore always evaluates `target.startswith(\"/\")` as False and falls through to `raise ValueError(\"... must be an absolute path\")`, while the reference (skipping this branch for the same input) proceeds to line 39's scheme check and raises ValueError there instead (either 'scheme not allowed', or -- for an allowed scheme with no netloc, e.g. 'http:foo' -- 'must have a host' at line 43). Both versions raise ValueError for every input in this class; only the message/line differs, which the contract never specifies. Verified empirically by reconstructing the exact mutant and diffing accept/reject outcome AND exception type against the reference over 60+ probe inputs (all string edge cases: multi-slash, colon-only, scheme-with-empty-netloc, non-string types, case variants, userinfo tricks) -- zero observable differences found, consistent with the proof above."
     },
     {
       "mutation_id": "saferedirect/redirect.py:29:29:drop_not",
@@ -715,7 +664,7 @@
       "family": "drop_not",
       "description": "drop_not: not parsed.netloc (unary 'not' dropped)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -733,7 +682,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if target.startswith(\"/\"):\n            return target (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -750,10 +699,12 @@
       "col_offset": 8,
       "family": "remove_branch",
       "description": "remove_branch_force_true: if target.startswith(\"/\"):\n            return target (if-condition forced to True (branch always taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9375,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_relative_path_without_leading_slash_raises"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:dee16577cc662bf0e896d89c7233581445113565afeb7714a827f28e6b90b972",
       "notes": ""
@@ -766,7 +717,7 @@
       "family": "return_constant",
       "description": "return_constant: return target (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_relative_path_ok",
@@ -784,7 +735,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if parsed.scheme not in (\"http\", \"https\"):\n        raise ValueError(\"redirect scheme is not allowed: %r\" % (target,)) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7272727272727273,
+      "final_score": 0.8125,
       "functional_pass": false,
       "killed_by_tests": [
         "test_hosted_javascript_scheme_raises",
@@ -803,7 +754,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if parsed.scheme not in (\"http\", \"https\"):\n        raise ValueError(\"redirect scheme is not allowed: %r\" % (target,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -821,7 +772,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if parsed.scheme not in (\"http\", \"https\"):\n        raise ValueError(\"redirect scheme is not allowed: %r\" % (target,)) (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7272727272727273,
+      "final_score": 0.8125,
       "functional_pass": false,
       "killed_by_tests": [
         "test_hosted_javascript_scheme_raises",
@@ -840,7 +791,7 @@
       "family": "invert_comparison",
       "description": "invert_comparison: parsed.scheme not in (\"http\", \"https\") (NotIn -> In)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5454545454545454,
+      "final_score": 0.6875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -864,9 +815,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:fe825363d9d75bad9e5fe63f34cb43525b6757f9e7dd8232b44ea7adb151750a",
-      "notes": ""
+      "notes": "declared equivalent: remove_branch_force_false at redirect.py:43:4 disables `if not parsed.netloc: raise ValueError(\"... must have a host\")`. This line is only reached after line 39 has confirmed `parsed.scheme in (\"http\", \"https\")`. urlparse's `.hostname` property is derived from `.netloc` and is documented/implemented to return None whenever netloc is empty -- there is no input for which netloc is empty but hostname is non-None. So when this guard's condition is True (netloc empty) and its raise is skipped, execution falls through to line 47: `if parsed.hostname != allowed_host:`, which evaluates `None != allowed_host`. `allowed_host` is a trusted configuration parameter supplied by the calling application (not part of the adversarial `target` input space the task contract defends against) and is always a non-empty hostname string in every case the contract or its hidden/regression suites exercise (e.g. \"app.example.com\"), so `None != allowed_host` is always True, and the mutant raises ValueError('... does not match allowed host ...') instead of ValueError('... must have a host'). Both are ValueError, for every reachable input (e.g. 'http:foo', 'http:/foo', 'http://', 'https:'), just with a different (contract-unspecified) message. Verified empirically: reconstructed the exact mutant and diffed against the reference over the same 60+ probe input set with allowed_host fixed to a realistic non-empty value -- zero differences in accept/reject outcome or exception type."
     },
     {
       "mutation_id": "saferedirect/redirect.py:43:4:remove_branch_force_true",
@@ -876,7 +827,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if not parsed.netloc:\n        raise ValueError(\"redirect target must have a host: %r\" % (target,)) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -897,9 +848,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:acba7834f45331cfbd4e6c5ef3244c76413e0187cc3758e7cb8a1e6de61798f3",
-      "notes": ""
+      "notes": "declared equivalent: remove_validation at redirect.py:43:4 has the identical runtime effect to the remove_branch_force_false mutant at the same line (the guard's raise is removed instead of the branch being force-disabled, but the guard is only ever True on inputs where netloc is empty, so both mutants produce exactly the same fall-through). See the reason recorded for diff_hash sha256:fe825363d9d75bad9e5fe63f34cb43525b6757f9e7dd8232b44ea7adb151750a above: parsed.hostname is provably None whenever netloc is empty, so line 47's `None != allowed_host` always raises ValueError for every input that reaches this point, given allowed_host is a trusted non-empty string. Verified empirically alongside the sibling mutant with the same probe set -- zero differences from the reference."
     },
     {
       "mutation_id": "saferedirect/redirect.py:43:7:drop_not",
@@ -909,7 +860,7 @@
       "family": "drop_not",
       "description": "drop_not: not parsed.netloc (unary 'not' dropped)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -927,10 +878,12 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if parsed.hostname != allowed_host:\n        raise ValueError(\n            \"redirect host %r does not match allowed host %r\"\n            % (parsed.hostname, allowed_host)\n        ) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9090909090909091,
+      "final_score": 0.8125,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_external_absolute_raises"
+        "test_external_absolute_raises",
+        "test_host_containing_allowed_host_as_substring_raises",
+        "test_host_with_allowed_host_as_bare_prefix_raises"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:468e4b2edd2e0cfff63f435ceacd0725db54ba0ddc6582d3e0d46cd3550bdf5f",
@@ -944,7 +897,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if parsed.hostname != allowed_host:\n        raise ValueError(\n            \"redirect host %r does not match allowed host %r\"\n            % (parsed.hostname, allowed_host)\n        ) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -962,10 +915,12 @@
       "family": "remove_validation",
       "description": "remove_validation: if parsed.hostname != allowed_host:\n        raise ValueError(\n            \"redirect host %r does not match allowed host %r\"\n            % (parsed.hostname, allowed_host)\n        ) (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9090909090909091,
+      "final_score": 0.8125,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_external_absolute_raises"
+        "test_external_absolute_raises",
+        "test_host_containing_allowed_host_as_substring_raises",
+        "test_host_with_allowed_host_as_bare_prefix_raises"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:771dc6a848f240403ed23567fe3b30981618d6212af390a9fd594c6cff99f02a",
@@ -979,12 +934,14 @@
       "family": "invert_comparison",
       "description": "invert_comparison: parsed.hostname != allowed_host (NotEq -> Eq)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7272727272727273,
+      "final_score": 0.6875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
         "test_external_absolute_raises",
-        "test_http_same_host_absolute_ok"
+        "test_http_same_host_absolute_ok",
+        "test_host_containing_allowed_host_as_substring_raises",
+        "test_host_with_allowed_host_as_bare_prefix_raises"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:45710946f9715f01bf5802b1573580d9bbcd1a92e81e4a4b37054cf9810bb537",
@@ -998,7 +955,7 @@
       "family": "return_constant",
       "description": "return_constant: return target (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8181818181818182,
+      "final_score": 0.875,
       "functional_pass": false,
       "killed_by_tests": [
         "test_same_host_absolute_ok",
@@ -1015,12 +972,12 @@
       "kind": "known_bad",
       "description": "Matches the host with substring containment (`allowed_host in hostname`) instead of exact equality. Wrongly accepts any host that merely contains the allowed host as a substring, e.g. 'app.example.com.evil.com' -- a domain the attacker fully controls, not just the allowed host itself. A realistic 'looks close enough' mistake when generalizing from a single-example fix.",
       "expected_accept": false,
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "matched_expectation": false,
-      "status": "fail",
-      "notes": "verdict=accepted"
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_host_containing_allowed_host_as_substring_raises', 'test_host_with_allowed_host_as_bare_prefix_raises']"
     },
     {
       "name": "protocol_relative_bypass",
@@ -1028,11 +985,11 @@
       "description": "Checks only `not parsed.scheme` (instead of `not parsed.scheme and not parsed.netloc`) before treating a leading '/' as a safe relative path, and has no explicit pre-check for '//'. Since urlparse('//evil.com') yields an empty scheme, this wrongly classifies the protocol-relative target as relative and returns it unchanged -- a classic open-redirect bypass. Must be rejected by the hidden suite's protocol-relative test.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9090909090909091,
+      "final_score": 0.875,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
-      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_protocol_relative_raises']"
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_protocol_relative_raises', 'test_multi_slash_protocol_relative_raises']"
     },
     {
       "name": "scheme_blacklist",
@@ -1040,7 +997,7 @@
       "description": "Validates the scheme with a blacklist of 'known dangerous' schemes (javascript, data) instead of an allow-list of 'known safe' ones (http, https). Any scheme not on the blacklist -- e.g. 'ftp:' -- slips through to the host check and is wrongly accepted when the host matches. A plausible mistake: fixing the two schemes named in a bug report without generalizing to an allow-list.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9090909090909091,
+      "final_score": 0.9375,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -1052,7 +1009,7 @@
       "description": "Security-relevant near-miss reproducing this task's original, since-fixed weakness: validates only the netloc/host and forgets to restrict the URL scheme to http/https. 'javascript://app.example.com/x' and 'data://app.example.com/x' parse with a netloc equal to the allowed host, so they pass the host check and are returned unchanged even though the scheme makes them executable/dangerous. A naive or partial fix that adds host validation without also adding scheme validation would produce exactly this.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7272727272727273,
+      "final_score": 0.8125,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -1073,14 +1030,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'saferedirect/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'saferedirect/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "saferedirect/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -1091,11 +1049,11 @@
   ],
   "provenance": {
     "task_id": "validate-redirect-url",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:25514790657be91989b50786fa730b6f3a334b85041697a59901ec3e9a7ecb95",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:e9d8fa5ef1ec6bc323962fd59c19ace8a06e718540ee55b6342d3adf0470e95b",
     "snapshot_hash": "sha256:3b2b5343c9e096696e27a87b50de0a6b7b527242713d3fddbffbfec4f48a7bc9",
     "reference_hash": "sha256:eb99c49771766479b7fa201d9955e435943a0abd973fa75b4201980dc6a9e255",
-    "grading_hash": "sha256:1acfc8c1bf3f457933ce53f59bcf2e393bc400166b92491437af09288202fe67",
+    "grading_hash": "sha256:acc061f062e379fe768d572b371e9b9bdbce9ba6ffbe2473b2bbc82852f9c17e",
     "controls_hash": "sha256:237493ca913a4c2a5231ff13cea93c971243d675b23fba04e675bef88553dc30",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -1103,5 +1061,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 87792
+  "duration_ms": 107211
 }

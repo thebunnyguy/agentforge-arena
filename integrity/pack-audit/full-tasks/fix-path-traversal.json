@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "fix-path-traversal",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 2/6 relevant mutant(s) survived (kill_rate=0.67 over 6 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
-  "created_at": "2026-09-17T21:17:02.143674+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:15:28.293773+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+            "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+            "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+            "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+            "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 9,
+            "n_hidden": 10,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+            "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
           }
         ],
         "n_repeats": 5,
@@ -78,26 +78,26 @@
         "lines_added": 32,
         "lines_removed": 8
       },
-      "duration_ms": 11984
+      "duration_ms": 17603
     },
     {
       "check_id": "noop.unmodified_baseline",
       "category": "negative_control",
       "status": "pass",
       "severity": "info",
-      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.444), and scores 0.0 / functional_pass=False, as required.",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.400), and scores 0.0 / functional_pass=False, as required.",
       "evidence": {
         "final_score": 0.0,
         "functional_pass": false,
-        "t_hidden": 0.4444444444444444,
+        "t_hidden": 0.4,
         "regression_all_passed": true,
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 9,
+        "n_hidden": 10,
         "diff_exists_gate": false
       },
-      "duration_ms": 2244
+      "duration_ms": 7776
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -123,14 +123,14 @@
         "unresolved_relative_imports": [],
         "unreadable_suite_files": []
       },
-      "duration_ms": 1
+      "duration_ms": 5
     },
     {
       "check_id": "protected_paths.tampering_probes",
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,9 +149,10 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 188
+      "duration_ms": 240
     },
     {
       "check_id": "controls.declared_controls",
@@ -179,44 +180,29 @@
         "fails": [],
         "warnings": []
       },
-      "duration_ms": 11018
+      "duration_ms": 16180
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "2/6 relevant mutant(s) survived (kill_rate=0.67 over 6 relevant of 15 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 15 generated, 0 unsupported, 0 declared-equivalent, 9 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
         "mutants_generated": 15,
         "mutants_unsupported": 0,
         "mutants_declared_equivalent": 0,
         "mutants_intercepted_by_regression_or_scope": 9,
         "mutants_relevant": 6,
-        "killed_total": 4,
-        "killed_by_hidden_test": 4,
+        "killed_total": 6,
+        "killed_by_hidden_test": 6,
         "killed_by_timeout_or_error": 0,
-        "survived_count": 2,
-        "survived": [
-          {
-            "mutation_id": "safepath/join.py:22:8:remove_branch_force_false",
-            "file": "safepath/join.py",
-            "lineno": 22,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "safepath/join.py:22:8:remove_validation",
-            "file": "safepath/join.py",
-            "lineno": 22,
-            "family": "remove_validation",
-            "description": "remove_validation: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-guard's raise removed (body -> pass))"
-          }
-        ],
-        "kill_rate": 0.6666666666666666,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": []
       },
-      "duration_ms": 31606
+      "duration_ms": 27945
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -236,19 +222,19 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:60575102f998129bb750fe7f84b3ea8cdbc971d3aa8250482627bfe4a51b73e3"
+                "fingerprint": "sha256:484228ad6c3bab601393a530869d705d8daba3f634942974d093f27dc53a43bd"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:60575102f998129bb750fe7f84b3ea8cdbc971d3aa8250482627bfe4a51b73e3"
+                "fingerprint": "sha256:484228ad6c3bab601393a530869d705d8daba3f634942974d093f27dc53a43bd"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:60575102f998129bb750fe7f84b3ea8cdbc971d3aa8250482627bfe4a51b73e3"
+                "fingerprint": "sha256:484228ad6c3bab601393a530869d705d8daba3f634942974d093f27dc53a43bd"
               }
             ]
           },
@@ -260,21 +246,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.8888888888888888,
+                "final_score": 0.9,
                 "functional_pass": false,
-                "fingerprint": "sha256:36eedb3123f50b72026ba48cbbc86af6789b26f65d32e4ac5aee0f9420498dc4"
+                "fingerprint": "sha256:b897ecf037612bffac813c6121f92086d04b380c325768d1cb365a0b02f62cb0"
               },
               {
                 "attempt": 1,
-                "final_score": 0.8888888888888888,
+                "final_score": 0.9,
                 "functional_pass": false,
-                "fingerprint": "sha256:36eedb3123f50b72026ba48cbbc86af6789b26f65d32e4ac5aee0f9420498dc4"
+                "fingerprint": "sha256:b897ecf037612bffac813c6121f92086d04b380c325768d1cb365a0b02f62cb0"
               },
               {
                 "attempt": 2,
-                "final_score": 0.8888888888888888,
+                "final_score": 0.9,
                 "functional_pass": false,
-                "fingerprint": "sha256:36eedb3123f50b72026ba48cbbc86af6789b26f65d32e4ac5aee0f9420498dc4"
+                "fingerprint": "sha256:b897ecf037612bffac813c6121f92086d04b380c325768d1cb365a0b02f62cb0"
               }
             ]
           },
@@ -286,21 +272,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.6666666666666666,
+                "final_score": 0.7,
                 "functional_pass": false,
-                "fingerprint": "sha256:1368268d65e6c139a01ef2c2e9515ff4bebb6198b0d29916b8d8b108e24d5158"
+                "fingerprint": "sha256:2b641fa6b0bdfa057417be04ae879f1545c26890fa9cbab4afe7fc2b7397d63e"
               },
               {
                 "attempt": 1,
-                "final_score": 0.6666666666666666,
+                "final_score": 0.7,
                 "functional_pass": false,
-                "fingerprint": "sha256:1368268d65e6c139a01ef2c2e9515ff4bebb6198b0d29916b8d8b108e24d5158"
+                "fingerprint": "sha256:2b641fa6b0bdfa057417be04ae879f1545c26890fa9cbab4afe7fc2b7397d63e"
               },
               {
                 "attempt": 2,
-                "final_score": 0.6666666666666666,
+                "final_score": 0.7,
                 "functional_pass": false,
-                "fingerprint": "sha256:1368268d65e6c139a01ef2c2e9515ff4bebb6198b0d29916b8d8b108e24d5158"
+                "fingerprint": "sha256:2b641fa6b0bdfa057417be04ae879f1545c26890fa9cbab4afe7fc2b7397d63e"
               }
             ]
           },
@@ -312,21 +298,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.5555555555555556,
+                "final_score": 0.5,
                 "functional_pass": false,
-                "fingerprint": "sha256:07d8efd5d93b9c931371d23629990d8bd2a4a7ea5430b8717a1f6ec4b5ff0dd9"
+                "fingerprint": "sha256:4b34ca21bc2da588639dea075bf7609ed36bbc4e8203c41eddb8efabb99f1755"
               },
               {
                 "attempt": 1,
-                "final_score": 0.5555555555555556,
+                "final_score": 0.5,
                 "functional_pass": false,
-                "fingerprint": "sha256:07d8efd5d93b9c931371d23629990d8bd2a4a7ea5430b8717a1f6ec4b5ff0dd9"
+                "fingerprint": "sha256:4b34ca21bc2da588639dea075bf7609ed36bbc4e8203c41eddb8efabb99f1755"
               },
               {
                 "attempt": 2,
-                "final_score": 0.5555555555555556,
+                "final_score": 0.5,
                 "functional_pass": false,
-                "fingerprint": "sha256:07d8efd5d93b9c931371d23629990d8bd2a4a7ea5430b8717a1f6ec4b5ff0dd9"
+                "fingerprint": "sha256:4b34ca21bc2da588639dea075bf7609ed36bbc4e8203c41eddb8efabb99f1755"
               }
             ]
           },
@@ -338,21 +324,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.8888888888888888,
+                "final_score": 0.9,
                 "functional_pass": false,
-                "fingerprint": "sha256:fc5ad87b85e198e4147a2fca7bf500be74323be0169912f6ab7a2a4ba6e00a34"
+                "fingerprint": "sha256:4a0e64528720b0f53cdbcaf78ee3fdd496f11bd51e17e39a827c9ef0f128edbd"
               },
               {
                 "attempt": 1,
-                "final_score": 0.8888888888888888,
+                "final_score": 0.9,
                 "functional_pass": false,
-                "fingerprint": "sha256:fc5ad87b85e198e4147a2fca7bf500be74323be0169912f6ab7a2a4ba6e00a34"
+                "fingerprint": "sha256:4a0e64528720b0f53cdbcaf78ee3fdd496f11bd51e17e39a827c9ef0f128edbd"
               },
               {
                 "attempt": 2,
-                "final_score": 0.8888888888888888,
+                "final_score": 0.9,
                 "functional_pass": false,
-                "fingerprint": "sha256:fc5ad87b85e198e4147a2fca7bf500be74323be0169912f6ab7a2a4ba6e00a34"
+                "fingerprint": "sha256:4a0e64528720b0f53cdbcaf78ee3fdd496f11bd51e17e39a827c9ef0f128edbd"
               }
             ]
           },
@@ -366,25 +352,25 @@
                 "attempt": 0,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+                "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
               },
               {
                 "attempt": 1,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+                "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
               },
               {
                 "attempt": 2,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:785f188e13562c64c9c8c7810c47cc49fb10b5138972593293d445722a7ec0de"
+                "fingerprint": "sha256:bf511c634db16d62ea8ad7d76de7a76e6fa14787ec402162c643566b298167e3"
               }
             ]
           }
         ]
       },
-      "duration_ms": 33550
+      "duration_ms": 32831
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -402,7 +388,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2912
+      "duration_ms": 3901
     }
   ],
   "mutations": [
@@ -428,10 +414,12 @@
       "col_offset": 8,
       "family": "remove_branch",
       "description": "remove_branch_force_false: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-condition forced to False (branch never taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_absolute_component_raises_even_when_it_reads_as_inside_base"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:7ec4d5f4e46af98664d5b018ea2ab246f03fefa9184642f057146377b720ab35",
       "notes": ""
@@ -458,10 +446,12 @@
       "col_offset": 8,
       "family": "remove_validation",
       "description": "remove_validation: if posixpath.isabs(part):\n            raise ValueError(\n                \"absolute component %r would escape base %r\" % (part, base)\n            ) (if-guard's raise removed (body -> pass))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "killed_by_tests": [],
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_absolute_component_raises_even_when_it_reads_as_inside_base"
+      ],
       "declared_equivalent": false,
       "diff_hash": "sha256:8fc9f5ba27b2f2ca9a83acf72f9fb4d3ff1fca90d5e7d567ef1b8f5ec942c26b",
       "notes": ""
@@ -519,7 +509,7 @@
       "family": "invert_comparison",
       "description": "invert_comparison: norm_base == \"/\" (Eq -> NotEq)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7777777777777778,
+      "final_score": 0.8,
       "functional_pass": false,
       "killed_by_tests": [
         "test_prefix_collision_sibling_raises",
@@ -537,7 +527,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if norm_joined != norm_base and not norm_joined.startswith(sep_prefix):\n        raise ValueError(\n            \"joined path %r escapes base %r\" % (norm_joined, norm_base)\n        ) (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7,
       "functional_pass": false,
       "killed_by_tests": [
         "test_dotdot_escape_raises",
@@ -571,7 +561,7 @@
       "family": "remove_validation",
       "description": "remove_validation: if norm_joined != norm_base and not norm_joined.startswith(sep_prefix):\n        raise ValueError(\n            \"joined path %r escapes base %r\" % (norm_joined, norm_base)\n        ) (if-guard's raise removed (body -> pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7,
       "functional_pass": false,
       "killed_by_tests": [
         "test_dotdot_escape_raises",
@@ -590,7 +580,7 @@
       "family": "invert_comparison",
       "description": "invert_comparison: norm_joined != norm_base (NotEq -> Eq)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7,
       "functional_pass": false,
       "killed_by_tests": [
         "test_dotdot_escape_raises",
@@ -654,7 +644,7 @@
       "description": "Rejects any individual part containing a literal '..' segment (plus any absolute component), but never normalizes-and-compares against base at all. This over-rejects a legitimate '..' that still resolves within base (e.g. \"reports/../public\"), because it looks only at the raw, pre-join part text rather than the resolved path. A plausible 'forgot the allowed edge case' fix: the author reasoned '..' is always dangerous and blocked it outright instead of checking containment.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.9,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -666,7 +656,7 @@
       "description": "Checks for absolute components, then normalizes the joined path and rejects it only if a literal '..' token survives normalization. Since posixpath.normpath collapses every resolvable '..' for an absolute base, this check almost never fires: e.g. base \"/srv/data\", part \"../etc/passwd\" normalizes straight to \"/srv/etc/passwd\" with no '..' left, so the escape sails through silently. A realistic 'missing validation' bug: the author normalizes but never actually compares the result against base.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.6666666666666666,
+      "final_score": 0.7,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -678,11 +668,11 @@
       "description": "Containment logic is otherwise correct (mirrors the reference's normalize-then-prefix-check), but raises PermissionError instead of the required ValueError on an escape. A plausible slip: the author copied an access-control pattern from elsewhere in the codebase and kept its exception type instead of switching to ValueError as the task spec requires. Every hidden test that does pytest.raises(ValueError) on an escaping input fails because PermissionError propagates uncaught.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.5555555555555556,
+      "final_score": 0.5,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
-      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_dotdot_escape_raises', 'test_absolute_component_raises', 'test_deep_dotdot_escape_raises', 'test_prefix_collision_sibling_raises']"
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_dotdot_escape_raises', 'test_absolute_component_raises', 'test_absolute_component_raises_even_when_it_reads_as_inside_base', 'test_deep_dotdot_escape_raises', 'test_prefix_collision_sibling_raises']"
     },
     {
       "name": "prefix_startswith_no_separator",
@@ -690,7 +680,7 @@
       "description": "Reintroduces the historical prefix-collision bug this task's reference used to have: containment is enforced via a naive norm_joined.startswith(norm_base) with NO trailing-separator check. A sibling directory that merely shares a name prefix (e.g. \"/srv/data-other\") is wrongly treated as being under base \"/srv/data\", because the string \"/srv/data-other/file.txt\" literally starts with the string \"/srv/data\". This is exactly the task-specific security near-miss a partial or naive fix of safe_join is likely to reproduce.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8888888888888888,
+      "final_score": 0.9,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -711,14 +701,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'safepath/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'safepath/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "safepath/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -729,11 +720,11 @@
   ],
   "provenance": {
     "task_id": "fix-path-traversal",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:9b4f4f3c9f948215ea88babd13f98d6bf36f0c8373357f8fca97628613dd2c1c",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:31029bde5a9951365b098086caf27df9a93d73acce2eb9776b9fdf2bbc25939b",
     "snapshot_hash": "sha256:c217d60520e70667f258d47390edff450476d7556cdaf7b7ffd24d0259363b77",
     "reference_hash": "sha256:ec3c760150a3ac399e9925c48092567c0a87ce964bc9f76f48ab7d2352b3a098",
-    "grading_hash": "sha256:eba2604fffb5f510456cbfe0568d158e4879523b7c3a579d25408762bed39470",
+    "grading_hash": "sha256:e0f6522d93ec2e9199c9fdb3e3254e0126f81432c50ff9a7ea412d9768e47d11",
     "controls_hash": "sha256:669a2a2a5dd6f9d8b55b90cb91c4292526e07b7436799a7fc035ec1db9da42f8",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -741,5 +732,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 93612
+  "duration_ms": 106583
 }

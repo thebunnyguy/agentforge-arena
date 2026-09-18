@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_version": "0.1.0",
   "task_id": "expression-evaluator",
-  "task_version": "1.0.1",
+  "task_version": "1.0.2",
   "mode": "full",
-  "status": "needs_review",
-  "reason": "mutation.generic_ast_mutants: 5/40 relevant mutant(s) survived (kill_rate=0.88 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.; semantic mutant 'eval_based_implementation' survived (should have been rejected by the hidden suite)",
-  "created_at": "2026-09-17T21:18:28.161486+00:00",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:17:14.878458+00:00",
   "checks": [
     {
       "check_id": "reference.solution_validation",
@@ -22,10 +22,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 15,
+            "n_hidden": 19,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+            "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
           },
           {
             "attempt": 1,
@@ -33,10 +33,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 15,
+            "n_hidden": 19,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+            "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
           },
           {
             "attempt": 2,
@@ -44,10 +44,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 15,
+            "n_hidden": 19,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+            "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
           },
           {
             "attempt": 3,
@@ -55,10 +55,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 15,
+            "n_hidden": 19,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+            "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
           },
           {
             "attempt": 4,
@@ -66,10 +66,10 @@
             "functional_pass": true,
             "gate_product": 1,
             "t_hidden": 1.0,
-            "n_hidden": 15,
+            "n_hidden": 19,
             "hidden_all_passed": true,
             "regression_all_passed": true,
-            "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+            "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
           }
         ],
         "n_repeats": 5,
@@ -78,7 +78,7 @@
         "lines_added": 105,
         "lines_removed": 5
       },
-      "duration_ms": 8786
+      "duration_ms": 8745
     },
     {
       "check_id": "noop.unmodified_baseline",
@@ -94,10 +94,10 @@
         "regression_errored": false,
         "hidden_all_passed": false,
         "hidden_errored": false,
-        "n_hidden": 15,
+        "n_hidden": 19,
         "diff_exists_gate": false
       },
-      "duration_ms": 1639
+      "duration_ms": 1871
     },
     {
       "check_id": "hidden_import_closure.gate7",
@@ -130,7 +130,7 @@
       "category": "isolation",
       "status": "pass",
       "severity": "info",
-      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed \u2014 see findings.",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
       "evidence": {
         "checked": [
           "glob:tests_visible/**->tests_visible/__afa_probe__.py",
@@ -149,16 +149,17 @@
         ],
         "skipped_globs": [],
         "failures": [],
-        "pytest_shadow_package_gap_confirmed": true
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
       },
-      "duration_ms": 103
+      "duration_ms": 137
     },
     {
       "check_id": "controls.declared_controls",
       "category": "controls",
-      "status": "fail",
-      "severity": "critical",
-      "description": "1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: eval_based_implementation. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
       "evidence": {
         "n_controls": 5,
         "by_kind": {
@@ -168,7 +169,7 @@
           },
           "semantic_mutant": {
             "n": 1,
-            "matched": 0
+            "matched": 1
           },
           "alternative": {
             "n": 1,
@@ -176,72 +177,34 @@
           }
         },
         "errors": [],
-        "fails": [
-          "eval_based_implementation"
-        ],
+        "fails": [],
         "warnings": []
       },
-      "duration_ms": 7740
+      "duration_ms": 9858
     },
     {
       "check_id": "mutation.generic_ast_mutants",
       "category": "mutation",
-      "status": "warning",
-      "severity": "medium",
-      "description": "5/40 relevant mutant(s) survived (kill_rate=0.88 over 40 relevant of 40 generated). A surviving mutant is not automatic proof of a broken oracle \u2014 review whether each represents behavior the task contract actually promises to reject (mission \u00a78); see evidence.survived for exact locations.",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 55 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 60 generated, 0 unsupported, 5 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
       "evidence": {
-        "mutants_generated": 40,
+        "mutants_generated": 60,
         "mutants_unsupported": 0,
-        "mutants_declared_equivalent": 0,
+        "mutants_declared_equivalent": 5,
         "mutants_intercepted_by_regression_or_scope": 0,
-        "mutants_relevant": 40,
-        "killed_total": 35,
-        "killed_by_hidden_test": 29,
-        "killed_by_timeout_or_error": 6,
-        "survived_count": 5,
-        "survived": [
-          {
-            "mutation_id": "calckit/evaluate.py:28:8:remove_branch_force_true",
-            "file": "calckit/evaluate.py",
-            "lineno": 28,
-            "family": "remove_branch",
-            "description": "remove_branch_force_true: if c.isdigit() or c == \".\":\n            j = i\n            seen_dot = False\n            while j < n and (expr[j].isdigit() or expr[j] == \".\"):\n                if expr[j] == \".\":\n                    if  (if-condition forced to True (branch always taken))"
-          },
-          {
-            "mutation_id": "calckit/evaluate.py:28:26:invert_comparison",
-            "file": "calckit/evaluate.py",
-            "lineno": 28,
-            "family": "invert_comparison",
-            "description": "invert_comparison: c == \".\" (Eq -> NotEq)"
-          },
-          {
-            "mutation_id": "calckit/evaluate.py:32:16:remove_branch_force_false",
-            "file": "calckit/evaluate.py",
-            "lineno": 32,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if expr[j] == \".\":\n                    if seen_dot:\n                        raise ValueError(\"invalid number literal in %r\" % expr)\n                    seen_dot = True (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "calckit/evaluate.py:33:20:remove_branch_force_false",
-            "file": "calckit/evaluate.py",
-            "lineno": 33,
-            "family": "remove_branch",
-            "description": "remove_branch_force_false: if seen_dot:\n                        raise ValueError(\"invalid number literal in %r\" % expr) (if-condition forced to False (branch never taken))"
-          },
-          {
-            "mutation_id": "calckit/evaluate.py:33:20:remove_validation",
-            "file": "calckit/evaluate.py",
-            "lineno": 33,
-            "family": "remove_validation",
-            "description": "remove_validation: if seen_dot:\n                        raise ValueError(\"invalid number literal in %r\" % expr) (if-guard's raise removed (body -> pass))"
-          }
-        ],
-        "kill_rate": 0.875,
+        "mutants_relevant": 55,
+        "killed_total": 55,
+        "killed_by_hidden_test": 44,
+        "killed_by_timeout_or_error": 11,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
         "notes": [
-          "mutation candidate cap reached: generated 112 candidates, graded only the first 40 (deterministic order by file/line/operator); 72 candidate(s) NOT graded this run."
+          "mutation candidate cap reached: generated 112 candidates, graded only the first 60 (deterministic order by file/line/operator); 52 candidate(s) NOT graded this run."
         ]
       },
-      "duration_ms": 173036
+      "duration_ms": 309795
     },
     {
       "check_id": "determinism.repeated_grading",
@@ -261,19 +224,19 @@
                 "attempt": 0,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:8c358d5b3a0405089528b3559cf974cd4f2acbe8afb30517469a7aaf9e364cb8"
+                "fingerprint": "sha256:5c237d153d82f1e15a0e2bc5293ef8dd9b6e9319ede17e54700d5bce91478366"
               },
               {
                 "attempt": 1,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:8c358d5b3a0405089528b3559cf974cd4f2acbe8afb30517469a7aaf9e364cb8"
+                "fingerprint": "sha256:5c237d153d82f1e15a0e2bc5293ef8dd9b6e9319ede17e54700d5bce91478366"
               },
               {
                 "attempt": 2,
                 "final_score": 0.0,
                 "functional_pass": false,
-                "fingerprint": "sha256:8c358d5b3a0405089528b3559cf974cd4f2acbe8afb30517469a7aaf9e364cb8"
+                "fingerprint": "sha256:5c237d153d82f1e15a0e2bc5293ef8dd9b6e9319ede17e54700d5bce91478366"
               }
             ]
           },
@@ -285,21 +248,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.9333333333333333,
+                "final_score": 0.9473684210526315,
                 "functional_pass": false,
-                "fingerprint": "sha256:f71a65b3737ddabf2c17d939507fecf832bd45903913615f0bcbc8a47cec4a6d"
+                "fingerprint": "sha256:1c48394019e609e9183faec03a9a1d792c7e9fb98ff5caaea4ff0f25998f99ca"
               },
               {
                 "attempt": 1,
-                "final_score": 0.9333333333333333,
+                "final_score": 0.9473684210526315,
                 "functional_pass": false,
-                "fingerprint": "sha256:f71a65b3737ddabf2c17d939507fecf832bd45903913615f0bcbc8a47cec4a6d"
+                "fingerprint": "sha256:1c48394019e609e9183faec03a9a1d792c7e9fb98ff5caaea4ff0f25998f99ca"
               },
               {
                 "attempt": 2,
-                "final_score": 0.9333333333333333,
+                "final_score": 0.9473684210526315,
                 "functional_pass": false,
-                "fingerprint": "sha256:f71a65b3737ddabf2c17d939507fecf832bd45903913615f0bcbc8a47cec4a6d"
+                "fingerprint": "sha256:1c48394019e609e9183faec03a9a1d792c7e9fb98ff5caaea4ff0f25998f99ca"
               }
             ]
           },
@@ -311,21 +274,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.8,
+                "final_score": 0.8421052631578947,
                 "functional_pass": false,
-                "fingerprint": "sha256:05fcf05a315f8045f405755a6b0039b26c5f4599792a654f70b6b428429800c6"
+                "fingerprint": "sha256:c9b43f3ecdd21f8a10512d96560e159b89e06c276f64f6bb023287c8eec65446"
               },
               {
                 "attempt": 1,
-                "final_score": 0.8,
+                "final_score": 0.8421052631578947,
                 "functional_pass": false,
-                "fingerprint": "sha256:05fcf05a315f8045f405755a6b0039b26c5f4599792a654f70b6b428429800c6"
+                "fingerprint": "sha256:c9b43f3ecdd21f8a10512d96560e159b89e06c276f64f6bb023287c8eec65446"
               },
               {
                 "attempt": 2,
-                "final_score": 0.8,
+                "final_score": 0.8421052631578947,
                 "functional_pass": false,
-                "fingerprint": "sha256:05fcf05a315f8045f405755a6b0039b26c5f4599792a654f70b6b428429800c6"
+                "fingerprint": "sha256:c9b43f3ecdd21f8a10512d96560e159b89e06c276f64f6bb023287c8eec65446"
               }
             ]
           },
@@ -337,21 +300,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 0.8,
+                "final_score": 0.7894736842105263,
                 "functional_pass": false,
-                "fingerprint": "sha256:194df7f23a63f82ba2dd8c6aa9553958cbfdf2e3f3947a2a84190fb972fc60b8"
+                "fingerprint": "sha256:b72efb948aa608c3733f7181c6dce1a76d9e84651b52bdfef47187f2d803fc11"
               },
               {
                 "attempt": 1,
-                "final_score": 0.8,
+                "final_score": 0.7894736842105263,
                 "functional_pass": false,
-                "fingerprint": "sha256:194df7f23a63f82ba2dd8c6aa9553958cbfdf2e3f3947a2a84190fb972fc60b8"
+                "fingerprint": "sha256:b72efb948aa608c3733f7181c6dce1a76d9e84651b52bdfef47187f2d803fc11"
               },
               {
                 "attempt": 2,
-                "final_score": 0.8,
+                "final_score": 0.7894736842105263,
                 "functional_pass": false,
-                "fingerprint": "sha256:194df7f23a63f82ba2dd8c6aa9553958cbfdf2e3f3947a2a84190fb972fc60b8"
+                "fingerprint": "sha256:b72efb948aa608c3733f7181c6dce1a76d9e84651b52bdfef47187f2d803fc11"
               }
             ]
           },
@@ -363,21 +326,21 @@
             "outcomes": [
               {
                 "attempt": 0,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+                "final_score": 0.8421052631578947,
+                "functional_pass": false,
+                "fingerprint": "sha256:30f7bdf156c9106733da88756ae33e7c284a170283c827f1d0eb9fdcdf699b56"
               },
               {
                 "attempt": 1,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+                "final_score": 0.8421052631578947,
+                "functional_pass": false,
+                "fingerprint": "sha256:30f7bdf156c9106733da88756ae33e7c284a170283c827f1d0eb9fdcdf699b56"
               },
               {
                 "attempt": 2,
-                "final_score": 1.0,
-                "functional_pass": true,
-                "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+                "final_score": 0.8421052631578947,
+                "functional_pass": false,
+                "fingerprint": "sha256:30f7bdf156c9106733da88756ae33e7c284a170283c827f1d0eb9fdcdf699b56"
               }
             ]
           },
@@ -391,25 +354,25 @@
                 "attempt": 0,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+                "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
               },
               {
                 "attempt": 1,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+                "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
               },
               {
                 "attempt": 2,
                 "final_score": 1.0,
                 "functional_pass": true,
-                "fingerprint": "sha256:ffbc4763109fec4ecd13d12e52891e1da1df96f0010b353df840258a572e51fa"
+                "fingerprint": "sha256:c8d81060b99de362aabf1123471e7c0b252450c0846489dd1a145ec7af01f72f"
               }
             ]
           }
         ]
       },
-      "duration_ms": 22993
+      "duration_ms": 27361
     },
     {
       "check_id": "isolation.hidden_test_readability",
@@ -427,7 +390,7 @@
         "regression_all_passed": true,
         "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
       },
-      "duration_ms": 2305
+      "duration_ms": 2439
     }
   ],
   "mutations": [
@@ -456,7 +419,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:7dabb07a46826981dff7bb885120dfe568147f6ce69601d1d4fd2d8eb3cb7542",
@@ -470,7 +437,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: parser = _Parser(tokens) (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.05263157894736842,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -487,7 +454,10 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:93d8177600d88e86816f9214ad7900d261459e73d7561f6806e4ea81b77a4db3",
@@ -501,7 +471,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: result = parser.parse_expression() (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -518,7 +488,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:18cc7f701c5ee60f2ad46871a9976c61a34b054d84ee8f85159d20ff65691f86",
@@ -532,7 +503,7 @@
       "family": "return_constant",
       "description": "return_constant: return float(result) (return <expr> -> return None)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -549,7 +520,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:ab8cf3bffd5dc5e1c1be45065b179a9a7f0a0fa1350ab8a665728fe59f51594c",
@@ -580,7 +552,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:c96fb15e324b3a3df72e617dff152919a72a9c453753a48f804b898514b00b34",
@@ -611,7 +587,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:87c30aa9741e9ee80d406f750fc5ac40437d99ca651c57d1fcb18d5defa67b7a",
@@ -625,7 +605,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 0 (0 -> 1)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.06666666666666667,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -641,7 +621,9 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:0460c852a67d12877d5c5cfdf7214e293b74b2853d774d76fd34d656ac0a7d43",
@@ -672,7 +654,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:9d31dfe1a4b2054c286f80f8f80935b56f173ba37bfa85d2e28e4dd1f3897e50",
@@ -686,7 +672,7 @@
       "family": "boundary_operator",
       "description": "boundary_operator: i < n (Lt -> LtE)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.05263157894736842,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -703,7 +689,10 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:b17512ec00dfa2d4d7e5c72c353e2d2635e0760b9b90ddfeabb85829af047176",
@@ -734,7 +723,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:6fd7d8d6a714f57d5118ee6cee46e6ed6cfebb51e3c03b3404f3b64179831f09",
@@ -748,10 +741,11 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if c.isspace():\n            i += 1\n            continue (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.8947368421052632,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_arbitrary_whitespace"
+        "test_arbitrary_whitespace",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:759e2603e6566b8c016e9fe489c178aee7bff02b279bdfcfdd1ba64814ad1fec",
@@ -765,7 +759,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if c.isspace():\n            i += 1\n            continue (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -782,7 +776,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:9413072e2d2072de7d119614435d53a9122ea3b22c41e92fca1f10e497358797",
@@ -811,10 +806,11 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.8947368421052632,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_arbitrary_whitespace"
+        "test_arbitrary_whitespace",
+        "test_trailing_tokens_are_rejected"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:0a372462966e46a1700e8a41cacec2b68af3df91106b4c561fb84e96d0198ba6",
@@ -843,10 +839,12 @@
       "family": "break_continue_swap",
       "description": "break_continue_swap: continue (Continue -> Break)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.8421052631578947,
       "functional_pass": false,
       "killed_by_tests": [
-        "test_arbitrary_whitespace"
+        "test_arbitrary_whitespace",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:ff5883832ba1b51a53f8645a7f1c1bb770262b7c1b79ea4f26826dbec8372273",
@@ -860,7 +858,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if c in \"+-*/()\":\n            tokens.append(c)\n            i += 1\n            continue (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -877,7 +875,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:de07fd0fcb177d66e28efc7f3ecd8e1af567356b2d7274e7f85be6627a04d5ff",
@@ -891,7 +890,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if c in \"+-*/()\":\n            tokens.append(c)\n            i += 1\n            continue (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7333333333333333,
+      "final_score": 0.7894736842105263,
       "functional_pass": false,
       "killed_by_tests": [
         "test_arbitrary_whitespace",
@@ -911,7 +910,7 @@
       "family": "invert_comparison",
       "description": "invert_comparison: c in \"+-*/()\" (In -> NotIn)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -928,7 +927,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:79d09d89721c948c53cddf0affd10471b37aca92e0ef3a378a73adcff045d795",
@@ -957,7 +957,7 @@
       "family": "change_constant",
       "description": "change_constant_increment: 1 (1 -> 2)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -974,7 +974,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:0663edae14695aed8490e737cab3fb6cfb6a4d241033134eef5f4db1830f0a85",
@@ -1003,7 +1004,7 @@
       "family": "break_continue_swap",
       "description": "break_continue_swap: continue (Continue -> Break)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -1020,7 +1021,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:62a626be2d6be1c6c336ebd2e413928073fb90ab0cecb1e0fe4100ca2802712e",
@@ -1034,7 +1036,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_false: if c.isdigit() or c == \".\":\n            j = i\n            seen_dot = False\n            while j < n and (expr[j].isdigit() or expr[j] == \".\"):\n                if expr[j] == \".\":\n                    if  (if-condition forced to False (branch never taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -1051,7 +1053,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:2b1ea13ffd5b0179f1b68fee090c02bff7a19a01205715c830e57909925cc2eb",
@@ -1064,9 +1067,9 @@
       "col_offset": 8,
       "family": "remove_branch",
       "description": "remove_branch_force_true: if c.isdigit() or c == \".\":\n            j = i\n            seen_dot = False\n            while j < n and (expr[j].isdigit() or expr[j] == \".\"):\n                if expr[j] == \".\":\n                    if  (if-condition forced to True (branch always taken))",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
       "killed_by_tests": [],
       "declared_equivalent": false,
       "diff_hash": "sha256:257e1c51a89ae4ef9ba9c478f914f0ce0e3ba19bd02ef527bee7e00bd474303e",
@@ -1080,7 +1083,7 @@
       "family": "swap_boolean_condition",
       "description": "swap_boolean_condition: c.isdigit() or c == \".\" (Or -> And)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.0,
+      "final_score": 0.15789473684210525,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -1097,7 +1100,8 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:1bd6a7c910e45e5228997c82968f1514986dbbe912709ccfdbae556679014832",
@@ -1110,9 +1114,9 @@
       "col_offset": 26,
       "family": "invert_comparison",
       "description": "invert_comparison: c == \".\" (Eq -> NotEq)",
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
       "killed_by_tests": [],
       "declared_equivalent": false,
       "diff_hash": "sha256:809ba5c4835535e77eeb9a2d811608866272f1a605a8d92f258a788ce251d365",
@@ -1143,7 +1147,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:12aa92739ee011045314bd32777b06ed3faa87975d2202d229a3fc1609b11de0",
@@ -1157,7 +1165,7 @@
       "family": "delete_state_update",
       "description": "delete_state_update: seen_dot = False (assignment/state-update statement deleted (replaced with pass))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.9473684210526315,
       "functional_pass": false,
       "killed_by_tests": [
         "test_float_literal_multiplication"
@@ -1174,7 +1182,7 @@
       "family": "swap_boolean_literal",
       "description": "swap_boolean_literal: False (False -> True)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.9473684210526315,
       "functional_pass": false,
       "killed_by_tests": [
         "test_float_literal_multiplication"
@@ -1191,7 +1199,7 @@
       "family": "boundary_operator",
       "description": "boundary_operator: j < n (Lt -> LtE)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.2,
+      "final_score": 0.2631578947368421,
       "functional_pass": false,
       "killed_by_tests": [
         "test_precedence_mul_over_add",
@@ -1205,7 +1213,9 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:558eeb00c51e22c65cc60bde80a109e246437862063350fd61ef2ebfdd4730d6",
@@ -1236,7 +1246,11 @@
         "test_left_associative_division",
         "test_chained_subtraction",
         "test_unary_minus_after_operator",
-        "test_unary_minus_after_binary_minus"
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
       ],
       "declared_equivalent": false,
       "diff_hash": "sha256:1dc86cf02637a7bbd79ae876cca225213982a0bb0d1f7a3230784599cb7a9347",
@@ -1283,9 +1297,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:991dd09e65173f6c2fb83c927d062cad7fadc2e777cf080c3a8157ad16bc95e2",
-      "notes": ""
+      "notes": "declared equivalent: remove_branch_force_false on `if expr[j] == '.':` inside the digit-scan loop of _tokenize (line 32) disables the inner double-decimal-point check, but every scanned literal token is still handed to float() in _Parser._parse_number. float() itself rejects any string with more than one '.' (e.g. float('1.2.3') and float('1..2') both raise ValueError). So for every input, a multi-dot literal still raises ValueError -- just from float()'s own guard a few frames later instead of from the tokenizer's explicit check, with a different (but contract-unspecified) message. No input exists for which this mutant accepts or misevaluates a multi-dot literal that the reference rejects. Verified empirically against a battery of malformed inputs (see audit)."
     },
     {
       "mutation_id": "calckit/evaluate.py:32:16:remove_branch_force_true",
@@ -1295,7 +1309,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if expr[j] == \".\":\n                    if seen_dot:\n                        raise ValueError(\"invalid number literal in %r\" % expr)\n                    seen_dot = True (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7333333333333333,
+      "final_score": 0.7894736842105263,
       "functional_pass": false,
       "killed_by_tests": [
         "test_arbitrary_whitespace",
@@ -1315,7 +1329,7 @@
       "family": "invert_comparison",
       "description": "invert_comparison: expr[j] == \".\" (Eq -> NotEq)",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.7333333333333333,
+      "final_score": 0.7894736842105263,
       "functional_pass": false,
       "killed_by_tests": [
         "test_arbitrary_whitespace",
@@ -1338,9 +1352,9 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:772f936b11a7237f87ab2ef271bb44255e4d044eacb4279e6b61cccd2434c969",
-      "notes": ""
+      "notes": "declared equivalent: remove_branch_force_false on `if seen_dot:` (line 33) disables just the inner raise-guard, so a second '.' is absorbed into the token instead of raising immediately. Same reasoning as the sibling mutant on the outer `if expr[j] == '.':` check: the resulting multi-dot token still fails float() conversion with ValueError downstream. Equivalent for the same reason -- float() is the real enforcement point, this check is a redundant early exit."
     },
     {
       "mutation_id": "calckit/evaluate.py:33:20:remove_branch_force_true",
@@ -1350,7 +1364,7 @@
       "family": "remove_branch",
       "description": "remove_branch_force_true: if seen_dot:\n                        raise ValueError(\"invalid number literal in %r\" % expr) (if-condition forced to True (branch always taken))",
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.9473684210526315,
       "functional_pass": false,
       "killed_by_tests": [
         "test_float_literal_multiplication"
@@ -1370,8 +1384,571 @@
       "final_score": 1.0,
       "functional_pass": true,
       "killed_by_tests": [],
-      "declared_equivalent": false,
+      "declared_equivalent": true,
       "diff_hash": "sha256:92866f4bc5a089ace1988b24d5b8a68aae8f9b7eb1c304d8d7fca98b667e509a",
+      "notes": "declared equivalent: remove_validation on the `if seen_dot: raise ValueError(...)` body (line 33) removes only the raise, leaving seen_dot's bookkeeping intact but inert. Identical effect and identical reasoning to the two sibling dot-guard mutants above: a multi-dot literal is still fully scanned into one token and float() still raises ValueError on it. Equivalent."
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:35:20:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 35,
+      "col_offset": 20,
+      "family": "delete_state_update",
+      "description": "delete_state_update: seen_dot = True (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": true,
+      "diff_hash": "sha256:6d32337dba33fccb16ff4e719040148274c4920ebb200c4f70d158b1b7790036",
+      "notes": "declared equivalent: delete_state_update deletes `seen_dot = True` (line 35), so seen_dot can never become truthy and the `if seen_dot: raise` guard can never fire. Same root cause and same conclusion as the other dot-guard mutants: every multi-dot literal this disables detection for is still caught by float()'s own single-decimal-point rule with ValueError. Equivalent."
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:35:31:swap_boolean_literal",
+      "file": "calckit/evaluate.py",
+      "lineno": 35,
+      "col_offset": 31,
+      "family": "swap_boolean_literal",
+      "description": "swap_boolean_literal: True (True -> False)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": true,
+      "diff_hash": "sha256:b6953917f8992d964b259768f5e836b6bc4a397e6e6f5ea02c8f6b6fba0122ef",
+      "notes": "declared equivalent: swap_boolean_literal changes the literal in `seen_dot = True` to `seen_dot = False` (line 35), which is functionally identical to deleting that assignment (the sibling delete_state_update mutant above): seen_dot never becomes truthy, so the duplicate-dot raise never fires, and float() catches the resulting multi-dot literal with ValueError regardless. Equivalent for the same reason."
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:36:16:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 36,
+      "col_offset": 16,
+      "family": "delete_state_update",
+      "description": "delete_state_update: j += 1 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a708e5bb8acb082a77685b78716be77b21ba9daeb753af96c36cdd7ca5a4cabd",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:36:21:change_constant_increment",
+      "file": "calckit/evaluate.py",
+      "lineno": 36,
+      "col_offset": 21,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2631578947368421,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_nested_parentheses",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:22a8e42071302b3dddf2ca2de0b4c8af6096ed9ff1188dec0251c4d4f83ea1c9",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:36:21:change_constant_zero",
+      "file": "calckit/evaluate.py",
+      "lineno": 36,
+      "col_offset": 21,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:35e6b5193f6c6fcd532c81e7a7dbed42b32f23db1f99c2cf56b710ee60ea5828",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:38:12:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 38,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: i = j (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3707efc45d08433331df2eeb4b5669be2476be131812fc28921d861a5b0f9fac",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:39:12:break_continue_swap",
+      "file": "calckit/evaluate.py",
+      "lineno": 39,
+      "col_offset": 12,
+      "family": "break_continue_swap",
+      "description": "break_continue_swap: continue (Continue -> Break)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_invalid_character_is_rejected",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:35d07ebc8c7bd261f6ed1a183b458796e2613c69bad644aa3d6cc95cb5194b87",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:41:4:return_constant",
+      "file": "calckit/evaluate.py",
+      "lineno": 41,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return tokens (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.05263157894736842,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4b5047d9c8b2396b11a9ed90ae4234556b0789a920683b385d21246041d90389",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:46:8:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 46,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.tokens = tokens (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.05263157894736842,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6f9eed162001dab53c45c89c15e1d514206b61b89f94c19691a5b81ea3681764",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:47:8:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 47,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.pos = 0 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.05263157894736842,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d49a1745dc3efc1933d5a64bf89215822149c0a2dad9e15ed339b71d649162f6",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:47:19:change_constant_increment",
+      "file": "calckit/evaluate.py",
+      "lineno": 47,
+      "col_offset": 19,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.10526315789473684,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:12cf7ccd531120c8a473473687d2de95b13bde21b673d3dd5172c7d78865d592",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:50:8:remove_branch_force_false",
+      "file": "calckit/evaluate.py",
+      "lineno": 50,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self.pos < len(self.tokens):\n            return self.tokens[self.pos] (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.15789473684210525,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f1d518949d22e36c5ac72fae7ab2d4b7810656c7f908033a632885846a444860",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:50:8:remove_branch_force_true",
+      "file": "calckit/evaluate.py",
+      "lineno": 50,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self.pos < len(self.tokens):\n            return self.tokens[self.pos] (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.10526315789473684,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f3d16a8605c9ce228483720cf33fc0127013d06e81a10fb20821933a86f116e1",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:50:11:boundary_operator",
+      "file": "calckit/evaluate.py",
+      "lineno": 50,
+      "col_offset": 11,
+      "family": "boundary_operator",
+      "description": "boundary_operator: self.pos < len(self.tokens) (Lt -> LtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.10526315789473684,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f9936a58ed52ee831f0f744b51af1b01cc3328f5aaad000461919c606143a800",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:51:12:return_constant",
+      "file": "calckit/evaluate.py",
+      "lineno": 51,
+      "col_offset": 12,
+      "family": "return_constant",
+      "description": "return_constant: return self.tokens[self.pos] (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.15789473684210525,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:40e1047f4a5ba5029d7708c8a0e96cab115174ade6e00e288d0fbdde0a229944",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:55:8:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 55,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: tok = self._peek() (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.05263157894736842,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8c397acd30216defe44f97d92b5dff169d4fc4fb313a5adcf7adc82a4215ba6f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:56:8:delete_state_update",
+      "file": "calckit/evaluate.py",
+      "lineno": 56,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.pos += 1 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.15789473684210525,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:05206ba74d1b8566be1b745f07a8f4996ddea1ea62bfbc06dec43e1e8bc5256f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:56:20:change_constant_increment",
+      "file": "calckit/evaluate.py",
+      "lineno": 56,
+      "col_offset": 20,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.05263157894736842,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported",
+        "test_trailing_tokens_are_rejected",
+        "test_missing_operand_raises_value_error"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c0470fc30fb6e70d71ed1bfa8ee17578750e7be1c28771243f269de3baa014cd",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:56:20:change_constant_zero",
+      "file": "calckit/evaluate.py",
+      "lineno": 56,
+      "col_offset": 20,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.15789473684210525,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_division_produces_float",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_left_associative_subtraction",
+        "test_left_associative_division",
+        "test_chained_subtraction",
+        "test_unary_minus_after_operator",
+        "test_unary_minus_after_binary_minus",
+        "test_unary_plus_supported"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:ca3b8752288f0128b603b07c6bc298b282cf56c770c6c61668c2426ce14944a0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "calckit/evaluate.py:57:8:return_constant",
+      "file": "calckit/evaluate.py",
+      "lineno": 57,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return tok (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.47368421052631576,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_precedence_mul_over_add",
+        "test_parens_override_precedence",
+        "test_parens_and_subtraction",
+        "test_unary_minus_leading",
+        "test_arbitrary_whitespace",
+        "test_nested_parentheses",
+        "test_multi_digit_numbers",
+        "test_float_literal_multiplication",
+        "test_unary_minus_in_parens",
+        "test_unary_plus_supported"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a0cb1feb0246dd0742ef0721695904ef11407e6f24a086fc73fc831f1273cceb",
       "notes": ""
     }
   ],
@@ -1382,7 +1959,7 @@
       "description": "Division uses Python's floor-division operator (//) instead of true division (/), a plausible slip when porting arithmetic logic from a language where '/' truncates. '7/2' returns 3.0 instead of 3.5. Everything else (precedence, associativity, unary minus, parentheses) is copied verbatim from the reference, isolating this single defect.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.9333333333333333,
+      "final_score": 0.9473684210526315,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -1394,7 +1971,7 @@
       "description": "Re-introduces the real pre-Phase-35 defect this task was patched for: parse_expression/parse_term fold from the right instead of the left, so '10-2-3' evaluates as 10-(2-3)=11 instead of (10-2)-3=5, and '8/2/2' as 8/(2/2)=8 instead of 2. Unary minus handling is left correct (copied verbatim from the reference) so this control isolates only the associativity regression. The hidden suite's dedicated left-associativity tests must reject this.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8,
+      "final_score": 0.8421052631578947,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
@@ -1406,23 +1983,23 @@
       "description": "Realistic partial fix for unary minus: parse_factor only special-cases a leading '+'/'-' when it is the very first token of the whole expression (self.pos == 0), instead of recognizing unary sign at every factor position. '-3+2' still works, but '1+-2', '6/-2', '2--3', and '3*(-2)' all raise ValueError because the parser reaches a bare '-' where it expects a number. Matches the prior real defect's 'unary-minus crashing' symptom.",
       "expected_accept": false,
       "verdict": "rejected_by_hidden_test",
-      "final_score": 0.8,
+      "final_score": 0.7894736842105263,
       "functional_pass": false,
       "matched_expectation": true,
       "status": "pass",
-      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_unary_minus_in_parens', 'test_unary_minus_after_operator', 'test_unary_minus_after_binary_minus']"
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_unary_minus_in_parens', 'test_unary_minus_after_operator', 'test_unary_minus_after_binary_minus', 'test_unary_plus_supported']"
     },
     {
       "name": "eval_based_implementation",
       "kind": "semantic_mutant",
       "description": "Task-specific, security-relevant near-miss: computes the answer with Python's eval() instead of a real parser, which the task prose explicitly forbids ('Do NOT use eval()') because handing attacker-influenced text to eval() is an arbitrary-code-execution risk, not a style nit. Python's own +,-,*,/ operators happen to share the same precedence, left-associativity, and unary-minus semantics the task specifies, so on every benign input the hidden suite exercises this produces byte-identical results to a correct parser. Expected reject: this is exactly the kind of spec-violating shortcut a naive or corner-cutting agent might submit. If the purely behavioral hidden suite accepts it, that is a genuine benchmark-integrity gap (nothing in the grading verifies the 'no eval()' constraint), not an authoring mistake.",
       "expected_accept": false,
-      "verdict": "accepted",
-      "final_score": 1.0,
-      "functional_pass": true,
-      "matched_expectation": false,
-      "status": "fail",
-      "notes": "verdict=accepted"
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8421052631578947,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_invalid_character_is_rejected', 'test_trailing_tokens_are_rejected', 'test_missing_operand_raises_value_error']"
     },
     {
       "name": "shunting_yard_rpn",
@@ -1439,14 +2016,15 @@
   ],
   "findings": [
     {
-      "finding_id": "protected_paths.pytest_shadow_package",
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
       "category": "isolation",
-      "severity": "high",
-      "summary": "A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].",
-      "detail": "Injecting 'calckit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'calckit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
       "evidence": {
         "probe_path": "calckit/_pytest/__init__.py",
-        "touched_protected": false
+        "touched_protected": false,
+        "exploitable_today": false
       }
     }
   ],
@@ -1457,11 +2035,11 @@
   ],
   "provenance": {
     "task_id": "expression-evaluator",
-    "task_version": "1.0.1",
-    "task_json_hash": "sha256:b9c081555ab8c6c91dbc5712b3707fb6f38177f07487fb581f1c30cdb2bee23c",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:5dc0f18d2aed1752503933af0fff053a1bad53a3191cbec1992a0f7e04039b3a",
     "snapshot_hash": "sha256:8106925ef1914e61100bfc3aecd8a3f5db3a4e250298e6b2e3e61c2d7bf1c88b",
     "reference_hash": "sha256:1dfcab47cdd1129d772888ef4642d9356dd31991cfb3edbbaff79f3694880132",
-    "grading_hash": "sha256:4e65cf64f7d373b6fee8baaeadc0e368ae8de44b8e16fe25499a0c055228beae",
+    "grading_hash": "sha256:368676073db5e191842cd508dae727ce8d42bbf0cd7a81d9f34b2187ea714a8f",
     "controls_hash": "sha256:6637cb766a38482bc27d06538ce2ea77356ce3cd3adfa249bf3668127dce2752",
     "engine_version": "0.1.0",
     "afa_kernel_version": "0.1.0",
@@ -1469,5 +2047,5 @@
     "python_version": "3.13.2",
     "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
   },
-  "duration_ms": 216684
+  "duration_ms": 360286
 }

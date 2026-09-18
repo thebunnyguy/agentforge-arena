@@ -1,15 +1,15 @@
 # AgentForge Benchmark Integrity Report
 
 **Task**: `query-builder`  
-**Version**: `1.0.1`  
+**Version**: `1.0.2`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T21:17:25.469734+00:00  
-**Duration**: 59296 ms
+**Timestamp**: 2026-09-18T07:16:28.596920+00:00  
+**Duration**: 91538 ms
 
-## Status: PROVISIONAL
+## Status: HEALTHY
 
-**Reason**: controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.
+**Reason**: All checks passed with no outstanding findings.
 
 ## Checks
 
@@ -18,11 +18,21 @@
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required. |
 | `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['qbuild/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
-| `controls.declared_controls` | controls | SKIPPED | medium | No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list — see findings. |
+| `controls.declared_controls` | controls | PASS | info | All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict. |
 | `mutation.generic_ast_mutants` | mutation | PASS | info | All 19 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite). |
-| `determinism.repeated_grading` | determinism | PASS | info | All 1 sampled artifact(s) graded identically across their repeats. |
+| `determinism.repeated_grading` | determinism | PASS | info | All 6 sampled artifact(s) graded identically across their repeats. |
 | `isolation.hidden_test_readability` | isolation_limitation | UNVERIFIABLE | high | CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically — real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission §14/§25) and is tracked as a repo-wide 'deliberately still open' item. |
+
+## Controls
+
+| Name | Kind | Expected | Verdict | Status | Notes |
+|---|---|---|---|---|---|
+| `lowercase_and_joiner` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_full_example', 'test_two_wheres_and_joined'] |
+| `missing_comma_space` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_full_example', 'test_limit_without_where'] |
+| `select_star_forgets_clauses` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_select_star_still_appends_where_and_limit', 'test_where_called_with_empty_condition_still_emits_where'] |
+| `empty_where_condition_dropped` | semantic_mutant | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_where_called_with_empty_condition_still_emits_where'] |
+| `clause_list_join` | alternative | accept | accepted | PASS | verdict=accepted |
 
 ## Mutation analysis
 
@@ -35,25 +45,24 @@
 
 ## Findings
 
-- **[HIGH] A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].** (`protected_paths.pytest_shadow_package`)
-  Injecting 'qbuild/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'qbuild/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
 
 ## Limitations
 
 - Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST — see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.
-- No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) — absence of evidence here, not evidence of absence.
 - Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) — this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.
 - Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission §16).
 
 ## Provenance
 
 - `task_id`: query-builder
-- `task_version`: 1.0.1
-- `task_json_hash`: sha256:fdacb276edd9de24529df0c04ddcd51b02e8401a4fa842a8d4e4604d2f900a40
+- `task_version`: 1.0.2
+- `task_json_hash`: sha256:77935dc8af1c3e9987f764dd9e70d951a510c639fee6557cfe4055bd1fc3d5c5
 - `snapshot_hash`: sha256:679fe2f73f8ad8d50b47e028d3744eb71c4133854b2adca183113c82ac29c1f7
 - `reference_hash`: sha256:11a51b047a784fbdc290a11383974c2e6a23b2e76fa352d520876ace7090a3db
-- `grading_hash`: sha256:e15074786179c74283cf877cda8453af352cf35c3a08f1c3219a913703b0bcc4
-- `controls_hash`: None
+- `grading_hash`: sha256:e92ff87dbf341cf9ef70b4c5a1751bad464ef3b287160afab4b5366d0c580168
+- `controls_hash`: sha256:eef10f7b78adc0e56dbf1066d812e0ae98108872d4f076ac90c6aaeea44cc3f5
 - `engine_version`: 0.1.0
 - `afa_kernel_version`: 0.1.0
 - `afa_runner_version`: 0.2.0

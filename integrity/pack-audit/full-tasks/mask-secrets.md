@@ -1,15 +1,15 @@
 # AgentForge Benchmark Integrity Report
 
 **Task**: `mask-secrets`  
-**Version**: `1.0.1`  
+**Version**: `1.0.2`  
 **Mode**: `full`  
 **Engine version**: `0.1.0` (schema `1.0.0`)  
-**Timestamp**: 2026-09-17T21:15:24.039667+00:00  
-**Duration**: 65490 ms
+**Timestamp**: 2026-09-18T07:12:08.705086+00:00  
+**Duration**: 147167 ms
 
-## Status: NEEDS_REVIEW
+## Status: HEALTHY
 
-**Reason**: semantic mutant 'boundary_anchored_secrets' survived (should have been rejected by the hidden suite)
+**Reason**: All checks passed with no outstanding findings.
 
 ## Checks
 
@@ -18,8 +18,8 @@
 | `reference.solution_validation` | reference | PASS | info | Reference solution scores (1.0, True) identically across 5 repeated grades. |
 | `noop.unmodified_baseline` | negative_control | PASS | info | The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required. |
 | `hidden_import_closure.gate7` | isolation | PASS | info | At most one distinct local file (['maskkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites — unambiguously the code under test, not a separate oracle-helper module. |
-| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. One known, documented gap (a `_pytest/` shadow package) was also probed and confirmed — see findings. |
-| `controls.declared_controls` | controls | FAIL | critical | 1/5 declared control(s) did NOT match their declared expectation via a genuine hidden-test verdict: boundary_anchored_secrets. A known-bad solution that is accepted, or a valid alternative that is rejected by the hidden suite, is direct evidence the oracle is either too permissive or too narrow. |
+| `protected_paths.tampering_probes` | isolation | PASS | info | All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list — see findings. |
+| `controls.declared_controls` | controls | PASS | info | All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict. |
 | `mutation.generic_ast_mutants` | mutation | PASS | info | All 8 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 8 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite). |
 | `determinism.repeated_grading` | determinism | PASS | info | All 6 sampled artifact(s) graded identically across their repeats. |
 | `isolation.hidden_test_readability` | isolation_limitation | UNVERIFIABLE | high | CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically — real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission §14/§25) and is tracked as a repo-wide 'deliberately still open' item. |
@@ -28,10 +28,10 @@
 
 | Name | Kind | Expected | Verdict | Status | Notes |
 |---|---|---|---|---|---|
-| `bearer_quantifier_reversed` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_whole_bearer_credential_not_just_token'] |
-| `bearer_token_partial_mask` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_whole_bearer_credential_not_just_token'] |
-| `sk_key_length_off_by_one` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_api_key', 'test_handles_two_secrets_on_one_line'] |
-| `boundary_anchored_secrets` | semantic_mutant | reject | accepted | FAIL | verdict=accepted |
+| `bearer_quantifier_reversed` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_whole_bearer_credential_not_just_token', 'test_masks_bearer_token_glued_to_preceding_word'] |
+| `bearer_token_partial_mask` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_whole_bearer_credential_not_just_token', 'test_masks_bearer_token_glued_to_preceding_word'] |
+| `sk_key_length_off_by_one` | known_bad | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_api_key', 'test_handles_two_secrets_on_one_line', 'test_masks_api_key_glued_to_preceding_word'] |
+| `boundary_anchored_secrets` | semantic_mutant | reject | rejected_by_hidden_test | PASS | verdict=rejected_by_hidden_test; failing_hidden_tests=['test_masks_api_key_glued_to_preceding_word', 'test_masks_bearer_token_glued_to_preceding_word'] |
 | `span_merge_rebuild` | alternative | accept | accepted | PASS | verdict=accepted |
 
 ## Mutation analysis
@@ -45,8 +45,8 @@
 
 ## Findings
 
-- **[HIGH] A `_pytest/` package directory is not flagged as a protected-path violation, though grading runs pytest with the cleanroom at sys.path[0].** (`protected_paths.pytest_shadow_package`)
-  Injecting 'maskkit/_pytest/__init__.py' was NOT flagged as touching a protected path. ALWAYS_PROTECTED_BASENAMES matches basenames, not directory names, so a submission-created `_pytest/` package shadowing the real `_pytest` internals package is currently only stopped by this task's editable_paths allow-list (when configured), not by a structural guarantee. See docs/agents/ORACLE.md for why this is reported rather than silently fixed here.
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'maskkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
 
 ## Limitations
 
@@ -57,11 +57,11 @@
 ## Provenance
 
 - `task_id`: mask-secrets
-- `task_version`: 1.0.1
-- `task_json_hash`: sha256:bf57054ee7e8f8c8f1c04d214112e1220ba263d9bde27e01d4bb31900f5af745
+- `task_version`: 1.0.2
+- `task_json_hash`: sha256:37422cf8d5d7a6a47d03d30de9d32a49b08277d1f5a8ce53cfe70afa3c1b7e43
 - `snapshot_hash`: sha256:d788c1b90a08e5c267396601f967ca42493ca5008d702ec0fb83a6c7f437313a
 - `reference_hash`: sha256:67f297b3cda1845d8880975f61a31da15c6f25150fc84e5600d355e35d881146
-- `grading_hash`: sha256:54050ea4c34613a9269da1e865baa54d223dd43a6c5f59ac6eb1700dd60a16cd
+- `grading_hash`: sha256:1dd9c15bb8793e76b78de29ec5838492374775cb19d8e63f680df1f56873b983
 - `controls_hash`: sha256:7a881a94a1b1bcb7aa425fc138da1752d209e12c7591773c5652e47c1830d0dc
 - `engine_version`: 0.1.0
 - `afa_kernel_version`: 0.1.0
