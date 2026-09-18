@@ -1,0 +1,5 @@
+{
+  "name": "allowlist_first_dispatch",
+  "description": "Legitimately different-but-correct implementation: classifies the target into relative-vs-absolute up front via a small predicate helper and a frozenset-based scheme allow-list, rather than the reference's sequential guard clauses. Different control flow and data structure, same accept/reject behavior. Should be ACCEPTED.",
+  "expect": "accept"
+}

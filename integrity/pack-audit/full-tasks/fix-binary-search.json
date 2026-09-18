@@ -1,0 +1,752 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "fix-binary-search",
+  "task_version": "1.0.0",
+  "mode": "full",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:12:08.704957+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 0,
+        "lines_removed": 6
+      },
+      "duration_ms": 20604
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.333), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.3333333333333333,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 9,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 7560
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['searchkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "searchkit/**"
+        ],
+        "resolved_local_imports": {
+          "searchkit": "searchkit/__init__.py"
+        },
+        "reachable_local_imports": {
+          "searchkit": "searchkit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "searchkit/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:searchkit/conftest.py",
+          "always_protected:searchkit/sitecustomize.py",
+          "always_protected:searchkit/usercustomize.py",
+          "always_protected:searchkit/pytest.ini",
+          "always_protected:searchkit/tox.ini",
+          "always_protected:searchkit/setup.cfg",
+          "always_protected:searchkit/pyproject.toml",
+          "always_protected:searchkit/pytest.py",
+          "always_protected_suffix:searchkit/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:searchkit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 373
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 1
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 11242
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 15 generated, 0 unsupported, 0 declared-equivalent, 9 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 15,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_intercepted_by_regression_or_scope": 9,
+        "mutants_relevant": 6,
+        "killed_total": 6,
+        "killed_by_hidden_test": 5,
+        "killed_by_timeout_or_error": 1,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 218452
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:ca6054d6a5a0fe16eb2538f803010ccec6d6dab07ed87c12c1f1f11120321054"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:ca6054d6a5a0fe16eb2538f803010ccec6d6dab07ed87c12c1f1f11120321054"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:ca6054d6a5a0fe16eb2538f803010ccec6d6dab07ed87c12c1f1f11120321054"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:first_match_not_leftmost",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:9f2df4c9740e1123dfddbe8b6496e0d3a83dffb632703c87132b10bd8f3e7319"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:9f2df4c9740e1123dfddbe8b6496e0d3a83dffb632703c87132b10bd8f3e7319"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:9f2df4c9740e1123dfddbe8b6496e0d3a83dffb632703c87132b10bd8f3e7319"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:hi_excludes_last_index",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:fe358effc9abbbe432c333ee39e981a5b954e5a95687d10dc76766a27a020657"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:fe358effc9abbbe432c333ee39e981a5b954e5a95687d10dc76766a27a020657"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:fe358effc9abbbe432c333ee39e981a5b954e5a95687d10dc76766a27a020657"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:overcorrected_scan_back",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.6666666666666666,
+                "functional_pass": false,
+                "fingerprint": "sha256:d395061292692b1a5a9349528d36e7d653c37d8906f31b56600a19e95c4223fc"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.6666666666666666,
+                "functional_pass": false,
+                "fingerprint": "sha256:d395061292692b1a5a9349528d36e7d653c37d8906f31b56600a19e95c4223fc"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.6666666666666666,
+                "functional_pass": false,
+                "fingerprint": "sha256:d395061292692b1a5a9349528d36e7d653c37d8906f31b56600a19e95c4223fc"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:stdlib_bisect_right_confusion",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.3333333333333333,
+                "functional_pass": false,
+                "fingerprint": "sha256:a6c2967d532ac060767247861ebe4a2e26364f2d0103cea004937a4292a86ec5"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.3333333333333333,
+                "functional_pass": false,
+                "fingerprint": "sha256:a6c2967d532ac060767247861ebe4a2e26364f2d0103cea004937a4292a86ec5"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.3333333333333333,
+                "functional_pass": false,
+                "fingerprint": "sha256:a6c2967d532ac060767247861ebe4a2e26364f2d0103cea004937a4292a86ec5"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:linear_scan",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:a4d14a665b09a78d700dc77583c0dfb45823b20090e5dcb8da1265f374146a74"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 32377
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "searchkit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 3326
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "searchkit/search.py:8:4:delete_state_update",
+      "file": "searchkit/search.py",
+      "lineno": 8,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: lo = 0 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d8511b5a839fb8f226c8b4225e0ca30c3785c4d7bfc014d6762f55b2fa47df6c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:8:9:change_constant_increment",
+      "file": "searchkit/search.py",
+      "lineno": 8,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_element",
+        "test_before_first_and_after_last",
+        "test_all_equal_returns_zero",
+        "test_empty_list",
+        "test_single_element"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d494297fd645b479ee15015e4c77772b04368346147d53965c72cea59f3214a0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:9:4:delete_state_update",
+      "file": "searchkit/search.py",
+      "lineno": 9,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: hi = len(sorted_list) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2771482fc2ce1bac865adb4acbabe340a149019021694841efeb4b30a9d74ac1",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:10:10:boundary_operator",
+      "file": "searchkit/search.py",
+      "lineno": 10,
+      "col_offset": 10,
+      "family": "boundary_operator",
+      "description": "boundary_operator: lo < hi (Lt -> LtE)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a8d1866055e2db9a09dd59421fafb681a2151906af324467eed00c0327608b18",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:11:8:delete_state_update",
+      "file": "searchkit/search.py",
+      "lineno": 11,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: mid = (lo + hi) // 2 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:cafe99712f7413628f92b6262656ae8b4b8e4e3e2f10de9c1932937462e7f674",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:11:27:change_constant_increment",
+      "file": "searchkit/search.py",
+      "lineno": 11,
+      "col_offset": 27,
+      "family": "change_constant",
+      "description": "change_constant_increment: 2 (2 -> 3)",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:05713ea353f4731b5c5851b2d5ac99be83148479ee0424b8264cad65400856ad",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:11:27:change_constant_zero",
+      "file": "searchkit/search.py",
+      "lineno": 11,
+      "col_offset": 27,
+      "family": "change_constant",
+      "description": "change_constant_zero: 2 (2 -> 0)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8f4bab7948caf508c58b9b73279ab3fba9dd84aef582dd9e6ff9d2878009a5ff",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:12:8:remove_branch_force_false",
+      "file": "searchkit/search.py",
+      "lineno": 12,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if sorted_list[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_target_present_returns_leftmost",
+        "test_target_present_no_duplicates",
+        "test_target_absent_insertion_point",
+        "test_last_element_present",
+        "test_before_first_and_after_last",
+        "test_single_element"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:cde8286063cbd633b3b27e61192c03ef8584e8c767cbb0312882175389318a4f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:12:8:remove_branch_force_true",
+      "file": "searchkit/search.py",
+      "lineno": 12,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if sorted_list[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.1111111111111111,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_target_present_returns_leftmost",
+        "test_target_present_no_duplicates",
+        "test_target_absent_insertion_point",
+        "test_first_element",
+        "test_last_element_present",
+        "test_before_first_and_after_last",
+        "test_all_equal_returns_zero",
+        "test_single_element"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4f1ddb94c1a6dac9e40480c7ea1c571ed35c661960ae3b097ed549d183fbddab",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:12:11:boundary_operator",
+      "file": "searchkit/search.py",
+      "lineno": 12,
+      "col_offset": 11,
+      "family": "boundary_operator",
+      "description": "boundary_operator: sorted_list[mid] < target (Lt -> LtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_target_present_returns_leftmost",
+        "test_target_present_no_duplicates",
+        "test_first_element",
+        "test_last_element_present",
+        "test_all_equal_returns_zero",
+        "test_single_element"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:5ab3611575e860be37df3ef70976b350c46599c8196fb7f7a9c53e182e931ab2",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:13:12:delete_state_update",
+      "file": "searchkit/search.py",
+      "lineno": 13,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: lo = mid + 1 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:04f7dabee0bf408efbcb8e4f1c890c369c662a716423cc4d614a886b375b7221",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:13:23:change_constant_increment",
+      "file": "searchkit/search.py",
+      "lineno": 13,
+      "col_offset": 23,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_target_present_returns_leftmost",
+        "test_target_present_no_duplicates",
+        "test_target_absent_insertion_point",
+        "test_last_element_present",
+        "test_single_element"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7e7ea5f1ba6a98e8d990b2162841e517a1cfb9212140bc58a685c827b0741045",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:13:23:change_constant_zero",
+      "file": "searchkit/search.py",
+      "lineno": 13,
+      "col_offset": 23,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2528a93a4196fe241c7417ee657e4f810c60a87435a56fbc2a570eae7c92fc2d",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:15:12:delete_state_update",
+      "file": "searchkit/search.py",
+      "lineno": 15,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: hi = mid (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a016ffdff9f3d66fb511ed4cb6ef0759e0502b3349f31381869c000e4fdb4b14",
+      "notes": ""
+    },
+    {
+      "mutation_id": "searchkit/search.py:16:4:return_constant",
+      "file": "searchkit/search.py",
+      "lineno": 16,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return lo (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7df05f4b8e1d035def4794096808889964b1f179a115bc1899608fa5eb82221a",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "first_match_not_leftmost",
+      "kind": "known_bad",
+      "description": "Adds an explicit equality check that returns as soon as ANY occurrence of target is found via the standard binary-search probe, instead of treating equality like 'still might be earlier' and continuing to narrow left. This looks like a natural, even 'more efficient-looking', early-exit optimization, but it forgets the contract's explicit requirement that a present target must resolve to the index of its FIRST occurrence -- it returns whatever mid the search happens to land on, which for a run of duplicates is essentially arbitrary. Non-duplicate cases (each value appears once) are unaffected, so this control is only caught by hidden tests with repeated values.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_target_present_returns_leftmost', 'test_all_equal_returns_zero']"
+    },
+    {
+      "name": "hi_excludes_last_index",
+      "kind": "known_bad",
+      "description": "Initializes the search boundary as `hi = len(sorted_list) - 1` instead of `hi = len(sorted_list)` -- an easy off-by-one for an agent used to inclusive-hi binary search templates (find-in-array style) who forgets bisect's boundary is exclusive and must be able to reach index len(sorted_list) itself (the 'insert past the end' case). The loop and comparisons are otherwise exactly correct, and most cases (target within or below the list's range) still return the right answer, so this control is only caught by cases where the correct insertion point equals len(sorted_list) -- i.e. a target greater than every element, including the single-element case.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_before_first_and_after_last', 'test_single_element']"
+    },
+    {
+      "name": "overcorrected_scan_back",
+      "kind": "known_bad",
+      "description": "A plausible attempt to patch the task's exact described bug ('the returned index is too far to the right for duplicates') by keeping ordinary binary search but adding a post-hoc correction: once an occurrence of target is found, scan backward while the previous element is <= target. The comparison should be == target (only step back over other occurrences of target); using <= instead walks back over every smaller element too, so any target that has a smaller value anywhere immediately to its left resolves all the way to index 0 (or further left) instead of its true leftmost occurrence. Absent-target cases are completely unaffected (they never enter the equal branch), so this control is only caught by present-target hidden tests, and it fails on a distinct set of them (present target preceded by smaller elements) than the other known_bad/first-match controls.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_target_present_returns_leftmost', 'test_target_present_no_duplicates', 'test_last_element_present']"
+    },
+    {
+      "name": "stdlib_bisect_right_confusion",
+      "kind": "semantic_mutant",
+      "description": "Task-specific naming near-miss: 'fixes' searchkit.search.bisect_left by delegating to Python's own stdlib bisect module -- but calls bisect.bisect(sorted_list, target), which is documented as an ALIAS for bisect.bisect_right, not bisect.bisect_left. This is a well-known, extremely plausible stdlib-naming confusion for exactly this function (the pair bisect_left/bisect_right, with bisect() defaulting to the 'right' one, trips up experienced Python users regularly), and it is specific to this task's contract rather than a generic mutation: it reintroduces precisely the 'equal elements resolve to the rightmost, not leftmost, occurrence' bug the task description says the original code has, just via a one-line stdlib delegation instead of hand-written comparison logic. Included as a separate control from the known_bad hand-rolled upper-bound bug because it is a structurally distinct submission an agent could plausibly produce (import bisect; return bisect.bisect(...)) that an author might not think to guard against if they only reviewed hand-written loops.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_target_present_returns_leftmost', 'test_target_present_no_duplicates', 'test_first_element', 'test_last_element_present', 'test_all_equal_returns_zero', 'test_single_element']"
+    },
+    {
+      "name": "linear_scan",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent correct solution: a left-to-right linear scan for the first element >= target, instead of binary search. O(n) instead of O(log n), no lo/hi/mid state at all -- but the contract (task.json's description) only specifies the returned index, not an algorithm or complexity bound, and the grading suite has no timing/performance assertions, so this is a fully valid, just less efficient, implementation.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'searchkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "searchkit/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "fix-binary-search",
+    "task_version": "1.0.0",
+    "task_json_hash": "sha256:687be5eada43a8afcc0cf1a898f6b22058d80a6e1bc55c25bfb6cf62e5540341",
+    "snapshot_hash": "sha256:d9bc8fc81261a8682df1099b0706c7d3d09f4ed4f5b3048c7b1f02e75b798953",
+    "reference_hash": "sha256:2303dd6de865e5ad1e0fd7c9ebeef058c7eded3d9ae6050fe78d841bc5a277e7",
+    "grading_hash": "sha256:51cf1635b11cb0b1f187f78d71dbbb9e073748f63d2d8631025057e0455d6d50",
+    "controls_hash": "sha256:bd8bee38f4bc37cc1b37e480e8227a6c39d2a4189ef8948c53ade76c405b48b5",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 294115
+}

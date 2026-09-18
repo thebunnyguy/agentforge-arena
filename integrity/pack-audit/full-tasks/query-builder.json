@@ -1,0 +1,894 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "query-builder",
+  "task_version": "1.0.2",
+  "mode": "full",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:16:28.596920+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 15,
+        "lines_removed": 6
+      },
+      "duration_ms": 9258
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 9,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1951
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['qbuild/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "qbuild/**"
+        ],
+        "resolved_local_imports": {
+          "qbuild": "qbuild/__init__.py"
+        },
+        "reachable_local_imports": {
+          "qbuild": "qbuild/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "qbuild/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:qbuild/conftest.py",
+          "always_protected:qbuild/sitecustomize.py",
+          "always_protected:qbuild/usercustomize.py",
+          "always_protected:qbuild/pytest.ini",
+          "always_protected:qbuild/tox.ini",
+          "always_protected:qbuild/setup.cfg",
+          "always_protected:qbuild/pyproject.toml",
+          "always_protected:qbuild/pytest.py",
+          "always_protected_suffix:qbuild/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:qbuild/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 229
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 1
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 8581
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 19 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 19 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 19,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_intercepted_by_regression_or_scope": 0,
+        "mutants_relevant": 19,
+        "killed_total": 19,
+        "killed_by_hidden_test": 19,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 37404
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:35f5250c4add1c6c1a9dfe9aeb772f5f45237cbe821d7d8ca497bc7d6f8eb939"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:35f5250c4add1c6c1a9dfe9aeb772f5f45237cbe821d7d8ca497bc7d6f8eb939"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:35f5250c4add1c6c1a9dfe9aeb772f5f45237cbe821d7d8ca497bc7d6f8eb939"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:lowercase_and_joiner",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:2eb461ed94591dd7475d735abb413987289a7031cd417a0119a1a766ea15eea4"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:2eb461ed94591dd7475d735abb413987289a7031cd417a0119a1a766ea15eea4"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:2eb461ed94591dd7475d735abb413987289a7031cd417a0119a1a766ea15eea4"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:missing_comma_space",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:b1346e885c2162eabd45f16d916bcd8079bf2436b5d840f88d23c642fb9b09e6"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:b1346e885c2162eabd45f16d916bcd8079bf2436b5d840f88d23c642fb9b09e6"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:b1346e885c2162eabd45f16d916bcd8079bf2436b5d840f88d23c642fb9b09e6"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:select_star_forgets_clauses",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:42fa422a169a5b1f70fede484d2acc05324ab4f226e16debacac7a618ff24230"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:42fa422a169a5b1f70fede484d2acc05324ab4f226e16debacac7a618ff24230"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:42fa422a169a5b1f70fede484d2acc05324ab4f226e16debacac7a618ff24230"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:empty_where_condition_dropped",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:73c19bcb38e5d9a31b6acfc14e8c7117c1791c28639ce538f2dec43bf6571712"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:73c19bcb38e5d9a31b6acfc14e8c7117c1791c28639ce538f2dec43bf6571712"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.8888888888888888,
+                "functional_pass": false,
+                "fingerprint": "sha256:73c19bcb38e5d9a31b6acfc14e8c7117c1791c28639ce538f2dec43bf6571712"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:clause_list_join",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:2df0e8e7a5e3cb81ce13f7a407d085bb1401b5a9dccc9e8f656bc65ef709da65"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 31222
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "qbuild/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 2782
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "qbuild/query.py:20:8:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 20,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._columns = [] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit",
+        "test_methods_return_self_for_chaining",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a9770eb0591b23c46f3040b014b94ff4fb6deaae7177e7d62596fc8c0317b487",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:21:8:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 21,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._wheres = [] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit",
+        "test_methods_return_self_for_chaining",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:717ce80f3162106e5d0df94d0845ac3a9be2ca7b98029f4d3a86d7b9a0be9cbd",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:22:8:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 22,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._limit = None (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_where_without_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4613b444b45ce518fa405cfd7e3f8809e06442bdbde313515b29f15347f51449",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:26:8:return_constant",
+      "file": "qbuild/query.py",
+      "lineno": 26,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return self (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit",
+        "test_methods_return_self_for_chaining"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:816bfb90a09e4aee72e313abea05ed0761fbde1f0f6c4a8918f74ab273cb1df6",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:30:8:return_constant",
+      "file": "qbuild/query.py",
+      "lineno": 30,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return self (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3333333333333333,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_two_wheres_and_joined",
+        "test_where_without_limit",
+        "test_methods_return_self_for_chaining",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f1fcf29f6d2fb4d9244807146eff41138729cc18d4b4e3afe1f15e292d5f6ee9",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:33:8:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 33,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self._limit = n (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_limit_without_where",
+        "test_select_star_still_appends_where_and_limit"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4125ca08b6eccdb9984776e4a071dea04d008ecedd2b04b4febfe9e45b44fba9",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:34:8:return_constant",
+      "file": "qbuild/query.py",
+      "lineno": 34,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return self (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_limit_without_where",
+        "test_methods_return_self_for_chaining",
+        "test_select_star_still_appends_where_and_limit"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9e88cdea98aad9503986754a57571f72a6f0c3a231de84839048e408ce0e4ddf",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:37:8:remove_branch_force_false",
+      "file": "qbuild/query.py",
+      "lineno": 37,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self._columns:\n            sql = \"SELECT \" + \", \".join(self._columns)\n        else:\n            sql = \"SELECT *\" (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:52a734a7810763d75b9a63410f7fc9cb3fa87281d3a3ca67d80e97d3b55d574e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:37:8:remove_branch_force_true",
+      "file": "qbuild/query.py",
+      "lineno": 37,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self._columns:\n            sql = \"SELECT \" + \", \".join(self._columns)\n        else:\n            sql = \"SELECT *\" (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_select_star_default",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:088a7b56cc055d7463fc14ef73473c9e315495a7606c862eb5de1519b4bc8bf2",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:38:12:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 38,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sql = \"SELECT \" + \", \".join(self._columns) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:47feca862e5a12348d12d0c789af1349e5295931d28dedc42c8b6f732a0c267f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:40:12:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 40,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sql = \"SELECT *\" (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_select_star_default",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3615f9507cafb7f674fe54e3f42f6fa4a581c935783617924c1c0da5e8ca067f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:41:8:remove_branch_force_false",
+      "file": "qbuild/query.py",
+      "lineno": 41,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self._wheres:\n            sql += \" WHERE \" + \" AND \".join(self._wheres) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_two_wheres_and_joined",
+        "test_where_without_limit",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:91977dfeea7498549632fa03c9d63c201e168c9907818e0f2ef95e9f178e333a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:41:8:remove_branch_force_true",
+      "file": "qbuild/query.py",
+      "lineno": 41,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self._wheres:\n            sql += \" WHERE \" + \" AND \".join(self._wheres) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_limit_without_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6a2d7ab46237b839c2f83b50489e6ca7f6e900ff92780ad7a91da781e5285e8c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:42:12:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 42,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sql += \" WHERE \" + \" AND \".join(self._wheres) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_two_wheres_and_joined",
+        "test_where_without_limit",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:413aec7067cd5b0e621a918b93a11f7606743921dcd90bbfdbb53ee15da4c320",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:43:8:remove_branch_force_false",
+      "file": "qbuild/query.py",
+      "lineno": 43,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if self._limit is not None:\n            sql += \" LIMIT \" + str(self._limit) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_limit_without_where",
+        "test_select_star_still_appends_where_and_limit"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8afe964a2fb47b60e4297c568cc277a0ce6b96b32ee1b91832837a58f7d5fba4",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:43:8:remove_branch_force_true",
+      "file": "qbuild/query.py",
+      "lineno": 43,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if self._limit is not None:\n            sql += \" LIMIT \" + str(self._limit) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_where_without_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:66e55d690113e65cf7e608902e6c412a4124e7c47dcbb8241333eeb45caed4ba",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:43:11:invert_comparison",
+      "file": "qbuild/query.py",
+      "lineno": 43,
+      "col_offset": 11,
+      "family": "invert_comparison",
+      "description": "invert_comparison: self._limit is not None (IsNot -> Is)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.1111111111111111,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e484eb35fbe4b5da76be119f80891a8c89dded57c564ce0df8d9b439456ee07c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:44:12:delete_state_update",
+      "file": "qbuild/query.py",
+      "lineno": 44,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: sql += \" LIMIT \" + str(self._limit) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_limit_without_where",
+        "test_select_star_still_appends_where_and_limit"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2f11fd0ba9c611e71a832f032c1a08df597a0e0c7e16c4dd2c3a7298da4b28f3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "qbuild/query.py:45:8:return_constant",
+      "file": "qbuild/query.py",
+      "lineno": 45,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return sql (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.1111111111111111,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_full_example",
+        "test_select_star_default",
+        "test_single_column_no_where_no_limit",
+        "test_two_wheres_and_joined",
+        "test_limit_without_where",
+        "test_where_without_limit",
+        "test_select_star_still_appends_where_and_limit",
+        "test_where_called_with_empty_condition_still_emits_where"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e21f1a95dcee48a704d82c6393836889de89496b8562c3539047f9f96d2ea787",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "lowercase_and_joiner",
+      "kind": "known_bad",
+      "description": "WHERE conditions are joined with lowercase ' and ' instead of the contract-required ' AND '. Column joining, the WHERE/LIMIT omission rules, and the 'SELECT *' default are otherwise correct. A realistic casing slip an agent might make by treating SQL keywords as case-insensitive rather than copying the contract's literal 'AND'.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_full_example', 'test_two_wheres_and_joined']"
+    },
+    {
+      "name": "missing_comma_space",
+      "kind": "known_bad",
+      "description": "Column list is joined with a bare comma (\",\") instead of \", \" (comma + space). WHERE/LIMIT clauses and the AND-joining are otherwise correct. A realistic transcription slip when an agent hand-writes the join separator instead of copying the contract's exact ', ' literal.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_full_example', 'test_limit_without_where']"
+    },
+    {
+      "name": "select_star_forgets_clauses",
+      "kind": "known_bad",
+      "description": "Control-flow bug: build() branches early on the 'no columns selected' case and returns bare 'SELECT *' without ever appending accumulated WHERE/LIMIT clauses, because the append logic for WHERE/LIMIT was written only inside the 'if self._columns' branch. Columns-present path, AND-joining, and comma-joining are all correct. A realistic bug from writing the two SELECT-clause branches as independent early returns instead of building the SELECT prefix first and always falling through to the shared WHERE/LIMIT logic.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_select_star_still_appends_where_and_limit', 'test_where_called_with_empty_condition_still_emits_where']"
+    },
+    {
+      "name": "empty_where_condition_dropped",
+      "kind": "semantic_mutant",
+      "description": "where(condition) only records the condition when it is truthy, silently dropping a call made with an empty string. The contract says the WHERE clause is appended 'if at least one where() was called' -- that's a call-count rule, not a truthiness-of-the-argument rule -- so where(\"\") must still produce a (degenerate) WHERE clause. This mutant instead ends up omitting WHERE entirely in that case. A realistic near-miss from an agent adding a defensive 'if condition:' guard before appending, assuming (wrongly, per this contract) that an empty condition means 'no condition'.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_where_called_with_empty_condition_still_emits_where']"
+    },
+    {
+      "name": "clause_list_join",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent correct implementation: build() assembles a list of already-formatted clause strings (\"SELECT ...\", optionally \"WHERE ...\", optionally \"LIMIT ...\") and joins the list with a single space at the end, instead of incrementally concatenating (+=) onto a running sql string. Same clause order, same comma/AND separators, same omission rules -- different control flow/data structure.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'qbuild/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "qbuild/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "query-builder",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:77935dc8af1c3e9987f764dd9e70d951a510c639fee6557cfe4055bd1fc3d5c5",
+    "snapshot_hash": "sha256:679fe2f73f8ad8d50b47e028d3744eb71c4133854b2adca183113c82ac29c1f7",
+    "reference_hash": "sha256:11a51b047a784fbdc290a11383974c2e6a23b2e76fa352d520876ace7090a3db",
+    "grading_hash": "sha256:e92ff87dbf341cf9ef70b4c5a1751bad464ef3b287160afab4b5366d0c580168",
+    "controls_hash": "sha256:eef10f7b78adc0e56dbf1066d812e0ae98108872d4f076ac90c6aaeea44cc3f5",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 91538
+}

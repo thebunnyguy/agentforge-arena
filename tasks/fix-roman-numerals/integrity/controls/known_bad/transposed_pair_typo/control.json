@@ -1,0 +1,5 @@
+{
+  "name": "transposed_pair_typo",
+  "description": "A pair-lookup implementation with a realistic copy/paste typo: the two-letter keys for 9 and 900 are transposed (\"XI\" instead of \"IX\", \"MC\" instead of \"CM\"), so the actual subtractive forms IX and CM never match the table and fall through to plain digit summation (IX -> 11, CM -> 1100). Correct for the other four subtractive pairs (IV, XL, XC, CD). The hidden suite's direct IX/CM/MCMXCIV tests must reject this.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "differently_worded_error",
+  "description": "Legitimately raises ValueError for negative input and returns n otherwise — satisfies the task contract with a different error message than the reference. Should be ACCEPTED; if rejected, the hidden suite is overfit to the reference's exact wording.",
+  "expect": "accept"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "reused_coroutine_object",
+  "description": "Calls make_coro() exactly once, before the loop, and re-awaits the SAME coroutine object on every retry instead of calling make_coro() fresh each attempt. A plausible misreading of the 'zero-argument callable' contract by an agent that only skims the docstring. Once a coroutine has been awaited to completion (return or raise), awaiting it again raises RuntimeError('cannot reuse already awaited coroutine') instead of actually retrying, so any test requiring more than one attempt fails or raises the wrong exception.",
+  "expect": "reject"
+}

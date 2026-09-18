@@ -1,0 +1,5 @@
+{
+  "name": "dfs_postorder",
+  "description": "Behaviorally equivalent to the reference but structurally different: a depth-first postorder traversal with white/gray/black recursion-stack coloring for cycle detection, instead of the reference's Kahn's-algorithm BFS with a min-heap. Determinism is achieved by visiting the outer node loop and each node's dependency list in sorted (lexicographic) order rather than by a heap of ready nodes. Produces the same dependency-respecting, lexicographically tie-broken order as the reference on every graph shape exercised by the hidden suite.",
+  "expect": "accept"
+}

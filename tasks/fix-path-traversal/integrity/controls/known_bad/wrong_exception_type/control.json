@@ -1,0 +1,5 @@
+{
+  "name": "wrong_exception_type",
+  "description": "Containment logic is otherwise correct (mirrors the reference's normalize-then-prefix-check), but raises PermissionError instead of the required ValueError on an escape. A plausible slip: the author copied an access-control pattern from elsewhere in the codebase and kept its exception type instead of switching to ValueError as the task spec requires. Every hidden test that does pytest.raises(ValueError) on an escaping input fails because PermissionError propagates uncaught.",
+  "expect": "reject"
+}

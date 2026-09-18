@@ -62,3 +62,26 @@ def test_standalone_point_interval_preserved():
 
 def test_point_interval_between_disjoint_kept():
     assert [tuple(x) for x in merge([(1, 5), (5, 5), (7, 9)])] == [(1, 5), (7, 9)]
+
+
+def test_merge_into_most_recent_group_not_first():
+    # Semantic property: once the output already contains more than one
+    # disjoint group, a later overlap must merge into whichever group it
+    # actually overlaps (the most recently emitted one), not be checked
+    # against the very first group ever emitted. (1, 2) is disjoint from
+    # everything else and must stay untouched; (10, 15) and (14, 20)
+    # overlap each other and must merge into a single (10, 20) group. An
+    # implementation that (bug-for-bug) tracks only the first emitted group
+    # instead of the current one would wrongly leave (10, 15) and (14, 20)
+    # unmerged here, since neither overlaps (1, 2).
+    assert merge([(1, 2), (10, 15), (14, 20)]) == [(1, 2), (10, 20)]
+
+
+def test_multiple_independent_merge_clusters_unsorted():
+    # Same property as above, exercised with unsorted input and two
+    # separate merge clusters, to also rule out an implementation that
+    # merges everything into (or reads its running end from) a single
+    # fixed slot rather than the group each new interval actually
+    # overlaps: (1, 3) & (2, 4) form one cluster, (10, 12) & (11, 13)
+    # another, and the two clusters are disjoint from each other.
+    assert merge([(11, 13), (2, 4), (10, 12), (1, 3)]) == [(1, 4), (10, 13)]

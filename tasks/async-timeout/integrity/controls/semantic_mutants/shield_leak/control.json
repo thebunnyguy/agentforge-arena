@@ -1,0 +1,5 @@
+{
+  "name": "shield_leak",
+  "description": "Task-specific near-miss: wraps the task in asyncio.shield() before handing it to asyncio.wait_for. shield() exists precisely to protect an awaitable from being cancelled when the coroutine awaiting it is cancelled -- so on timeout, wait_for cancels only the shield's outer proxy future, and the shielded inner task is never cancelled and keeps running in the background. The call still raises TimeoutError correctly (so a shallow read looks right), which is what makes this a realistic near-miss rather than a generic syntax mutation: an agent that knows 'shield protects a task from cancellation' but doesn't realize that is the exact opposite of what a cancel-on-timeout wrapper needs.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "missing_semicolon_typo",
+  "description": "Ampersand-first ordering and all five characters are covered, but the double-quote entity is transcribed as '&quot' (missing the trailing semicolon). A realistic transcription typo when writing out entity strings by hand.",
+  "expect": "reject"
+}

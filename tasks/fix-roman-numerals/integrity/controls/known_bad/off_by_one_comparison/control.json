@@ -1,0 +1,5 @@
+{
+  "name": "off_by_one_comparison",
+  "description": "Forward-scanning implementation that uses <= instead of < when deciding whether the current numeral is smaller than its neighbor, so two adjacent numerals of EQUAL value are wrongly treated as a subtractive pair and cancel out instead of adding (III -> -1, LVIII -> 54). A very plausible off-by-one when writing the lookahead comparison. Standard non-repeating subtractive forms like IV/IX still come out correct, so this control is only caught by the repeated-numeral hidden tests.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "overcorrected_scan_back",
+  "description": "A plausible attempt to patch the task's exact described bug ('the returned index is too far to the right for duplicates') by keeping ordinary binary search but adding a post-hoc correction: once an occurrence of target is found, scan backward while the previous element is <= target. The comparison should be == target (only step back over other occurrences of target); using <= instead walks back over every smaller element too, so any target that has a smaller value anywhere immediately to its left resolves all the way to index 0 (or further left) instead of its true leftmost occurrence. Absent-target cases are completely unaffected (they never enter the equal branch), so this control is only caught by present-target hidden tests, and it fails on a distinct set of them (present target preceded by smaller elements) than the other known_bad/first-match controls.",
+  "expect": "reject"
+}

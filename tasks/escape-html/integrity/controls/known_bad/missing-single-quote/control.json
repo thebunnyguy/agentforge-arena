@@ -1,0 +1,5 @@
+{
+  "name": "missing_single_quote",
+  "description": "Correctly escapes &, <, >, and \" with ampersand-first ordering, but forgets the single-quote entity (&#x27;). A realistic partial fix: the agent remembers the double quote (the common attribute delimiter) but overlooks that single-quoted attributes need escaping too.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "normalized_dotdot_token_check",
+  "description": "Checks for absolute components, then normalizes the joined path and rejects it only if a literal '..' token survives normalization. Since posixpath.normpath collapses every resolvable '..' for an absolute base, this check almost never fires: e.g. base \"/srv/data\", part \"../etc/passwd\" normalizes straight to \"/srv/etc/passwd\" with no '..' left, so the escape sails through silently. A realistic 'missing validation' bug: the author normalizes but never actually compares the result against base.",
+  "expect": "reject"
+}

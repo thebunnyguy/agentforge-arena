@@ -1,0 +1,5 @@
+{
+  "name": "unclamped_end_index_last_page",
+  "description": "num_pages, has_previous, and has_next are all correct, but end_index is computed as start_index + per_page with no clamp to total_items, so it assumes every page is full. Correct on every full page, but wrong on the final page whenever total_items is not an exact multiple of per_page (e.g. Paginator(10, 3).page(4).end_index comes out as 12 instead of 10) — a very plausible slip since the naive formula happens to work for interior pages and only breaks on the boundary the author was least likely to hand-check.",
+  "expect": "reject"
+}

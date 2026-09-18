@@ -310,23 +310,28 @@ def validate_task(task: Task, sandbox: Sandbox | None = None) -> dict:
     return results
 
 
-def _reference_diff(task: Task) -> Diff:
-    """Overlay the task's reference solution onto a throwaway snapshot copy and
-    capture the resulting diff. The temp tree is always removed."""
-    if task.reference_dir is None:
-        raise AssertionError(f"task {task.id} has no reference_dir")
+def overlay_diff(task: Task, overlay_root: Path | str) -> Diff:
+    """Overlay every file under overlay_root onto a throwaway snapshot copy and
+    capture the resulting diff. The temp tree is always removed.
 
-    tmp_root = Path(tempfile.mkdtemp(prefix="afa_ref_"))
+    Generalizes what was originally the reference-solution-only body of
+    _reference_diff: "these files replace/add onto the pristine snapshot" is
+    also exactly what a known-bad control, a semantic mutant, or an alternative
+    valid solution needs (see integrity/afa_integrity), so this is the one
+    shared overlay primitive rather than each caller re-deriving the same
+    tempdir-copy-then-capture_diff dance.
+    """
+    overlay_root = Path(overlay_root)
+    tmp_root = Path(tempfile.mkdtemp(prefix="afa_overlay_"))
     workspace = tmp_root / "workspace"
     try:
         shutil.copytree(task.snapshot_dir, workspace)
-        # Overlay every file from the reference dir onto the snapshot copy,
+        # Overlay every file from overlay_root onto the snapshot copy,
         # preserving subdirectory structure (e.g. listkit/dedup.py).
-        ref_root = Path(task.reference_dir)
-        for src in sorted(ref_root.rglob("*")):
+        for src in sorted(overlay_root.rglob("*")):
             if not src.is_file():
                 continue
-            rel = src.relative_to(ref_root)
+            rel = src.relative_to(overlay_root)
             dest = workspace / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dest)
@@ -338,3 +343,11 @@ def _reference_diff(task: Task) -> Diff:
         )
     finally:
         shutil.rmtree(tmp_root, ignore_errors=True)
+
+
+def _reference_diff(task: Task) -> Diff:
+    """Overlay the task's reference solution onto a throwaway snapshot copy and
+    capture the resulting diff. The temp tree is always removed."""
+    if task.reference_dir is None:
+        raise AssertionError(f"task {task.id} has no reference_dir")
+    return overlay_diff(task, task.reference_dir)

@@ -1,0 +1,5 @@
+{
+  "name": "evicts_mru_instead_of_lru",
+  "description": "On overflow, evicts the most-recently-used entry (the one just touched/inserted) via OrderedDict.popitem(last=True) instead of popitem(last=False). A plausible mix-up of the `last` flag's meaning. The hidden overflow-eviction tests must reject this.",
+  "expect": "reject"
+}

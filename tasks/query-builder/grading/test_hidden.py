@@ -43,3 +43,13 @@ def test_methods_return_self_for_chaining():
 def test_select_star_still_appends_where_and_limit():
     # The default "SELECT *" branch must not drop accumulated WHERE/LIMIT clauses.
     assert Query().where("a=1").limit(5).build() == "SELECT * WHERE a=1 LIMIT 5"
+
+
+def test_where_called_with_empty_condition_still_emits_where():
+    # Contract: the WHERE clause is appended "if at least one where() was
+    # called" -- that is a call-count rule, not a truthiness-of-the-argument
+    # rule. A where() call must always be recorded, even when the condition
+    # string itself is empty/falsy, so where("") must still produce a
+    # (degenerate) WHERE clause rather than being silently dropped by a
+    # defensive "if condition:" guard.
+    assert Query().where("").build() == "SELECT * WHERE "

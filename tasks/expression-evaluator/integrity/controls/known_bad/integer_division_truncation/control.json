@@ -1,0 +1,5 @@
+{
+  "name": "integer_division_truncation",
+  "description": "Division uses Python's floor-division operator (//) instead of true division (/), a plausible slip when porting arithmetic logic from a language where '/' truncates. '7/2' returns 3.0 instead of 3.5. Everything else (precedence, associativity, unary minus, parentheses) is copied verbatim from the reference, isolating this single defect.",
+  "expect": "reject"
+}

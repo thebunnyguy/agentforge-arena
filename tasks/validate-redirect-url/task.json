@@ -1,6 +1,6 @@
 {
   "id": "validate-redirect-url",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Reject open-redirect targets in safe_redirect",
   "description": "saferedirect.redirect.safe_redirect(target, allowed_host) must return target only when it is a safe local redirect: a relative path beginning with a single '/' , or an absolute URL whose host equals allowed_host. It must raise ValueError for external absolute URLs (host != allowed_host), protocol-relative targets like '//evil.com', and dangerous schemes such as 'javascript:' or 'data:'. The snapshot is BUGGY: it returns any target unchanged (naive open redirect). Fix saferedirect/redirect.py using urllib.parse.urlparse and pure string logic only (NO network access). Do not modify any test files.",
   "snapshot_dir": "snapshot",

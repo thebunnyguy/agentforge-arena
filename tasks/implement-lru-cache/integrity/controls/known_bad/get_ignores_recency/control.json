@@ -1,0 +1,5 @@
+{
+  "name": "get_ignores_recency",
+  "description": "get() returns the stored value but never refreshes recency; only put() moves a key to the front. Per the task contract BOTH get and put must count as a use. The hidden get-refreshes-recency tests must reject this.",
+  "expect": "reject"
+}

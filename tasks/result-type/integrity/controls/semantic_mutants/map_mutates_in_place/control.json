@@ -1,0 +1,5 @@
+{
+  "name": "map_mutates_in_place",
+  "description": "Task-specific semantic mutant probing whether the hidden suite actually enforces the contract's 'returns a NEW ok Result' wording for map() on an ok result. This mutant mutates self._value in place and returns self instead of constructing a fresh Result, so the original Result object is silently changed as a side effect (aliasing bug: any other reference to the original ok result observes the mapped value too). Every visible/hidden assertion only inspects the RETURNED object's is_ok/unwrap(), never object identity or whether the original Result was left untouched, so this is expected to test whether that specific contract clause is actually graded.",
+  "expect": "reject"
+}

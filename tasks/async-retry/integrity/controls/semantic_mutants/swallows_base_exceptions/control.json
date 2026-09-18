@@ -1,0 +1,5 @@
+{
+  "name": "swallows_base_exceptions",
+  "description": "Security/robustness-relevant near-miss: broadens `except Exception` to `except BaseException`, so asyncio.CancelledError (a BaseException subclass, not an Exception subclass, since Python 3.8) is caught, swallowed, and retried instead of propagating immediately. This is a realistic 'be extra safe' widening a partial fix might introduce, but it breaks cooperative task cancellation/timeouts: a caller that cancels a task stuck inside retry_call would have the cancellation silently absorbed and the retry loop kept running, which can hang shutdown or hold resources instead of stopping - an availability/DoS-adjacent bug. Every existing hidden test only raises Exception subclasses (ValueError/RuntimeError), so this mutant is expected to slip past the current hidden suite undetected, which is itself the finding this control is meant to surface.",
+  "expect": "reject"
+}

@@ -111,3 +111,34 @@ def test_zero_attempts_raises_value_error():
 
     with pytest.raises(ValueError):
         asyncio.run(retry_call(make, 0))
+
+
+def test_cancelled_error_propagates_without_retry():
+    """SEMANTIC PROPERTY (task.json contract): only ``Exception`` subclasses
+    count as a failed attempt. A ``BaseException`` that is not an ``Exception``
+    (``asyncio.CancelledError`` here) must propagate immediately out of the
+    attempt that raised it - it must NOT be caught, stored, and retried like an
+    ordinary failure.
+
+    The discriminating assertion is ``calls[0] == 1``, not merely that a
+    CancelledError eventually comes out of ``asyncio.run``: an implementation
+    that widens ``except Exception`` to ``except BaseException`` still ends up
+    re-raising a CancelledError after exhausting every attempt (the same
+    exception object survives as ``last_exc``), so a test that only checked
+    the exception type would pass that implementation. What must actually
+    happen is that make_coro() is never called again after the first
+    CancelledError - i.e. the exception left the function on the very first
+    attempt instead of being swallowed and retried.
+    """
+    calls = [0]
+
+    def exc_factory(attempt):
+        return asyncio.CancelledError(f"cancel-{attempt}")
+
+    async def go():
+        return await retry_call(_factory_always_fail(calls, exc_factory), attempts=3)
+
+    with pytest.raises(asyncio.CancelledError) as excinfo:
+        asyncio.run(go())
+    assert str(excinfo.value) == "cancel-1"
+    assert calls[0] == 1

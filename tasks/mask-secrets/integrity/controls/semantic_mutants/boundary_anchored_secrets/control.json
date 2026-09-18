@@ -1,0 +1,5 @@
+{
+  "name": "boundary_anchored_secrets",
+  "description": "A plausible 'tightening' fix for the audit note that the regex grammar is ambiguous: wraps every secret pattern in \\b word-boundary anchors so it 'only matches whole tokens'. The spec never requires a boundary before sk-/Bearer/the email local part, so a secret pasted directly against other alphanumeric text with no separating space or punctuation (e.g. 'leakedsk-<20 chars>', 'seeuser@site.com' with no leading delimiter is fine but 'idsk-...' or a key glued onto a preceding word is not) is silently left unredacted. This is a security-relevant near-miss, not a generic syntax mutation.",
+  "expect": "reject"
+}

@@ -146,3 +146,21 @@ def test_tie_uses_first_not_last_appearance():
     # "b" and "a" both occur twice; first-appearance order puts "b" first. A
     # last-appearance tiebreak would return ["a", "b"].
     assert most_common(["b", "a", "a", "b"], 2) == ["b", "a"]
+
+
+def test_negative_k_returns_empty_regardless_of_distinct_count():
+    # SEMANTIC PROPERTY: a negative k asks for a nonsensical (negative) number of
+    # items, so the contract is [] no matter how many distinct items exist -- not
+    # "all but the last |k| items of the ranking". The pre-existing
+    # test_negative_k_returns_empty above only exercises a negative k whose
+    # magnitude (5) is >= the number of distinct items (2) in its input, where a
+    # plain Python slice ordered[:k] *also* happens to come out empty
+    # (`[1, 2][:-5] == []`) purely because the slice's start clamps to 0. That
+    # input cannot distinguish a correct "k <= 0 short-circuits to []"
+    # implementation from a buggy one that drops the explicit guard and falls
+    # through to slicing the ranked list with a negative k. Here |k| is smaller
+    # than the number of distinct items, so a dropped-guard implementation would
+    # return a non-empty, truncated-from-the-wrong-end list instead of [].
+    items = [1, 2, 3, 4, 5]
+    assert most_common(items, -1) == []
+    assert most_common(items, -3) == []

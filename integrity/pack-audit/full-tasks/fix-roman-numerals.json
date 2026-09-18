@@ -1,0 +1,928 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "fix-roman-numerals",
+  "task_version": "1.0.0",
+  "mode": "full",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:12:08.705006+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 9,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 11,
+        "lines_removed": 7
+      },
+      "duration_ms": 20603
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.222), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.2222222222222222,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 9,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 7564
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['romankit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "romankit/**"
+        ],
+        "resolved_local_imports": {
+          "romankit": "romankit/__init__.py"
+        },
+        "reachable_local_imports": {
+          "romankit": "romankit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "romankit/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:romankit/conftest.py",
+          "always_protected:romankit/sitecustomize.py",
+          "always_protected:romankit/usercustomize.py",
+          "always_protected:romankit/pytest.ini",
+          "always_protected:romankit/tox.ini",
+          "always_protected:romankit/setup.cfg",
+          "always_protected:romankit/pyproject.toml",
+          "always_protected:romankit/pytest.py",
+          "always_protected_suffix:romankit/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:romankit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 446
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 4 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 4,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 8420
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 16 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 27 generated, 0 unsupported, 1 declared-equivalent, 10 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 27,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 1,
+        "mutants_intercepted_by_regression_or_scope": 10,
+        "mutants_relevant": 16,
+        "killed_total": 16,
+        "killed_by_hidden_test": 16,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 99581
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:824501fade69c3ef7ee3ae2ecbb946b18cc12fb98d23767adc777ecf5bb201bd"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:824501fade69c3ef7ee3ae2ecbb946b18cc12fb98d23767adc777ecf5bb201bd"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:824501fade69c3ef7ee3ae2ecbb946b18cc12fb98d23767adc777ecf5bb201bd"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:missing_xc_substitution",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:50dc531668a93c0eda317ce08a7cf2005a103af3ce4fc530c6316a8a96e02aba"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:50dc531668a93c0eda317ce08a7cf2005a103af3ce4fc530c6316a8a96e02aba"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:50dc531668a93c0eda317ce08a7cf2005a103af3ce4fc530c6316a8a96e02aba"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:off_by_one_comparison",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:107a63e728c122a1e5f02c8a9f90188f11162a5cb683b5f07c385d891958eeca"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:107a63e728c122a1e5f02c8a9f90188f11162a5cb683b5f07c385d891958eeca"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:107a63e728c122a1e5f02c8a9f90188f11162a5cb683b5f07c385d891958eeca"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:transposed_pair_typo",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:6b650d12a38f092be02c2a5be3c0f59b13951332f055c589d5ce31b0d2f1eb3a"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:6b650d12a38f092be02c2a5be3c0f59b13951332f055c589d5ce31b0d2f1eb3a"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.7777777777777778,
+                "functional_pass": false,
+                "fingerprint": "sha256:6b650d12a38f092be02c2a5be3c0f59b13951332f055c589d5ce31b0d2f1eb3a"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:forward_lookahead",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:4d2287dd0b3fbf6f5dd3e7508e40b0b0006e6d8f5450a4be6ed6d5c913be8b76"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 58862
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "romankit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 3947
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "romankit/parse.py:1:0:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 1,
+      "col_offset": 0,
+      "family": "delete_state_update",
+      "description": "delete_state_update: _VALUES = {\n    \"I\": 1,\n    \"V\": 5,\n    \"X\": 10,\n    \"L\": 50,\n    \"C\": 100,\n    \"D\": 500,\n    \"M\": 1000,\n} (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7ab6224748ff61522e677609113e3d6b4d7969d7bcc51125ce9956f5ba5e9a48",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:2:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 2,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_ix",
+        "test_mcmxciv",
+        "test_iii",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:82c98cbc4ef328787ccc4993d1f8ca5fa82511a8914f803dd2645332f26db142",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:2:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 2,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.4444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_ix",
+        "test_mcmxciv",
+        "test_iii",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:428ffebd491848a71bfebc3ae4723e636afbb876d57672895654895502c5e9bd",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:3:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 3,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 5 (5 -> 6)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_mcmxciv",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7654b5a409caba27f41878bcfe566fb15fe68c06a90c2a06ed8bb5e3afc09d94",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:3:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 3,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 5 (5 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_mcmxciv",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:ce090192906d9f420b5e6be37f041638ae8df35fb54a8b632570b6471a36c1e1",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:4:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 4,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 10 (10 -> 11)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6c5564de56d5fd6df4357c02368f0d650022c5d475966ad322d787b0d7f28c7a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:4:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 4,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 10 (10 -> 0)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9cea93ce1bc32389450825c39f6f7f63d3485c1fbf1ce595a6e0e3b580e56261",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:5:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 5,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 50 (50 -> 51)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_xl",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b0c2bffbc5ca8065d6707b90939242ea325ecaf8ce1fdfa6ee8a938dc05615a6",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:5:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 5,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 50 (50 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_xl",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:1b086ed885647d8fe0510fda0c4e3d0d7886e1ec2e2e5ec34fca6972cf7fd3a6",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:6:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 6,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 100 (100 -> 101)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_xc",
+        "test_cd",
+        "test_cm"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:ee9bbb600e7c1dc391d463d37d360587bf2f57a818e533257a981f3618733e5e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:6:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 6,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 100 (100 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5555555555555556,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_xc",
+        "test_cd",
+        "test_cm",
+        "test_mcmxciv"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b21289c1c15646becb76471e3c83e88d5bd9b3f364f75c9c6d95cd29c5f24be1",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:7:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 7,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 500 (500 -> 501)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_cd"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e9ac5211ac628f235060fd2d8ea93fbdf747c402e3485e9fb6efcfc83d34a718",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:7:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 7,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 500 (500 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8888888888888888,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_cd"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:96bc92ca1edffce20eb958d09e800826b62c5c96bd3e51025120713a82cc088a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:8:9:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 8,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1000 (1000 -> 1001)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_cm",
+        "test_mcmxciv"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:601b7d021c2f5a067c8998ba844ba828229a6702d15fd0a7d349576612bf16e0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:8:9:change_constant_zero",
+      "file": "romankit/parse.py",
+      "lineno": 8,
+      "col_offset": 9,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1000 (1000 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_cm",
+        "test_mcmxciv"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7cef856597cedc9df690f4d6628b14466b992411ea594db4a974dccdc2be9405",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:19:4:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 19,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: total = 0 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e45db942ebc2d40d33bb02d1489ee1e1780ba92b8e0376591f6365563494319e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:19:12:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 19,
+      "col_offset": 12,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3188311f647585fdc75dac49f26145a39526a30d093f7fe06bc60f2628e57cbe",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:20:4:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 20,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: prev = 0 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7bcf5d0f5d033215339bdf90c2ec0633b4546532a9408823794f251910b76882",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:20:11:change_constant_increment",
+      "file": "romankit/parse.py",
+      "lineno": 20,
+      "col_offset": 11,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": true,
+      "diff_hash": "sha256:c2d58d46cf629401aa77dea168973816d2f285b37fc8c4a7dcdeaafbe9d45185",
+      "notes": "declared equivalent: change_constant_increment at romankit/parse.py:20:11 changes the sentinel initializer `prev = 0` to `prev = 1`. `prev` is read exactly once per loop iteration, in `if value < prev`, and its initializer value is only ever observed on the FIRST iteration of `for ch in reversed(s)` -- every later iteration reads whatever the previous iteration left in `prev` (either unchanged, on the `total -= value` branch, or overwritten with that iteration's `value`, on the `total += value` branch), never the original initializer. On the first iteration, `value = _VALUES[ch]` is drawn from `_VALUES.values() = {1, 5, 10, 50, 100, 500, 1000}`, whose minimum is 1. `1 < 0` is False and `1 < 1` is False, so for EVERY possible first-iteration value the comparison takes the same (else) branch under both prev=0 and prev=1, after which `prev` is set to that same `value` in both versions -- the two runs are in byte-identical state after iteration 1 and every subsequent iteration is therefore identical too. The two remaining edge cases are also unaffected: an empty string never enters the loop, so `total` returns 0 regardless of `prev`'s initial value; and a character not in `_VALUES` raises KeyError on `_VALUES[ch]` before the comparison is ever reached, identically in both versions. This holds for every input to `from_roman`, not merely well-formed Roman numerals, so it is a true equivalent mutant: no behavioral hidden test could ever distinguish it, because no input exists on which the two versions diverge."
+    },
+    {
+      "mutation_id": "romankit/parse.py:22:8:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 22,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: value = _VALUES[ch] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8407bc9e9b767258690efd5d5c92871f47e7cdd67f935e40ebb2b5c0c96dd7b5",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:23:8:remove_branch_force_false",
+      "file": "romankit/parse.py",
+      "lineno": 23,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if value < prev:\n            total -= value\n        else:\n            total += value\n            prev = value (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_ix",
+        "test_xl",
+        "test_xc",
+        "test_cd",
+        "test_cm",
+        "test_mcmxciv"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:94ca961fce0c3df85c32bb2adf4509aa474b80e54fb112f8373fcb83dcb29fd4",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:23:8:remove_branch_force_true",
+      "file": "romankit/parse.py",
+      "lineno": 23,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if value < prev:\n            total -= value\n        else:\n            total += value\n            prev = value (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7cb822309e62d3f9faff57a599ff31edcc40d65bcf68c356f3ff55d65e26a0f0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:23:11:boundary_operator",
+      "file": "romankit/parse.py",
+      "lineno": 23,
+      "col_offset": 11,
+      "family": "boundary_operator",
+      "description": "boundary_operator: value < prev (Lt -> LtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_mcmxciv",
+        "test_iii",
+        "test_lviii"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0c752ac63c9674407cc418e06c7cafd5091e53efb839afb9ce13e7a9337a5c42",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:24:12:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 24,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: total -= value (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_ix",
+        "test_xl",
+        "test_xc",
+        "test_cd",
+        "test_cm",
+        "test_mcmxciv"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:3f7bddecd7f3287521daea76ed9eeda447780ae0c2899c11487052f252cb539f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:26:12:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 26,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: total += value (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:5c15d0b0479899e9693def138ff07ce2ee8289b439e0d1ad1606f6d509ae9988",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:27:12:delete_state_update",
+      "file": "romankit/parse.py",
+      "lineno": 27,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: prev = value (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_iv",
+        "test_ix",
+        "test_xl",
+        "test_xc",
+        "test_cd",
+        "test_cm",
+        "test_mcmxciv"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2196095742f5515fe60f3efd8846f5a9ea8dccfde38fab30711f6a2e2004806c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "romankit/parse.py:28:4:return_constant",
+      "file": "romankit/parse.py",
+      "lineno": 28,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return total (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:16f2b5639bd6a0fb807860fe6d111b1efee27a44b54c08dc40d2ac2f9f02fe41",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "missing_xc_substitution",
+      "kind": "known_bad",
+      "description": "A string-expansion implementation (expand each subtractive pair to its additive equivalent, then sum digit-by-digit) that omits the XC -> LXXXX expansion rule -- a realistic oversight since 90 is the least memorable of the six subtractive pairs. XC (90) is summed as X+C=110 instead, and MCMXCIV -- which contains an embedded XC -- comes out 20 too high (2014 instead of 1994). All other subtractive pairs (IV, IX, XL, CD, CM) are handled correctly.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_xc', 'test_mcmxciv']"
+    },
+    {
+      "name": "off_by_one_comparison",
+      "kind": "known_bad",
+      "description": "Forward-scanning implementation that uses <= instead of < when deciding whether the current numeral is smaller than its neighbor, so two adjacent numerals of EQUAL value are wrongly treated as a subtractive pair and cancel out instead of adding (III -> -1, LVIII -> 54). A very plausible off-by-one when writing the lookahead comparison. Standard non-repeating subtractive forms like IV/IX still come out correct, so this control is only caught by the repeated-numeral hidden tests.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_iii', 'test_lviii']"
+    },
+    {
+      "name": "transposed_pair_typo",
+      "kind": "known_bad",
+      "description": "A pair-lookup implementation with a realistic copy/paste typo: the two-letter keys for 9 and 900 are transposed (\"XI\" instead of \"IX\", \"MC\" instead of \"CM\"), so the actual subtractive forms IX and CM never match the table and fall through to plain digit summation (IX -> 11, CM -> 1100). Correct for the other four subtractive pairs (IV, XL, XC, CD). The hidden suite's direct IX/CM/MCMXCIV tests must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7777777777777778,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_ix', 'test_cm']"
+    },
+    {
+      "name": "forward_lookahead",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent correct solution: scans left-to-right with one character of lookahead (subtract the current numeral if the NEXT one is strictly larger, else add it), instead of the reference's right-to-left scan that tracks the largest value seen so far (prev). Different iteration direction, different loop state; produces identical results for every well-formed Roman numeral (the two approaches only diverge on malformed/ambiguous strings outside the task's spec, e.g. \"IIX\").",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'romankit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "romankit/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "fix-roman-numerals",
+    "task_version": "1.0.0",
+    "task_json_hash": "sha256:53a083fcf62627e646cfc28d25f6ff8ac4442d013eb9e66bfcf32f1218d1972a",
+    "snapshot_hash": "sha256:1577fe79ffc2235cb2ca344714a40752fe4a4de60453bfe1ed0d3a54cb570f3b",
+    "reference_hash": "sha256:bee752956f50d4cbde2c993197664bad69b6f5d4c1f8f800ad420785f145092c",
+    "grading_hash": "sha256:757b073362f83dec7c6ee10db949fedc68ca0eb07c0e76bfd11fc23ec5bd5fe0",
+    "controls_hash": "sha256:1e2e2b9af047d6e6acf472110d4461b0f3df86a5e334696d3ab1445904ecaeb8",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 199587
+}

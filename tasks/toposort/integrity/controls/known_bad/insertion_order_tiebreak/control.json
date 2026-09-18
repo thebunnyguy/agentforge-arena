@@ -1,0 +1,5 @@
+{
+  "name": "insertion_order_tiebreak",
+  "description": "Realistic tiebreak bug: dependency ordering and cycle detection are both correct (BFS/Kahn-style with a FIFO queue), but ties between simultaneously-eligible nodes are broken by first-seen/insertion order while scanning the graph, instead of the required lexicographic order. This is the kind of mistake an agent makes by reaching for a plain queue instead of noticing the spec's determinism requirement. The hidden exact-order tests must reject this.",
+  "expect": "reject"
+}

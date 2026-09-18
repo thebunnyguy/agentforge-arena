@@ -1,0 +1,5 @@
+{
+  "name": "hi_excludes_last_index",
+  "description": "Initializes the search boundary as `hi = len(sorted_list) - 1` instead of `hi = len(sorted_list)` -- an easy off-by-one for an agent used to inclusive-hi binary search templates (find-in-array style) who forgets bisect's boundary is exclusive and must be able to reach index len(sorted_list) itself (the 'insert past the end' case). The loop and comparisons are otherwise exactly correct, and most cases (target within or below the list's range) still return the right answer, so this control is only caught by cases where the correct insertion point equals len(sorted_list) -- i.e. a target greater than every element, including the single-element case.",
+  "expect": "reject"
+}

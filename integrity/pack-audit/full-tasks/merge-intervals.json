@@ -1,0 +1,635 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "merge-intervals",
+  "task_version": "1.0.2",
+  "mode": "full",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-18T07:13:11.833527+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 14,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d0fc1c62068eb13e765ab16b46a7d74223a5e256a1db8f117a629a3b864ccd6f"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 14,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d0fc1c62068eb13e765ab16b46a7d74223a5e256a1db8f117a629a3b864ccd6f"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 14,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d0fc1c62068eb13e765ab16b46a7d74223a5e256a1db8f117a629a3b864ccd6f"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 14,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d0fc1c62068eb13e765ab16b46a7d74223a5e256a1db8f117a629a3b864ccd6f"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 14,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:d0fc1c62068eb13e765ab16b46a7d74223a5e256a1db8f117a629a3b864ccd6f"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 11,
+        "lines_removed": 6
+      },
+      "duration_ms": 18837
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.286), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.2857142857142857,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 14,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 2598
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['intervalkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "intervalkit/**"
+        ],
+        "resolved_local_imports": {
+          "intervalkit": "intervalkit/__init__.py"
+        },
+        "reachable_local_imports": {
+          "intervalkit": "intervalkit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "intervalkit/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:intervalkit/conftest.py",
+          "always_protected:intervalkit/sitecustomize.py",
+          "always_protected:intervalkit/usercustomize.py",
+          "always_protected:intervalkit/pytest.ini",
+          "always_protected:intervalkit/tox.ini",
+          "always_protected:intervalkit/setup.cfg",
+          "always_protected:intervalkit/pyproject.toml",
+          "always_protected:intervalkit/pytest.py",
+          "always_protected_suffix:intervalkit/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:intervalkit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 157
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 17 generated, 0 unsupported, 0 declared-equivalent, 5 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 17,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_intercepted_by_regression_or_scope": 5,
+        "mutants_relevant": 12,
+        "killed_total": 12,
+        "killed_by_hidden_test": 12,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 68662
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:a186470f9facc880e1dbac553ba1de2ee7b51b9d0ac8ea8ba94651bf8d12bcf2"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:a186470f9facc880e1dbac553ba1de2ee7b51b9d0ac8ea8ba94651bf8d12bcf2"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:a186470f9facc880e1dbac553ba1de2ee7b51b9d0ac8ea8ba94651bf8d12bcf2"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 12618
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "intervalkit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 5080
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "intervalkit/merge.py:9:4:delete_state_update",
+      "file": "intervalkit/merge.py",
+      "lineno": 9,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: ordered = sorted(intervals) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:673e4f3fd2fac1577d80b74a6ed0ed950eb10314a9c5fcc74bec5922f1efcf72",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:10:4:delete_state_update",
+      "file": "intervalkit/merge.py",
+      "lineno": 10,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: out = [] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:dc63a7a334a42f4fe8a81bd3bfa9d67fe370f6c5232a135f65f2cd8425588265",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:8:remove_branch_force_false",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if out and start <= out[-1][1]:\n            prev_start, prev_end = out[-1]\n            out[-1] = (prev_start, max(prev_end, end))\n        else:\n            out.append((start, end)) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.35714285714285715,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9b736e0b8c6401847b417e5a1c956e92a80ec73e725978d5006dc44443f6576b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:8:remove_branch_force_true",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if out and start <= out[-1][1]:\n            prev_start, prev_end = out[-1]\n            out[-1] = (prev_start, max(prev_end, end))\n        else:\n            out.append((start, end)) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:93fe8db1b876f3553a7e4a89f72634d8a13ae290f295412b564ad03b4ee59432",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:11:swap_boolean_condition",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 11,
+      "family": "swap_boolean_condition",
+      "description": "swap_boolean_condition: out and start <= out[-1][1] (And -> Or)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:966992c818d9f0d56868b758ba1f92dfe2d16d37b4d9f77c6400cc520f607909",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:19:boundary_operator",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 19,
+      "family": "boundary_operator",
+      "description": "boundary_operator: start <= out[-1][1] (LtE -> Lt)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7857142857142857,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_touching_merges",
+        "test_large_input_chain_collapses",
+        "test_point_interval_between_disjoint_kept"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fabc6d437c07c8cd160766a13a87993e60640b3a2609aa7cb4bc34b12a1e9651",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:33:change_constant_increment",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 33,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.21428571428571427,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_disjoint_kept_separate",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_large_input_alternating_gaps",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c7004783378317e37ec919eea9520971a2c775c85275377e5a480cee0b6b340f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:33:change_constant_zero",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 33,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f697762756351e9b2226bdd3bac4c1f5caa0b5d66584c0ed35dd4ba28a21801d",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:36:change_constant_increment",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 36,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.21428571428571427,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_disjoint_kept_separate",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_large_input_alternating_gaps",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:385319e1b471a3c3e25b81f78dc9041edf419e8b080603e6f65112cfa90f8f49",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:12:36:change_constant_zero",
+      "file": "intervalkit/merge.py",
+      "lineno": 12,
+      "col_offset": 36,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.35714285714285715,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:1072ae0c3b6fa3b97e42f3472e98f5562c574ceb0745567ef44f52cb7844ed8a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:13:12:delete_state_update",
+      "file": "intervalkit/merge.py",
+      "lineno": 13,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: prev_start, prev_end = out[-1] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.35714285714285715,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fd1977f4db062297efd2210973ae92e72e3916e685e0de1b618c22f20b1e58ed",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:13:40:change_constant_increment",
+      "file": "intervalkit/merge.py",
+      "lineno": 13,
+      "col_offset": 40,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.35714285714285715,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7b39b38443d84999a0ac5ad532a9b9ed71e6e2f89a089218ff938dfce4ae2b80",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:13:40:change_constant_zero",
+      "file": "intervalkit/merge.py",
+      "lineno": 13,
+      "col_offset": 40,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:262951fac2466201af56d9fb7bb3b1cf2c066c6178189cd6fff60a4e22602635",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:14:12:delete_state_update",
+      "file": "intervalkit/merge.py",
+      "lineno": 14,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: out[-1] = (prev_start, max(prev_end, end)) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_unsorted_input",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:42d6ebc9783e046fa784f3abe70afc0aea59ea767d752459563dcbb41c33e52e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:14:17:change_constant_increment",
+      "file": "intervalkit/merge.py",
+      "lineno": 14,
+      "col_offset": 17,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.35714285714285715,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_overlapping",
+        "test_touching_merges",
+        "test_nested",
+        "test_unsorted_input",
+        "test_all_collapse_to_one",
+        "test_large_input_chain_collapses",
+        "test_point_interval_between_disjoint_kept",
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c8b951d42e9d2ab8b4e8c35225d1ed9ea26759ba14744e4e9ab299008e35dcb3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:14:17:change_constant_zero",
+      "file": "intervalkit/merge.py",
+      "lineno": 14,
+      "col_offset": 17,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8571428571428571,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_merge_into_most_recent_group_not_first",
+        "test_multiple_independent_merge_clusters_unsorted"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:4f5ddebaa139c69ad61919ad4af88f6bee45f80b6ee02e84f91b8e07e85bd29b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "intervalkit/merge.py:17:4:return_constant",
+      "file": "intervalkit/merge.py",
+      "lineno": 17,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return out (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9149a69d1df4e40b34d31c865104d0ee31829cbb555054a983a912e265907ab3",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'intervalkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "intervalkit/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "merge-intervals",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:eb92dd87e6e4744f710fac7549d9d404027d41062fe0f91073265e1c3e9caea2",
+    "snapshot_hash": "sha256:29b6b3291238862d00d4515ec6c072cc4c43cb3754bd8232497dd5c57c0ed6b0",
+    "reference_hash": "sha256:b9df8616043c87592e8f4785484e575eb72ace34d1c5e74ee7c6ec658e180596",
+    "grading_hash": "sha256:06efaa9082d8dacefb50e635ae59964352d88c12c870b3e82c088b91b20b2797",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 107972
+}

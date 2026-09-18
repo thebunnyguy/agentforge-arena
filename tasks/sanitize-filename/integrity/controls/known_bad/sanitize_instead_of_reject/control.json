@@ -1,0 +1,5 @@
+{
+  "name": "sanitize_instead_of_reject",
+  "description": "Misreads the task as 'sanitize' rather than 'reject': strips null bytes, normalizes backslashes to slashes, and returns only the basename instead of raising ValueError. So 'a/b', '../etc/passwd', and 'x\\x00y' are silently rewritten and returned rather than rejected, violating the required raise-on-unsafe-input contract.",
+  "expect": "reject"
+}

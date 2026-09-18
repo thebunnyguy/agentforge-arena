@@ -1,0 +1,5 @@
+{
+  "name": "unwrap_or_truthiness_bypass",
+  "description": "Task-specific semantic mutant: unwrap_or() branches on the truthiness of the stored value instead of the is_ok flag ('return self._value if self._value else default'). This passes for any ok result holding a truthy value and happens to also pass for err results (whose _value is None, hence falsy), so it looks correct under casual testing and even under a naive happy-path suite. It only breaks the explicit falsy-value contract: Result.ok(0).unwrap_or(99) wrongly returns 99, and Result.ok(False).unwrap_or('default') wrongly returns 'default'. The hidden suite's test_ok_with_falsy_value_unwraps_to_that_value (added specifically to pin 'branch on ok-ness, not on the truthiness of the value') must reject this.",
+  "expect": "reject"
+}

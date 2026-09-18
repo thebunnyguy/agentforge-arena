@@ -1,0 +1,14 @@
+{
+  "declared_equivalent_mutants": [
+    {
+      "file": "safename/name.py",
+      "diff_hash": "sha256:95faa7465d726408f7d5b05dadf403f8e49bfabd543fa8798c9924ddd760587a",
+      "reason": "remove_branch_force_false on line 27 (`if \"..\" in components:`) forces this branch to never be taken. Tracing control flow in the reference: any name containing '/' or '\\\\' is already rejected earlier (line 21), so by the time line 26 runs (`components = name.replace(\"\\\\\", \"/\").split(\"/\")`), name contains neither separator and components is always exactly [name] (a single-element list). Therefore `\"..\" in components` is equivalent to `name == \"..\"`, which was already rejected earlier still (line 23's `name in (\".\", \"..\")` check). The condition at line 27 is provably always False for every input that reaches it, on any input the task contract cares about -- it is dead code given the current (correct) check ordering, so forcing it to never fire changes nothing. Confirmed empirically: the sibling remove_branch_force_true mutant at the same line (which forces the branch to always fire) IS correctly killed by the hidden suite (breaks plain names), and invert_comparison at the same line is also correctly killed -- both because they change behavior on inputs that DO reach line 27, unlike force_false/remove_validation which only affect the (empty) set of inputs for which the guard would have been True."
+    },
+    {
+      "file": "safename/name.py",
+      "diff_hash": "sha256:70a167de79f220588ebd7139c72f0dac8bcebb5cf2221f4cca1d019c0fdd8090",
+      "reason": "remove_validation on line 27 (`if \"..\" in components: raise ...`) replaces the raise with a no-op, i.e. it removes the ValueError but leaves the (always-False, per the reasoning above) condition check in place. Since the guard's condition can never be True for any input that reaches it -- every name with a separator was already rejected at line 21, and the only name for which `\"..\" in components` could otherwise be True is the literal string \"..\", which was already rejected at line 23 -- the raise this mutant deletes could never have executed on any input in the first place. Behaviorally identical to the reference for every input, not just the existing test cases."
+    }
+  ]
+}

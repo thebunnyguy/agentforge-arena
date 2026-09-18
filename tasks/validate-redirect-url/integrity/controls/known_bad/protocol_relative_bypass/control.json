@@ -1,0 +1,5 @@
+{
+  "name": "protocol_relative_bypass",
+  "description": "Checks only `not parsed.scheme` (instead of `not parsed.scheme and not parsed.netloc`) before treating a leading '/' as a safe relative path, and has no explicit pre-check for '//'. Since urlparse('//evil.com') yields an empty scheme, this wrongly classifies the protocol-relative target as relative and returns it unchanged -- a classic open-redirect bypass. Must be rejected by the hidden suite's protocol-relative test.",
+  "expect": "reject"
+}

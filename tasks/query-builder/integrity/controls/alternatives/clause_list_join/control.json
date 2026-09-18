@@ -1,0 +1,5 @@
+{
+  "name": "clause_list_join",
+  "description": "Structurally different but behaviorally equivalent correct implementation: build() assembles a list of already-formatted clause strings (\"SELECT ...\", optionally \"WHERE ...\", optionally \"LIMIT ...\") and joins the list with a single space at the end, instead of incrementally concatenating (+=) onto a running sql string. Same clause order, same comma/AND separators, same omission rules -- different control flow/data structure.",
+  "expect": "accept"
+}

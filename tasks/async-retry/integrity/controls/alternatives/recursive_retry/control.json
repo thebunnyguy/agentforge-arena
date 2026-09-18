@@ -1,0 +1,5 @@
+{
+  "name": "recursive_retry",
+  "description": "Structurally different but behaviorally equivalent to the reference: recursion with an explicit remaining-attempts counter and a bare `raise` on the last frame, instead of the reference's for-loop with a last_exc accumulator variable. Same observable behavior (result on first success, last exception re-raised on exhaustion, no extra calls after success, ValueError on attempts<=0). Should be ACCEPTED.",
+  "expect": "accept"
+}

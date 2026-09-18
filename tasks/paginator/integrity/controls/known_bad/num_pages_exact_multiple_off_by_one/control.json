@@ -1,0 +1,5 @@
+{
+  "name": "num_pages_exact_multiple_off_by_one",
+  "description": "num_pages is computed as total_items // per_page + 1 (the classic 'divide then add one for the remainder' mistake) instead of the correct ceiling (total_items + per_page - 1) // per_page. This coincidentally matches the correct ceiling for every total_items that is NOT an exact multiple of per_page, but reports one extra, entirely out-of-range page whenever total_items is an exact multiple of per_page (e.g. Paginator(9, 3) reports num_pages == 4 instead of 3, and .page(4) succeeds instead of raising). total_items == 0 is special-cased separately so this control isolates the exact-multiple behavior class rather than conflating it with the empty-collection case.",
+  "expect": "reject"
+}

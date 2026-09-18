@@ -1,0 +1,5 @@
+{
+  "name": "linear_scan",
+  "description": "Structurally different but behaviorally equivalent correct solution: a left-to-right linear scan for the first element >= target, instead of binary search. O(n) instead of O(log n), no lo/hi/mid state at all -- but the contract (task.json's description) only specifies the returned index, not an algorithm or complexity bound, and the grading suite has no timing/performance assertions, so this is a fully valid, just less efficient, implementation.",
+  "expect": "accept"
+}

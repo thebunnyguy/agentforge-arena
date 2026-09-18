@@ -1,0 +1,5 @@
+{
+  "name": "regex_single_check",
+  "description": "Structurally different but behaviorally equivalent correct solution: uses a single compiled regex character class to detect any of the separator/null-byte characters in one pass, combined with a set membership check for '.'/'..', instead of the reference's sequential if-statements plus a split-into-components loop. Since any '/' or '\\\\' is already rejected outright, the only reachable way for a '..' path component to occur is when the whole name equals '..', so the component-split step is provably redundant and this single-regex form is fully equivalent for all inputs.",
+  "expect": "accept"
+}

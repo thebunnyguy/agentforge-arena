@@ -46,6 +46,17 @@ def test_money_helpers_unchanged():
     assert to_cents(2.5) == 250
     assert format_cents(1099) == "$10.99"
     assert format_cents(5) == "$0.05"
+    # SEMANTIC PROPERTY: format_cents must split cents into a whole-dollar
+    # part (cents // 100) and a remainder part (cents % 100), each divided/
+    # modded by the same base (100 cents per dollar, per the "$D.CC" contract
+    # in reference/orderkit/money.py's docstring). Values at and above a full
+    # dollar are needed to pin this down: an implementation that silently
+    # divides the dollar part by a different constant still matches on many
+    # sub-dollar inputs (it only affects the quotient), but corrupts amounts
+    # of a dollar or more.
+    assert format_cents(0) == "$0.00"
+    assert format_cents(100) == "$1.00"
+    assert format_cents(10000) == "$100.00"
 
 
 @pytest.mark.parametrize(

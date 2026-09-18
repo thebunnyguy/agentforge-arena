@@ -1,0 +1,5 @@
+{
+  "name": "char_by_char_lookup",
+  "description": "Behaviorally equivalent to the reference but structurally different: instead of five sequential str.replace calls over the whole string (which requires careful ampersand-first ordering to avoid double-escaping), this builds the result by scanning the original string once, character by character, and looking each character up in a dict -- so it is naturally immune to the double-escaping ordering hazard rather than avoiding it by ordering. Should be ACCEPTED.",
+  "expect": "accept"
+}

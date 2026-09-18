@@ -1,0 +1,5 @@
+{
+  "name": "first_dependency_only",
+  "description": "Realistic incomplete-loop bug: only the FIRST dependency in each node's dependency list is wired into the graph; any additional dependencies in the same list are silently ignored (e.g. written as `deps[0]` instead of iterating the whole list). Cycle detection and lexicographic tiebreaks are otherwise implemented correctly. This is exactly the failure mode the hidden test_multiple_implicit_dependencies docstring calls out ('an impl that registers only the FIRST implicit dep of each list misses core').",
+  "expect": "reject"
+}

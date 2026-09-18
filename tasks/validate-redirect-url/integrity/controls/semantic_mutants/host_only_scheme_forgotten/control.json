@@ -1,0 +1,5 @@
+{
+  "name": "host_only_scheme_forgotten",
+  "description": "Security-relevant near-miss reproducing this task's original, since-fixed weakness: validates only the netloc/host and forgets to restrict the URL scheme to http/https. 'javascript://app.example.com/x' and 'data://app.example.com/x' parse with a netloc equal to the allowed host, so they pass the host check and are returned unchanged even though the scheme makes them executable/dangerous. A naive or partial fix that adds host validation without also adding scheme validation would produce exactly this.",
+  "expect": "reject"
+}

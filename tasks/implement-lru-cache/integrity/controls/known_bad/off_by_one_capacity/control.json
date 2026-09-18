@@ -1,0 +1,5 @@
+{
+  "name": "off_by_one_capacity",
+  "description": "Compares against capacity + 1 instead of capacity before evicting, so the cache is allowed to hold one extra entry beyond its declared capacity before anything is evicted. The hidden capacity-bound tests must reject this.",
+  "expect": "reject"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "right_associative_subtraction",
+  "description": "Re-introduces the real pre-Phase-35 defect this task was patched for: parse_expression/parse_term fold from the right instead of the left, so '10-2-3' evaluates as 10-(2-3)=11 instead of (10-2)-3=5, and '8/2/2' as 8/(2/2)=8 instead of 2. Unary minus handling is left correct (copied verbatim from the reference) so this control isolates only the associativity regression. The hidden suite's dedicated left-associativity tests must reject this.",
+  "expect": "reject"
+}

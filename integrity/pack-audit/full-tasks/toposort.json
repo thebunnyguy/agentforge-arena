@@ -1,0 +1,999 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "toposort",
+  "task_version": "1.0.2",
+  "mode": "full",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:17:02.817007+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 13,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 13,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 13,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 13,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 13,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 38,
+        "lines_removed": 7
+      },
+      "duration_ms": 10047
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 13,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 2271
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['graphkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "graphkit/**"
+        ],
+        "resolved_local_imports": {
+          "graphkit": "graphkit/__init__.py"
+        },
+        "reachable_local_imports": {
+          "graphkit": "graphkit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "graphkit/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:graphkit/conftest.py",
+          "always_protected:graphkit/sitecustomize.py",
+          "always_protected:graphkit/usercustomize.py",
+          "always_protected:graphkit/pytest.ini",
+          "always_protected:graphkit/tox.ini",
+          "always_protected:graphkit/setup.cfg",
+          "always_protected:graphkit/pyproject.toml",
+          "always_protected:graphkit/pytest.py",
+          "always_protected_suffix:graphkit/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:graphkit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 195
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 4 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 4,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 7201
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 22 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 23 generated, 0 unsupported, 1 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 23,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 1,
+        "mutants_intercepted_by_regression_or_scope": 0,
+        "mutants_relevant": 22,
+        "killed_total": 22,
+        "killed_by_hidden_test": 21,
+        "killed_by_timeout_or_error": 1,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 65010
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:0eabdf44cc74c9905101fa8cbbecb189461fc00af6ed704cfcd2fe79970386f3"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:0eabdf44cc74c9905101fa8cbbecb189461fc00af6ed704cfcd2fe79970386f3"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:0eabdf44cc74c9905101fa8cbbecb189461fc00af6ed704cfcd2fe79970386f3"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:first_dependency_only",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.9230769230769231,
+                "functional_pass": false,
+                "fingerprint": "sha256:7732d2d01287d4a8cfd5cebaa5d281f92ddaa20b43402fb72dccd7c4d7ad3471"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.9230769230769231,
+                "functional_pass": false,
+                "fingerprint": "sha256:7732d2d01287d4a8cfd5cebaa5d281f92ddaa20b43402fb72dccd7c4d7ad3471"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.9230769230769231,
+                "functional_pass": false,
+                "fingerprint": "sha256:7732d2d01287d4a8cfd5cebaa5d281f92ddaa20b43402fb72dccd7c4d7ad3471"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:insertion_order_tiebreak",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.8461538461538461,
+                "functional_pass": false,
+                "fingerprint": "sha256:de345d0e443dcdb007cb0307cf3d4ce75d014644678a43c525270572a5cda334"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.8461538461538461,
+                "functional_pass": false,
+                "fingerprint": "sha256:de345d0e443dcdb007cb0307cf3d4ce75d014644678a43c525270572a5cda334"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.8461538461538461,
+                "functional_pass": false,
+                "fingerprint": "sha256:de345d0e443dcdb007cb0307cf3d4ce75d014644678a43c525270572a5cda334"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:missing_cycle_check",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.6923076923076923,
+                "functional_pass": false,
+                "fingerprint": "sha256:dfa3beeef898dada37c77727fcd69d365b86c1d7a8f69ca9b475b9d669bed3ae"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.6923076923076923,
+                "functional_pass": false,
+                "fingerprint": "sha256:dfa3beeef898dada37c77727fcd69d365b86c1d7a8f69ca9b475b9d669bed3ae"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.6923076923076923,
+                "functional_pass": false,
+                "fingerprint": "sha256:dfa3beeef898dada37c77727fcd69d365b86c1d7a8f69ca9b475b9d669bed3ae"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:dfs_postorder",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:3570e92748e49211dcc043641e5a071bc1ca99bf26246b9430bd8dd69f86739a"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 22255
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "graphkit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 2543
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "graphkit/topo.py:18:4:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 18,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: nodes = set(graph) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:1733f707063a81458472f8a9b7f6c7855e22d4f4ee3032ffc92fa1b7cf7c419b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:24:4:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 24,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: deps_of = {n: set(graph.get(n, ())) for n in nodes} (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7220089f3eee50cab66859e30462cae2d59c2cf1e26144d308b993d4b1d8eb9f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:25:4:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 25,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: dependents = {n: [] for n in nodes} (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.07692307692307693,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:20ed3919c83dbf34069bc40e9a9ab703f9014e062e583cf83c63406a485d2988",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:26:4:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 26,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: indegree = {n: 0 for n in nodes} (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.07692307692307693,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:808316b2700b9121eb57d964d19cebe775db77b949c543c0f6a09728e89fdfd5",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:26:19:change_constant_increment",
+      "file": "graphkit/topo.py",
+      "lineno": 26,
+      "col_offset": 19,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": true,
+      "diff_hash": "sha256:6f5b93860b972d3d6d8e7e617f62a7f09c6e9bc3d2687c72b4b291655d72bfbc",
+      "notes": "declared equivalent: Mutates the initial value in `indegree = {n: 0 for n in nodes}` from 0 to 1 (graphkit/topo.py:26:19, change_constant_increment). This dict comprehension's keys are exactly `nodes`, and every single key in `nodes` is unconditionally overwritten immediately afterward by `for node, deps in deps_of.items(): indegree[node] = len(deps)` -- deps_of is itself built as `{n: set(...) for n in nodes}`, so deps_of.items() iterates precisely the same key set as nodes/indegree. No node's indegree value is ever read between the comprehension and that overwrite loop. Therefore the initial placeholder value (0 vs 1) is provably never observed for any input graph -- this is a true equivalent mutant, not a surviving behavioral gap, and cannot be turned into a failing hidden-test case because no input distinguishes the two versions."
+    },
+    {
+      "mutation_id": "graphkit/topo.py:28:8:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 28,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: indegree[node] = len(deps) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2c05399872c58e27a43586cd53644f0e8127c76c39257fc490834540c723c86f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:33:4:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 33,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: ready = [n for n in nodes if indegree[n] == 0] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c288826318eded5a9dec1a25bfa6d2b4635943245ef3e1ae4e189f0b92ab22c2",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:33:33:invert_comparison",
+      "file": "graphkit/topo.py",
+      "lineno": 33,
+      "col_offset": 33,
+      "family": "invert_comparison",
+      "description": "invert_comparison: indegree[n] == 0 (Eq -> NotEq)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.38461538461538464,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d2b51fd5f7e7614d9389115433606d070232694e40b6a6616bb788af55c1289d",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:33:48:change_constant_increment",
+      "file": "graphkit/topo.py",
+      "lineno": 33,
+      "col_offset": 48,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.38461538461538464,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:db15d7932e74e33ce05e3e0afec090f685f925c411438bea525cda380ef4bc05",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:36:4:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 36,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: order = [] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fbc4eb83db5978f8f4fcb54cd0a6ad77a95f5165fcc34f4c2fad0b93c01670e8",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:38:8:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 38,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: node = heapq.heappop(ready) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_timeout_or_error",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f42b8be0c8b50a5da80c8281ff28cf22717953e6da8c1532a193da02ca3a2e7b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:41:12:delete_state_update",
+      "file": "graphkit/topo.py",
+      "lineno": 41,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: indegree[dependent] -= 1 (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e7eae2be1ad5d7a5893548d135118ae4a4147ee638e2eabc0b903efd875880af",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:41:35:change_constant_increment",
+      "file": "graphkit/topo.py",
+      "lineno": 41,
+      "col_offset": 35,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:f4547eb75fd9a4ee980b663f85c86917d41c5b3503d7d25aa1ef5c02f35c11a0",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:41:35:change_constant_zero",
+      "file": "graphkit/topo.py",
+      "lineno": 41,
+      "col_offset": 35,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:eb02cbf76d7a3904bc7cfbba6a30a4d051801dc5f7858e9de2c2076f8805dbe3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:42:12:remove_branch_force_false",
+      "file": "graphkit/topo.py",
+      "lineno": 42,
+      "col_offset": 12,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if indegree[dependent] == 0:\n                heapq.heappush(ready, dependent) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9663070a8ae19d832e3023f28db3a3902e1fe04137f92d82898b0f64e4076575",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:42:12:remove_branch_force_true",
+      "file": "graphkit/topo.py",
+      "lineno": 42,
+      "col_offset": 12,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if indegree[dependent] == 0:\n                heapq.heappush(ready, dependent) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.7692307692307693,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8afd465252f1b59a49b0ecc7042aea4a71a369671418ca85c1e8151435a0c734",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:42:15:invert_comparison",
+      "file": "graphkit/topo.py",
+      "lineno": 42,
+      "col_offset": 15,
+      "family": "invert_comparison",
+      "description": "invert_comparison: indegree[dependent] == 0 (Eq -> NotEq)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:cbd10abacc265f7f987a60bb7c572995e2b5ff00c38a19278ccfcab1bf09471f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:42:38:change_constant_increment",
+      "file": "graphkit/topo.py",
+      "lineno": 42,
+      "col_offset": 38,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.46153846153846156,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:aec63fd8ce3300b47b498dfb9dc283ee27337e9991588f4ab5480d47ad151d29",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:45:4:remove_branch_force_false",
+      "file": "graphkit/topo.py",
+      "lineno": 45,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if len(order) != len(nodes):\n        raise CycleError(\"graph contains a cycle\") (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6923076923076923,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0eb9168d42a296103f231911bf5101cfa62e5fea5796efd11604013eec23ff3d",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:45:4:remove_branch_force_true",
+      "file": "graphkit/topo.py",
+      "lineno": 45,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if len(order) != len(nodes):\n        raise CycleError(\"graph contains a cycle\") (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3076923076923077,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:5279808e5264790138e8a247694e350c6acfd88409c03fe6f4627a98f2d4c1ad",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:45:4:remove_validation",
+      "file": "graphkit/topo.py",
+      "lineno": 45,
+      "col_offset": 4,
+      "family": "remove_validation",
+      "description": "remove_validation: if len(order) != len(nodes):\n        raise CycleError(\"graph contains a cycle\") (if-guard's raise removed (body -> pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6923076923076923,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0c101daf0359459bd21f1a4b7640b4a1b459dd57133fffafab8a9e56a436b960",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:45:7:invert_comparison",
+      "file": "graphkit/topo.py",
+      "lineno": 45,
+      "col_offset": 7,
+      "family": "invert_comparison",
+      "description": "invert_comparison: len(order) != len(nodes) (NotEq -> Eq)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_cycle_raises",
+        "test_self_loop_raises",
+        "test_longer_cycle_raises",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_implicit_dependency_in_cycle_is_still_a_cycle",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c6f1f726da0b06c1c233c30c5e6bc94a7cee45d057adc5885b9d858e3d8fbf25",
+      "notes": ""
+    },
+    {
+      "mutation_id": "graphkit/topo.py:47:4:return_constant",
+      "file": "graphkit/topo.py",
+      "lineno": 47,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return order (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.3076923076923077,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_linear_chain",
+        "test_diamond_respects_dependencies",
+        "test_diamond_is_deterministic_lexicographic",
+        "test_independent_nodes_sorted_lexicographically",
+        "test_tiebreak_prefers_lexicographic_among_eligible",
+        "test_disconnected_components",
+        "test_empty_graph",
+        "test_node_with_no_deps_implicit",
+        "test_multiple_implicit_dependencies"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:34e534bf0d3216a0cb6587231d53996b0a3597106bf34701b1b073ac1f068cbc",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "first_dependency_only",
+      "kind": "known_bad",
+      "description": "Realistic incomplete-loop bug: only the FIRST dependency in each node's dependency list is wired into the graph; any additional dependencies in the same list are silently ignored (e.g. written as `deps[0]` instead of iterating the whole list). Cycle detection and lexicographic tiebreaks are otherwise implemented correctly. This is exactly the failure mode the hidden test_multiple_implicit_dependencies docstring calls out ('an impl that registers only the FIRST implicit dep of each list misses core').",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9230769230769231,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_multiple_implicit_dependencies']"
+    },
+    {
+      "name": "insertion_order_tiebreak",
+      "kind": "known_bad",
+      "description": "Realistic tiebreak bug: dependency ordering and cycle detection are both correct (BFS/Kahn-style with a FIFO queue), but ties between simultaneously-eligible nodes are broken by first-seen/insertion order while scanning the graph, instead of the required lexicographic order. This is the kind of mistake an agent makes by reaching for a plain queue instead of noticing the spec's determinism requirement. The hidden exact-order tests must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8461538461538461,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_independent_nodes_sorted_lexicographically', 'test_tiebreak_prefers_lexicographic_among_eligible']"
+    },
+    {
+      "name": "missing_cycle_check",
+      "kind": "known_bad",
+      "description": "Realistic 'forgot the edge case' bug: implements Kahn's algorithm correctly for acyclic graphs (min-heap over ready nodes for lexicographic tiebreaks) but never checks whether every node was actually emitted. On a cyclic graph the nodes stuck in the cycle simply never become ready and are silently dropped from the result instead of raising CycleError -- no infinite loop, just a shorter, wrong, non-exception return. The hidden cycle-detection tests must reject this.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.6923076923076923,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_cycle_raises', 'test_self_loop_raises', 'test_longer_cycle_raises', 'test_implicit_dependency_in_cycle_is_still_a_cycle']"
+    },
+    {
+      "name": "dfs_postorder",
+      "kind": "alternative",
+      "description": "Behaviorally equivalent to the reference but structurally different: a depth-first postorder traversal with white/gray/black recursion-stack coloring for cycle detection, instead of the reference's Kahn's-algorithm BFS with a min-heap. Determinism is achieved by visiting the outer node loop and each node's dependency list in sorted (lexicographic) order rather than by a heap of ready nodes. Produces the same dependency-respecting, lexicographically tie-broken order as the reference on every graph shape exercised by the hidden suite.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'graphkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "graphkit/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "toposort",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:01a6cebaf8a210b514c8692fac7abaa9be0a99818791046c7923344c37e1f7ac",
+    "snapshot_hash": "sha256:221cfc6b802532f4f136d9a032e8c0f5ea3e3d98ce19fe971e56da8ee4de1cc6",
+    "reference_hash": "sha256:ac230b4610894bf7af079ae3e3f292c4d76ef9461a6d780b90efc809e881af14",
+    "grading_hash": "sha256:6e4f427f9a456e158918b22935cbacdd96b7c396f73ccd30dae1882ec312ac70",
+    "controls_hash": "sha256:c36ab1ae8a46590f0c01c2e6fea36f5714a661d5d4cd1232b805f0cd4e5d3c79",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 109611
+}

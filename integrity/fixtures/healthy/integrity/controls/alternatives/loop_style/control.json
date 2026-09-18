@@ -1,0 +1,5 @@
+{
+  "name": "flipped_branch_order",
+  "description": "Checks n >= 10 first instead of n < 10; behaviorally identical to the reference, structurally different (branch order flipped).",
+  "expect": "accept"
+}

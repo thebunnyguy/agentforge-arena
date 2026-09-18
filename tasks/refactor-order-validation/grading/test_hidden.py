@@ -63,6 +63,28 @@ def test_validate_items_rejects_non_dict_and_boolean_numbers():
         validate_items([{"name": "a", "price": 1.0, "qty": True}])
 
 
+def test_validate_items_rejects_non_dict_container_items():
+    # SEMANTIC PROPERTY: the "each item must be a dict" guard must gate on
+    # dict-ness itself, not merely rely on the *next* check ("price" not in
+    # item / "qty" not in item) to coincidentally raise ValueError for it.
+    # A plain string like "not-a-dict" happens to raise via that fallback
+    # path because it doesn't contain "price"/"qty" as substrings -- so it
+    # can't tell a real dict-type guard apart from no guard at all. Any
+    # non-dict item must still be rejected with ValueError, even one that
+    # supports the `in` / `[]` protocols and appears to "have" both required
+    # keys (a tuple or list containing the literal strings "price" and
+    # "qty"), or one that supports neither (a plain int). A correct
+    # implementation always raises ValueError here; an implementation
+    # missing the dict-type guard instead falls through to a raw
+    # TypeError from generic container indexing/iteration further down.
+    with pytest.raises(ValueError):
+        validate_items([("price", "qty")])
+    with pytest.raises(ValueError):
+        validate_items([["price", "qty"]])
+    with pytest.raises(ValueError):
+        validate_items([42])
+
+
 # --- subtotal ---------------------------------------------------------------
 
 def test_subtotal_single_item():

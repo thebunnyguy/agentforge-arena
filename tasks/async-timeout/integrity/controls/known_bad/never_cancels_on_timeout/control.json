@@ -1,0 +1,5 @@
+{
+  "name": "never_cancels_on_timeout",
+  "description": "Single-defect variant of a correct asyncio.wait()-based implementation: identical control flow (wait with a timeout, branch on the pending set, raise TimeoutError), but the timeout branch never calls task.cancel() -- it just raises, leaving the coroutine running in the background forever. A plausible first-draft translation of the docstring by an agent that implements 'return the result if it finishes within seconds, else raise TimeoutError' literally, without registering that the contract's second clause ('ensure the underlying coroutine is cancelled') is a separate, mandatory action rather than an automatic side effect of raising.",
+  "expect": "reject"
+}

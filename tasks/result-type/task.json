@@ -1,6 +1,6 @@
 {
   "id": "result-type",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Implement a Result type",
   "description": "resultkit.result.Result is a stub. Implement the Result type in resultkit/result.py as a Rust-style success/error container. API contract: Result.ok(value) is a classmethod building a success Result holding value; Result.err(error) is a classmethod building an error Result holding error. The attribute is_ok is True for ok results and False for err results. .unwrap() returns the held value for an ok result and raises ValueError for an err result. .unwrap_or(default) returns the held value for an ok result and returns default for an err result. .map(fn) returns a NEW ok Result holding fn(value) when called on an ok result, and is a no-op for an err result (it returns an equivalent err Result WITHOUT calling fn). Implement Result in resultkit/result.py. Do not modify any test files.",
   "snapshot_dir": "snapshot",

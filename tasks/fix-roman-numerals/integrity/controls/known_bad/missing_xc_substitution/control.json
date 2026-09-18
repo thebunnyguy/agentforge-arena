@@ -1,0 +1,5 @@
+{
+  "name": "missing_xc_substitution",
+  "description": "A string-expansion implementation (expand each subtractive pair to its additive equivalent, then sum digit-by-digit) that omits the XC -> LXXXX expansion rule -- a realistic oversight since 90 is the least memorable of the six subtractive pairs. XC (90) is summed as X+C=110 instead, and MCMXCIV -- which contains an embedded XC -- comes out 20 too high (2014 instead of 1994). All other subtractive pairs (IV, IX, XL, CD, CM) are handled correctly.",
+  "expect": "reject"
+}

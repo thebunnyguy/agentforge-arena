@@ -1,0 +1,5 @@
+{
+  "name": "eager_page_bounds_list",
+  "description": "Structurally different but behaviorally equivalent correct implementation: instead of computing start_index/end_index/num_pages lazily from arithmetic on each .page(n) call, __init__ eagerly walks the collection once with a while-loop and precomputes a list of (start, end) bounds tuples, one entry per page (empty list when total_items == 0). num_pages becomes len(...) of that list and .page(n) just validates n and indexes into the precomputed list. Different data structure and control flow (upfront list-building vs. per-call arithmetic), same observable behavior including the num_pages == 0 / ValueError edge case.",
+  "expect": "accept"
+}

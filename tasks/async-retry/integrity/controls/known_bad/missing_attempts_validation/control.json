@@ -1,0 +1,5 @@
+{
+  "name": "missing_attempts_validation",
+  "description": "Forgets the 'attempts must be a positive integer' validation entirely. With attempts=0 the loop body never runs, `last_exc` stays None, and `raise last_exc` raises TypeError('exceptions must derive from BaseException') instead of the required ValueError - a realistic case of an agent implementing the happy-path retry logic and skipping the edge-case input validation called out in the docstring.",
+  "expect": "reject"
+}

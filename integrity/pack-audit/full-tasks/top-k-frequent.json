@@ -1,0 +1,613 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "top-k-frequent",
+  "task_version": "1.0.3",
+  "mode": "full",
+  "status": "provisional",
+  "reason": "controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+  "created_at": "2026-09-18T07:16:58.893646+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 18,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 18,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 18,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 18,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 18,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:4f85d172efaf2dfa2991dd1f06e9533708c0de29bd00c2070c5aa3c5283ccba8"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 26,
+        "lines_removed": 12
+      },
+      "duration_ms": 10550
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 18,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 2257
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['topk/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "topk/**"
+        ],
+        "resolved_local_imports": {
+          "topk": "topk/__init__.py"
+        },
+        "reachable_local_imports": {
+          "topk": "topk/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "topk/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:topk/conftest.py",
+          "always_protected:topk/sitecustomize.py",
+          "always_protected:topk/usercustomize.py",
+          "always_protected:topk/pytest.ini",
+          "always_protected:topk/tox.ini",
+          "always_protected:topk/setup.cfg",
+          "always_protected:topk/pyproject.toml",
+          "always_protected:topk/pytest.py",
+          "always_protected_suffix:topk/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:topk/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 205
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 13 generated, 0 unsupported, 1 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 13,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 1,
+        "mutants_intercepted_by_regression_or_scope": 0,
+        "mutants_relevant": 12,
+        "killed_total": 12,
+        "killed_by_hidden_test": 12,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 27655
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:71106570e27008a3f95028c062df4792923d971113ec167f7f5cb575db0548d0"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:71106570e27008a3f95028c062df4792923d971113ec167f7f5cb575db0548d0"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:71106570e27008a3f95028c062df4792923d971113ec167f7f5cb575db0548d0"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 5199
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "topk/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 2933
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "topk/core.py:17:4:remove_branch_force_false",
+      "file": "topk/core.py",
+      "lineno": 17,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if k <= 0:\n        return [] (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_negative_k_returns_empty_regardless_of_distinct_count"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:14b249b765ccda8bbf6e336d46a3a43cac09bcd8a5d31fa7dfd7ebf03044f556",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:17:4:remove_branch_force_true",
+      "file": "topk/core.py",
+      "lineno": 17,
+      "col_offset": 4,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if k <= 0:\n        return [] (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:5b46454acbfdaccdb621dcb68700db1884194c8447c8505c8dddb1403b16ca6c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:17:7:boundary_operator",
+      "file": "topk/core.py",
+      "lineno": 17,
+      "col_offset": 7,
+      "family": "boundary_operator",
+      "description": "boundary_operator: k <= 0 (LtE -> Lt)",
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "killed_by_tests": [],
+      "declared_equivalent": true,
+      "diff_hash": "sha256:12f1168a678594828d2d4d15c6ed3ab0d7aa37e25171a3afb1ed27b1ab4c681b",
+      "notes": "declared equivalent: boundary_operator on line 17 (`if k <= 0: return []`) changes the guard to `if k < 0: return []`. The two versions can only disagree on k == 0 (every k < 0 still short-circuits to [] under the mutant, and every k > 0 skips the guard under both). For k == 0 the mutant falls through to compute `counts`, `first_index`, and `ordered` (all pure, side-effect-free reads over `items` -- no mutation, and the sort key is `(-counts[x], first_index[x])`, a tuple of ints, so it never invokes comparison on the items themselves and cannot raise for any hashable input) and then returns `ordered[:0]`. A slice `some_list[:0]` is `[]` for every list, regardless of its length or contents -- this is a fixed property of Python slicing, not something that depends on `items` or on ties/frequencies. So for every input the task contract admits (any sequence of hashable items, k == 0), the mutant's output is provably identical to the reference's early-return `[]`, not merely identical on the cases the current hidden suite happens to exercise. Confirmed empirically: probing k == 0 against inputs of varying size/content, and the sibling remove_branch_force_false mutant at the same line (which removes the guard for ALL k <= 0, including negative k) is correctly killed by test_negative_k_returns_empty_regardless_of_distinct_count, showing the hidden suite does discriminate real guard removals -- it just cannot (and should not) discriminate this specific off-by-one on the guard's boundary, because that boundary is behaviorally inert."
+    },
+    {
+      "mutation_id": "topk/core.py:17:12:change_constant_increment",
+      "file": "topk/core.py",
+      "lineno": 17,
+      "col_offset": 12,
+      "family": "change_constant",
+      "description": "change_constant_increment: 0 (0 -> 1)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_single_distinct_item"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8fabf71628830a07d8dc6c0862c1e08625ee8d0dcffaab63fd5ed77a822eedfc",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:18:8:return_constant",
+      "file": "topk/core.py",
+      "lineno": 18,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return [] (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.8333333333333334,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_k_zero_returns_empty",
+        "test_negative_k_returns_empty",
+        "test_negative_k_returns_empty_regardless_of_distinct_count"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0d5b069daa9ea89d456b43b68bd475a2ad7b68058c28bb8cf70a3497a49a472e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:20:4:delete_state_update",
+      "file": "topk/core.py",
+      "lineno": 20,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: counts = Counter(items) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.16666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_empty_returns_empty",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c186334b546a5107b86d196e3715a5d1c317101bdc92f99bdfaceda3ea187517",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:24:4:delete_state_update",
+      "file": "topk/core.py",
+      "lineno": 24,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: first_index = {} (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:92fd74b4c6989e0ae409c4f74acfba2901d80676e9fd304ac238b9f6c9733284",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:26:8:remove_branch_force_false",
+      "file": "topk/core.py",
+      "lineno": 26,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if x not in first_index:\n            first_index[x] = i (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:6e3e9fb6f62fcedcf46fbba3d8802dc879baf78dd7e086e8eded7e20a8162267",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:26:8:remove_branch_force_true",
+      "file": "topk/core.py",
+      "lineno": 26,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if x not in first_index:\n            first_index[x] = i (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.9444444444444444,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:65f7265ab03f857e93691b629e57b44218a445eb0abbed780701b9373a23492c",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:26:11:invert_comparison",
+      "file": "topk/core.py",
+      "lineno": 26,
+      "col_offset": 11,
+      "family": "invert_comparison",
+      "description": "invert_comparison: x not in first_index (NotIn -> In)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d36328d022c53a0ba329f7e7c090e22e0d1e38f19538424cf36b38bc3d694640",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:27:12:delete_state_update",
+      "file": "topk/core.py",
+      "lineno": 27,
+      "col_offset": 12,
+      "family": "delete_state_update",
+      "description": "delete_state_update: first_index[x] = i (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.2222222222222222,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:dcae26dee29f8b4bba2e29b4ad8cc312c5d8af328d7728539dce92f4d9f148e3",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:30:4:delete_state_update",
+      "file": "topk/core.py",
+      "lineno": 30,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: ordered = sorted(counts, key=lambda x: (-counts[x], first_index[x])) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.16666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_empty_returns_empty",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:61df69a77456760ad9dcaad1cbd917bd34cd6a1ea488aa7317643d9691b5d769",
+      "notes": ""
+    },
+    {
+      "mutation_id": "topk/core.py:31:4:return_constant",
+      "file": "topk/core.py",
+      "lineno": 31,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return ordered[:k] (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.16666666666666666,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_simple_most_frequent_first",
+        "test_tie_broken_by_first_appearance",
+        "test_tie_broken_by_first_appearance_reordered",
+        "test_three_way_tie_uses_first_appearance_order",
+        "test_k_larger_than_distinct_returns_all",
+        "test_k_equals_distinct_count",
+        "test_empty_returns_empty",
+        "test_single_distinct_item",
+        "test_partial_top_k_with_distinct_frequencies",
+        "test_input_sequence_is_not_mutated",
+        "test_custom_hashable_values_keep_first_appearance_tiebreak",
+        "test_distinct_items_do_not_trigger_quadratic_equality_scans",
+        "test_large_input_requires_linear_counting",
+        "test_large_input_full_ranking_is_truncated_correctly",
+        "test_tie_uses_first_not_last_appearance"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:46543998be23958eecd3443d452a11ca3ccdd57f81101d87419f3ae938dccf4f",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'topk/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "topk/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "top-k-frequent",
+    "task_version": "1.0.3",
+    "task_json_hash": "sha256:22fccffe81359f113e7312304337e2c44cfcf6f15410c82d9b536da10001f9a0",
+    "snapshot_hash": "sha256:11d820c237c4b26088b3a254db6180a6e9a46668befd3ccdf39d2b655a59483b",
+    "reference_hash": "sha256:20d95c9e137ae74d4d2e40962d1e1d80f7fad753a41d1329081e0040eea5dbcb",
+    "grading_hash": "sha256:1885fd83b8ffa749f88ef88518e3b86bc8ed8b63647cce495179a7bf09f50e27",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 48814
+}

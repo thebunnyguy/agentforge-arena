@@ -94,10 +94,27 @@ def test_implicit_dependency_in_cycle_is_still_a_cycle():
 
 
 def test_multiple_implicit_dependencies():
-    # Both "lib" and "core" appear only as dependencies (no key of their own); an
-    # impl that registers only the FIRST implicit dep of each list misses "core".
-    graph = {"app": ["lib", "core"]}
+    # SEMANTIC PROPERTY: every dependency in a node's list must be wired into
+    # the graph, not just the first one -- and this must hold even when
+    # dropping a later dependency edge would otherwise be masked by the
+    # lexicographic tiebreak.
+    #
+    # "core" and "zeta" both appear only as dependencies (no key of their
+    # own). An impl that registers only the FIRST implicit dep of each list
+    # (e.g. `deps[:1]`) drops the app -> zeta edge here, keeping only
+    # app -> core. Naming the dropped dependency "zeta" (which sorts
+    # lexicographically AFTER "app") is deliberate: once the app -> zeta edge
+    # is missing, "zeta" has in-degree 0 from the start and "app" becomes
+    # in-degree 0 as soon as "core" is popped -- and since "app" < "zeta"
+    # lexicographically, a min-heap tiebreak scheduler pops "app" BEFORE
+    # "zeta", producing app-before-zeta in the final order. That is a directly
+    # observable dependency violation (app depends on zeta, so zeta must come
+    # first), not something a coincidental alphabetical tiebreak can rescue --
+    # unlike naming the dropped dependency something that sorts before every
+    # other ready node, where dropping its edge doesn't change the emitted
+    # order at all.
+    graph = {"app": ["core", "zeta"]}
     order = toposort(graph)
-    assert sorted(order) == ["app", "core", "lib"]
-    assert _before(order, "lib", "app")
+    assert sorted(order) == ["app", "core", "zeta"]
     assert _before(order, "core", "app")
+    assert _before(order, "zeta", "app")

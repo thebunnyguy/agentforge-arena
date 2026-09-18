@@ -1,0 +1,9 @@
+{
+  "declared_equivalent_mutants": [
+    {
+      "file": "romankit/parse.py",
+      "diff_hash": "sha256:c2d58d46cf629401aa77dea168973816d2f285b37fc8c4a7dcdeaafbe9d45185",
+      "reason": "change_constant_increment at romankit/parse.py:20:11 changes the sentinel initializer `prev = 0` to `prev = 1`. `prev` is read exactly once per loop iteration, in `if value < prev`, and its initializer value is only ever observed on the FIRST iteration of `for ch in reversed(s)` -- every later iteration reads whatever the previous iteration left in `prev` (either unchanged, on the `total -= value` branch, or overwritten with that iteration's `value`, on the `total += value` branch), never the original initializer. On the first iteration, `value = _VALUES[ch]` is drawn from `_VALUES.values() = {1, 5, 10, 50, 100, 500, 1000}`, whose minimum is 1. `1 < 0` is False and `1 < 1` is False, so for EVERY possible first-iteration value the comparison takes the same (else) branch under both prev=0 and prev=1, after which `prev` is set to that same `value` in both versions -- the two runs are in byte-identical state after iteration 1 and every subsequent iteration is therefore identical too. The two remaining edge cases are also unaffected: an empty string never enters the loop, so `total` returns 0 regardless of `prev`'s initial value; and a character not in `_VALUES` raises KeyError on `_VALUES[ch]` before the comparison is ever reached, identically in both versions. This holds for every input to `from_roman`, not merely well-formed Roman numerals, so it is a true equivalent mutant: no behavioral hidden test could ever distinguish it, because no input exists on which the two versions diverge."
+    }
+  ]
+}

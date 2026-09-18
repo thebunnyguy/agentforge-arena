@@ -1,0 +1,20 @@
+{
+  "id": "fixture-broken-oracle",
+  "version": "1.0.0",
+  "title": "Fixture: a broken oracle (hidden suite accepts a known-bad solution)",
+  "description": "classify(n) must return 'small' for n < 10 and 'large' for n >= 10. It has an off-by-one boundary bug. Fix pkg/core.py.",
+  "snapshot_dir": "snapshot",
+  "reference_dir": "reference",
+  "setup": [],
+  "domains": [{ "domain": "test", "weight": 1.0 }],
+  "activity": "debugging-bugfix",
+  "scale": "XS",
+  "manual_difficulty": 1,
+  "timeout_s": 30,
+  "protected_paths": ["tests_visible/**", "**/test_*.py"],
+  "editable_paths": ["pkg/**"],
+  "visible": { "paths": ["tests_visible/test_visible.py"] },
+  "hidden": { "src": "grading", "paths": ["test_hidden.py"], "weights": {} },
+  "regression": { "src": "grading", "paths": ["test_regression.py"] },
+  "scoring_recipe": { "hidden_weights": {} }
+}

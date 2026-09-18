@@ -1,0 +1,1011 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "paginator",
+  "task_version": "1.0.2",
+  "mode": "full",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:14:17.271580+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 12,
+        "lines_removed": 4
+      },
+      "duration_ms": 19212
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 8,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 2910
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['paginate/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "paginate/**"
+        ],
+        "resolved_local_imports": {
+          "paginate": "paginate/__init__.py"
+        },
+        "reachable_local_imports": {
+          "paginate": "paginate/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "paginate/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 3
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:paginate/conftest.py",
+          "always_protected:paginate/sitecustomize.py",
+          "always_protected:paginate/usercustomize.py",
+          "always_protected:paginate/pytest.ini",
+          "always_protected:paginate/tox.ini",
+          "always_protected:paginate/setup.cfg",
+          "always_protected:paginate/pyproject.toml",
+          "always_protected:paginate/pytest.py",
+          "always_protected_suffix:paginate/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:paginate/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 180
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 1
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 18183
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 27 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 27 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 27,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_intercepted_by_regression_or_scope": 0,
+        "mutants_relevant": 27,
+        "killed_total": 27,
+        "killed_by_hidden_test": 27,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 85960
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:4f9ab346d3f51cf6f55db258e8639f069270bb6ff5e53f03957b9aea15dfb27c"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:4f9ab346d3f51cf6f55db258e8639f069270bb6ff5e53f03957b9aea15dfb27c"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:4f9ab346d3f51cf6f55db258e8639f069270bb6ff5e53f03957b9aea15dfb27c"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:boundary_flags_use_inclusive_comparison",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.625,
+                "functional_pass": false,
+                "fingerprint": "sha256:d5db00a4a48b02b7a26cebca789755fc4ac852c1a698a22cc787aba529144ae7"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.625,
+                "functional_pass": false,
+                "fingerprint": "sha256:d5db00a4a48b02b7a26cebca789755fc4ac852c1a698a22cc787aba529144ae7"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.625,
+                "functional_pass": false,
+                "fingerprint": "sha256:d5db00a4a48b02b7a26cebca789755fc4ac852c1a698a22cc787aba529144ae7"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:num_pages_exact_multiple_off_by_one",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:07a4361fbce25016d2da940568bb7d8225f6a023b06ffc3e6a0fbc13e831eb9b"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:07a4361fbce25016d2da940568bb7d8225f6a023b06ffc3e6a0fbc13e831eb9b"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:07a4361fbce25016d2da940568bb7d8225f6a023b06ffc3e6a0fbc13e831eb9b"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:unclamped_end_index_last_page",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:33d8d0903258b7964a4c8bcbf0136d2ab95b63f587c85ddc475663212210d5db"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:33d8d0903258b7964a4c8bcbf0136d2ab95b63f587c85ddc475663212210d5db"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:33d8d0903258b7964a4c8bcbf0136d2ab95b63f587c85ddc475663212210d5db"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:num_pages_floor_at_least_one",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:58ebc5450e424a95aae07e4c45e54d45555d7735afc418d170c0a396d352d3f8"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:58ebc5450e424a95aae07e4c45e54d45555d7735afc418d170c0a396d352d3f8"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.875,
+                "functional_pass": false,
+                "fingerprint": "sha256:58ebc5450e424a95aae07e4c45e54d45555d7735afc418d170c0a396d352d3f8"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:eager_page_bounds_list",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:ea35a299433c44753875414084388c3af28a8721363e00e06050563e45cf5874"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 31914
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "paginate/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 3113
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "paginate/paginator.py:13:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 13,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.number = number (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2f67a7409509e6929cca32bf2943effc8cbc843ea262fffe78873670d82061f5",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:14:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 14,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.start_index = start_index (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7f78af001bde9eb405a40c8f0edede0ee3d6910cf28a414c25b91c176f521985",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:15:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 15,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.end_index = end_index (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8a5b8b10a18e4a893b1f9c7dc13afce2d4d4cbbfd3921f6586bc25bd432989c7",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:16:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 16,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.has_previous = has_previous (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_middle_page_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:53cff76a284110882edc3dec613cad08086eff81d0c00de70cce79cbfbbc6ae4",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:17:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 17,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.has_next = has_next (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:793925b585ae387475693160869bcc09292a8551f8a6c1cbd4d6a1bf37f0da63",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:34:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 34,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.total_items = total_items (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_num_pages_ceiling",
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_page_zero_raises",
+        "test_page_beyond_last_raises",
+        "test_empty_collection_has_no_pages",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:68f837c305f604fc7cdefb71e06c2597a81ff5c1eb90bcc8bae401e309c0e43a",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:35:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 35,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: self.per_page = per_page (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_num_pages_ceiling",
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_page_zero_raises",
+        "test_page_beyond_last_raises",
+        "test_empty_collection_has_no_pages",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:a3c381bb1e7e476190510ef1c8cb266c79bbca26fb9b04519b18df07c8059113",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:39:8:return_constant",
+      "file": "paginate/paginator.py",
+      "lineno": 39,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return (self.total_items + self.per_page - 1) // self.per_page (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.125,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_num_pages_ceiling",
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_page_beyond_last_raises",
+        "test_empty_collection_has_no_pages",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:07c62eda66a05a1c8dbf6a31fd7508c92002ff351f8afa98f554122a3a1b4076",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:39:51:change_constant_increment",
+      "file": "paginate/paginator.py",
+      "lineno": 39,
+      "col_offset": 51,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.75,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_num_pages_ceiling",
+        "test_last_page_indices_and_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:9017cfb197a087fc75e75e093a30d13d45c1d34b98ca78670dea9f33dbdbde06",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:39:51:change_constant_zero",
+      "file": "paginate/paginator.py",
+      "lineno": 39,
+      "col_offset": 51,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.75,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_empty_collection_has_no_pages",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:1239151470b0d2c78ec6af3da34a92f17c14a02a2d5d158b7f0a300be87f3abe",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:8:remove_branch_force_false",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if n < 1 or n > self.num_pages:\n            raise ValueError(f\"page {n} out of range (1..{self.num_pages})\") (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_page_zero_raises",
+        "test_page_beyond_last_raises",
+        "test_empty_collection_has_no_pages",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c062a52e2405f75c696d81cdd4fae4e652e88a6b79043aab148303c2eb58fa42",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:8:remove_branch_force_true",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if n < 1 or n > self.num_pages:\n            raise ValueError(f\"page {n} out of range (1..{self.num_pages})\") (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:076f4b97c82624baba60634e06304065169cd9d1bb974fe42f8d2946e1cd1312",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:8:remove_validation",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 8,
+      "family": "remove_validation",
+      "description": "remove_validation: if n < 1 or n > self.num_pages:\n            raise ValueError(f\"page {n} out of range (1..{self.num_pages})\") (if-guard's raise removed (body -> pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_page_zero_raises",
+        "test_page_beyond_last_raises",
+        "test_empty_collection_has_no_pages",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:abdd3252e374d0fbd6d1807bb3bf6f9d85cffc0bcff8c300c4aef11ee1c59414",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:11:boundary_operator",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 11,
+      "family": "boundary_operator",
+      "description": "boundary_operator: n < 1 (Lt -> LtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:ff880ee8de57703fe49b7041f01b4d8f3fd63918eb7af0d6de060a487e885405",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:11:swap_boolean_condition",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 11,
+      "family": "swap_boolean_condition",
+      "description": "swap_boolean_condition: n < 1 or n > self.num_pages (Or -> And)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_page_zero_raises",
+        "test_page_beyond_last_raises",
+        "test_empty_collection_has_no_pages",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:ad295dc720ea1410c3d17171e7b404d04acb17b9d58fc083a1e4e337b6150ddd",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:15:change_constant_increment",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 15,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7ad91380b7efabf8312c2dff3754a11d9d7a382f21ebafff81e9d23c195417e1",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:15:change_constant_zero",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 15,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_page_zero_raises"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:37821cfeed20a7698b43008c14c48ce39c6736e39592d1a7f8cff0df20765cdb",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:42:20:boundary_operator",
+      "file": "paginate/paginator.py",
+      "lineno": 42,
+      "col_offset": 20,
+      "family": "boundary_operator",
+      "description": "boundary_operator: n > self.num_pages (Gt -> GtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.75,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:8d41108f14b8e51cd26f02d00b8da6a3975f8d8cceca47ba18e5b76835645e93",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:44:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 44,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: start_index = (n - 1) * self.per_page (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:c16a57d5d609e8a42ade67067dc55f160d4fd7bc578ccfd5cd9ee95016d8486b",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:44:27:change_constant_increment",
+      "file": "paginate/paginator.py",
+      "lineno": 44,
+      "col_offset": 27,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:2ec295f47fbc401c3f77965a758ed2d2fd903c02ca1becc125e028b44c94b070",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:44:27:change_constant_zero",
+      "file": "paginate/paginator.py",
+      "lineno": 44,
+      "col_offset": 27,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0d8edc3e3d5cf21ab5b758134dd127c52a442373296f7223f4547430853da822",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:45:8:delete_state_update",
+      "file": "paginate/paginator.py",
+      "lineno": 45,
+      "col_offset": 8,
+      "family": "delete_state_update",
+      "description": "delete_state_update: end_index = min(start_index + self.per_page, self.total_items) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b55832b6f1a9a807c06244c5b4033aa27c71000bed6000d399aedf01d16a1674",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:46:8:return_constant",
+      "file": "paginate/paginator.py",
+      "lineno": 46,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return Page(\n            number=n,\n            start_index=start_index,\n            end_index=end_index,\n            has_previous=n > 1,\n            has_next=n < self.num_pages,\n        ) (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags",
+        "test_last_page_indices_and_flags",
+        "test_middle_page_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:55ebdcf7467a355d280df58297126aad822acb866dcb00946f49899e06a000c6",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:50:25:boundary_operator",
+      "file": "paginate/paginator.py",
+      "lineno": 50,
+      "col_offset": 25,
+      "family": "boundary_operator",
+      "description": "boundary_operator: n > 1 (Gt -> GtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:e02eca175c5b39eb068e8458937c4546a4d8b85d41fd0cf007581b0d1ffb8965",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:50:29:change_constant_increment",
+      "file": "paginate/paginator.py",
+      "lineno": 50,
+      "col_offset": 29,
+      "family": "change_constant",
+      "description": "change_constant_increment: 1 (1 -> 2)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_middle_page_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:600d28d179174b5db55b880fcb85f098088531f9748b6885ef9c5bbb8e7fa1bb",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:50:29:change_constant_zero",
+      "file": "paginate/paginator.py",
+      "lineno": 50,
+      "col_offset": 29,
+      "family": "change_constant",
+      "description": "change_constant_zero: 1 (1 -> 0)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_first_page_indices_and_flags"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:1bcda822c055e11702f1b2350568802d1b3d5fe5909450e0fa47946dad07c05d",
+      "notes": ""
+    },
+    {
+      "mutation_id": "paginate/paginator.py:51:21:boundary_operator",
+      "file": "paginate/paginator.py",
+      "lineno": 51,
+      "col_offset": 21,
+      "family": "boundary_operator",
+      "description": "boundary_operator: n < self.num_pages (Lt -> LtE)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.75,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_last_page_indices_and_flags",
+        "test_exact_multiple_num_pages_not_off_by_one"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:fdd5e0eadd5ec1902999e357e54f0374756fb644d83f476088a3bbf2f4e2ad14",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "boundary_flags_use_inclusive_comparison",
+      "kind": "known_bad",
+      "description": "num_pages and start_index/end_index are all correct, but has_previous and has_next are computed with the wrong comparison direction at the boundary: has_previous = (n >= 1) and has_next = (n <= num_pages). Since page() already guarantees 1 <= n <= num_pages for any page it returns, both conditions are trivially always True \u2014 so has_previous is wrongly True on the first page and has_next is wrongly True on the last page. A plausible confusion between 'is n a valid page number' (>=1 / <=num_pages) and 'is there a page before/after n' (>1 / <num_pages), especially since the two pairs of operators look almost identical.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.625,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_first_page_indices_and_flags', 'test_last_page_indices_and_flags', 'test_exact_multiple_num_pages_not_off_by_one']"
+    },
+    {
+      "name": "num_pages_exact_multiple_off_by_one",
+      "kind": "known_bad",
+      "description": "num_pages is computed as total_items // per_page + 1 (the classic 'divide then add one for the remainder' mistake) instead of the correct ceiling (total_items + per_page - 1) // per_page. This coincidentally matches the correct ceiling for every total_items that is NOT an exact multiple of per_page, but reports one extra, entirely out-of-range page whenever total_items is an exact multiple of per_page (e.g. Paginator(9, 3) reports num_pages == 4 instead of 3, and .page(4) succeeds instead of raising). total_items == 0 is special-cased separately so this control isolates the exact-multiple behavior class rather than conflating it with the empty-collection case.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_exact_multiple_num_pages_not_off_by_one']"
+    },
+    {
+      "name": "unclamped_end_index_last_page",
+      "kind": "known_bad",
+      "description": "num_pages, has_previous, and has_next are all correct, but end_index is computed as start_index + per_page with no clamp to total_items, so it assumes every page is full. Correct on every full page, but wrong on the final page whenever total_items is not an exact multiple of per_page (e.g. Paginator(10, 3).page(4).end_index comes out as 12 instead of 10) \u2014 a very plausible slip since the naive formula happens to work for interior pages and only breaks on the boundary the author was least likely to hand-check.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_last_page_indices_and_flags']"
+    },
+    {
+      "name": "num_pages_floor_at_least_one",
+      "kind": "semantic_mutant",
+      "description": "Realistic near-miss specific to this task's contract: num_pages is computed as max(1, ceil(total_items / per_page)), mirroring a very common real-world pagination convention where an empty collection still reports one (empty) page rather than zero pages. This task's contract explicitly requires num_pages == 0 when total_items == 0 and .page(1) to raise ValueError in that case (num_pages is 0, so every page number is invalid) \u2014 this mutant instead reports num_pages == 1 for an empty collection and .page(1) succeeds, returning an empty page (start_index == end_index == 0) instead of raising. Everywhere total_items > 0 this mutant is behaviorally identical to a correct implementation.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.875,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_empty_collection_has_no_pages']"
+    },
+    {
+      "name": "eager_page_bounds_list",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent correct implementation: instead of computing start_index/end_index/num_pages lazily from arithmetic on each .page(n) call, __init__ eagerly walks the collection once with a while-loop and precomputes a list of (start, end) bounds tuples, one entry per page (empty list when total_items == 0). num_pages becomes len(...) of that list and .page(n) just validates n and indexes into the precomputed list. Different data structure and control flow (upfront list-building vs. per-call arithmetic), same observable behavior including the num_pages == 0 / ValueError edge case.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'paginate/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "paginate/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "paginator",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:b059f3f53f6dad70417cc4bb5428a69172e1a96c9409d0b6dd2f3056ea5a12c1",
+    "snapshot_hash": "sha256:a6854dea8ac8d8aae41bdabc8fac0feed93eb1e0db262153c615d40ef1a1bbc5",
+    "reference_hash": "sha256:d2d31172412af57142ab3320f52b2c95853e03d1ed754a30ea44cb8860f7c9af",
+    "grading_hash": "sha256:45f1e44d3d0d6f4be1d193af6d095b87f7720dba0e29fd40f43156173b59c50d",
+    "controls_hash": "sha256:67ad9d1b783168a4c44202cd62177599d5bf0680e702e40d4cb12b313fba13d0",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 161620
+}

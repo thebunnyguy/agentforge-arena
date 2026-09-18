@@ -1,0 +1,5 @@
+{
+  "name": "off_by_one_boundary",
+  "description": "Uses <= instead of < at the boundary, misclassifying 10 as 'small'. The hidden suite's boundary test must reject this.",
+  "expect": "reject"
+}

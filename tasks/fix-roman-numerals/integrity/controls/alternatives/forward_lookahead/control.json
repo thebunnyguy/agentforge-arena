@@ -1,0 +1,5 @@
+{
+  "name": "forward_lookahead",
+  "description": "Structurally different but behaviorally equivalent correct solution: scans left-to-right with one character of lookahead (subtract the current numeral if the NEXT one is strictly larger, else add it), instead of the reference's right-to-left scan that tracks the largest value seen so far (prev). Different iteration direction, different loop state; produces identical results for every well-formed Roman numeral (the two approaches only diverge on malformed/ambiguous strings outside the task's spec, e.g. \"IIX\").",
+  "expect": "accept"
+}

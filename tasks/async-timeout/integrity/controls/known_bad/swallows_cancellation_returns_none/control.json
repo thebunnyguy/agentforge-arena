@@ -1,0 +1,5 @@
+{
+  "name": "swallows_cancellation_returns_none",
+  "description": "Correctly cancels the underlying task and awaits its cancellation to completion (so cleanup code inside the coroutine does run), but then swallows the resulting asyncio.CancelledError with a bare `except: pass` and returns None instead of raising TimeoutError to the caller. A plausible bug from an agent that conflates 'the task must be cancelled' with 'the caller must be told' and assumes handling the CancelledError silently is sufficient once cancellation is done, forgetting the contract's explicit requirement to raise TimeoutError.",
+  "expect": "reject"
+}

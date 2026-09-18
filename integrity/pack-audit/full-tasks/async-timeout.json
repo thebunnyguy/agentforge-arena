@@ -1,0 +1,550 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "async-timeout",
+  "task_version": "1.0.1",
+  "mode": "full",
+  "status": "healthy",
+  "reason": "All checks passed with no outstanding findings.",
+  "created_at": "2026-09-18T07:12:08.704630+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 4,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 4,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 4,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 4,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 4,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 11,
+        "lines_removed": 3
+      },
+      "duration_ms": 20676
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.000), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.0,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 4,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 7532
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['atimeout/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "atimeout/**"
+        ],
+        "resolved_local_imports": {
+          "atimeout": "atimeout/__init__.py"
+        },
+        "reachable_local_imports": {
+          "atimeout": "atimeout/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "atimeout/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 2
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:atimeout/conftest.py",
+          "always_protected:atimeout/sitecustomize.py",
+          "always_protected:atimeout/usercustomize.py",
+          "always_protected:atimeout/pytest.ini",
+          "always_protected:atimeout/tox.ini",
+          "always_protected:atimeout/setup.cfg",
+          "always_protected:atimeout/pyproject.toml",
+          "always_protected:atimeout/pytest.py",
+          "always_protected_suffix:atimeout/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:atimeout/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 407
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 5 declared control(s) matched their declared expectation via a genuine hidden-test verdict.",
+      "evidence": {
+        "n_controls": 5,
+        "by_kind": {
+          "known_bad": {
+            "n": 3,
+            "matched": 3
+          },
+          "semantic_mutant": {
+            "n": 1,
+            "matched": 1
+          },
+          "alternative": {
+            "n": 1,
+            "matched": 1
+          }
+        },
+        "errors": [],
+        "fails": [],
+        "warnings": []
+      },
+      "duration_ms": 11238
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 3 relevant mutant(s) were killed by the hidden suite (kill_rate=1.00 over 3 generated, 0 unsupported, 0 declared-equivalent, 0 intercepted by the regression/scope gate before reaching the hidden suite).",
+      "evidence": {
+        "mutants_generated": 3,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_intercepted_by_regression_or_scope": 0,
+        "mutants_relevant": 3,
+        "killed_total": 3,
+        "killed_by_hidden_test": 3,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": 1.0,
+        "notes": []
+      },
+      "duration_ms": 10662
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 6 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:f2ee3e1aef13907b45bb4be702968dbbf660ab4d6065d2267b470bf65c84ba1f"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:f2ee3e1aef13907b45bb4be702968dbbf660ab4d6065d2267b470bf65c84ba1f"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:f2ee3e1aef13907b45bb4be702968dbbf660ab4d6065d2267b470bf65c84ba1f"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:never_cancels_on_timeout",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.75,
+                "functional_pass": false,
+                "fingerprint": "sha256:30431d9aba0238dabe691f82cc0f55b3dedb67b1ae127d2cf66bf00d5f760070"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.75,
+                "functional_pass": false,
+                "fingerprint": "sha256:30431d9aba0238dabe691f82cc0f55b3dedb67b1ae127d2cf66bf00d5f760070"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.75,
+                "functional_pass": false,
+                "fingerprint": "sha256:30431d9aba0238dabe691f82cc0f55b3dedb67b1ae127d2cf66bf00d5f760070"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:propagates_cancelled_error",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.5,
+                "functional_pass": false,
+                "fingerprint": "sha256:e62329abb813881fecca5b64b8a59e4c37a5deded975f7d20dfbcc9bd0ae35cd"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.5,
+                "functional_pass": false,
+                "fingerprint": "sha256:e62329abb813881fecca5b64b8a59e4c37a5deded975f7d20dfbcc9bd0ae35cd"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.5,
+                "functional_pass": false,
+                "fingerprint": "sha256:e62329abb813881fecca5b64b8a59e4c37a5deded975f7d20dfbcc9bd0ae35cd"
+              }
+            ]
+          },
+          {
+            "label": "control:known_bad:swallows_cancellation_returns_none",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.5,
+                "functional_pass": false,
+                "fingerprint": "sha256:e62329abb813881fecca5b64b8a59e4c37a5deded975f7d20dfbcc9bd0ae35cd"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.5,
+                "functional_pass": false,
+                "fingerprint": "sha256:e62329abb813881fecca5b64b8a59e4c37a5deded975f7d20dfbcc9bd0ae35cd"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.5,
+                "functional_pass": false,
+                "fingerprint": "sha256:e62329abb813881fecca5b64b8a59e4c37a5deded975f7d20dfbcc9bd0ae35cd"
+              }
+            ]
+          },
+          {
+            "label": "control:semantic_mutant:shield_leak",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.75,
+                "functional_pass": false,
+                "fingerprint": "sha256:30431d9aba0238dabe691f82cc0f55b3dedb67b1ae127d2cf66bf00d5f760070"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.75,
+                "functional_pass": false,
+                "fingerprint": "sha256:30431d9aba0238dabe691f82cc0f55b3dedb67b1ae127d2cf66bf00d5f760070"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.75,
+                "functional_pass": false,
+                "fingerprint": "sha256:30431d9aba0238dabe691f82cc0f55b3dedb67b1ae127d2cf66bf00d5f760070"
+              }
+            ]
+          },
+          {
+            "label": "control:alternative:manual_wait_and_cancel",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+              },
+              {
+                "attempt": 1,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+              },
+              {
+                "attempt": 2,
+                "final_score": 1.0,
+                "functional_pass": true,
+                "fingerprint": "sha256:273ef53ef2e2c2ed18949db740238e1d8f26ad20e8da8005a50989980e50fa95"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 72781
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "atimeout/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 5086
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "atimeout/timeout.py:12:4:delete_state_update",
+      "file": "atimeout/timeout.py",
+      "lineno": 12,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: task = asyncio.ensure_future(make_coro()) (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_instant_coro_returns_its_value",
+        "test_never_finishing_coro_raises_timeout_error",
+        "test_coroutine_is_cancelled_on_timeout",
+        "test_value_returned_before_timeout_with_small_work"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:0d3e17297840cc168067788ef6e79cd9f0d44dcafab5dc553c85f3862aa60b1e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "atimeout/timeout.py:14:8:return_constant",
+      "file": "atimeout/timeout.py",
+      "lineno": 14,
+      "col_offset": 8,
+      "family": "return_constant",
+      "description": "return_constant: return await asyncio.wait_for(task, timeout=seconds) (return <expr> -> return None)",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_instant_coro_returns_its_value",
+        "test_never_finishing_coro_raises_timeout_error",
+        "test_coroutine_is_cancelled_on_timeout",
+        "test_value_returned_before_timeout_with_small_work"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d53a8020de803c802787a40c9ef806008ac7f61b75606fe91d091d3e2a202431",
+      "notes": ""
+    },
+    {
+      "mutation_id": "atimeout/timeout.py:15:4:drop_exception_handling",
+      "file": "atimeout/timeout.py",
+      "lineno": 15,
+      "col_offset": 4,
+      "family": "drop_exception_handling",
+      "description": "drop_exception_handling: except asyncio.TimeoutError:\n        # asyncio.wait_for already cancels the task and awaits its cancellation\n        # on timeout. Re-raise as the builtin TimeoutError (the same object in\n        # mo (except-handler body replaced with pass (error swallowed silently))",
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "killed_by_tests": [
+        "test_never_finishing_coro_raises_timeout_error",
+        "test_coroutine_is_cancelled_on_timeout"
+      ],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:271b900b4f060d6e5ec8d69f7189f73540443384e1f8b1314553dd9380cd4140",
+      "notes": ""
+    }
+  ],
+  "controls": [
+    {
+      "name": "never_cancels_on_timeout",
+      "kind": "known_bad",
+      "description": "Single-defect variant of a correct asyncio.wait()-based implementation: identical control flow (wait with a timeout, branch on the pending set, raise TimeoutError), but the timeout branch never calls task.cancel() -- it just raises, leaving the coroutine running in the background forever. A plausible first-draft translation of the docstring by an agent that implements 'return the result if it finishes within seconds, else raise TimeoutError' literally, without registering that the contract's second clause ('ensure the underlying coroutine is cancelled') is a separate, mandatory action rather than an automatic side effect of raising.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.75,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_coroutine_is_cancelled_on_timeout']"
+    },
+    {
+      "name": "propagates_cancelled_error",
+      "kind": "known_bad",
+      "description": "Correctly cancels the task on timeout and awaits it (so cleanup runs), but forgets to catch the CancelledError that awaiting a cancelled task raises -- so that CancelledError propagates straight out of with_timeout to the caller instead of being converted into the required TimeoutError. A plausible bug from an agent that implements the 'cancel and wait for it to actually stop' half of the contract correctly but treats the resulting CancelledError as the natural/expected signal rather than an internal detail it must translate for the caller.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_never_finishing_coro_raises_timeout_error', 'test_coroutine_is_cancelled_on_timeout']"
+    },
+    {
+      "name": "swallows_cancellation_returns_none",
+      "kind": "known_bad",
+      "description": "Correctly cancels the underlying task and awaits its cancellation to completion (so cleanup code inside the coroutine does run), but then swallows the resulting asyncio.CancelledError with a bare `except: pass` and returns None instead of raising TimeoutError to the caller. A plausible bug from an agent that conflates 'the task must be cancelled' with 'the caller must be told' and assumes handling the CancelledError silently is sufficient once cancellation is done, forgetting the contract's explicit requirement to raise TimeoutError.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.5,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_never_finishing_coro_raises_timeout_error', 'test_coroutine_is_cancelled_on_timeout']"
+    },
+    {
+      "name": "shield_leak",
+      "kind": "semantic_mutant",
+      "description": "Task-specific near-miss: wraps the task in asyncio.shield() before handing it to asyncio.wait_for. shield() exists precisely to protect an awaitable from being cancelled when the coroutine awaiting it is cancelled -- so on timeout, wait_for cancels only the shield's outer proxy future, and the shielded inner task is never cancelled and keeps running in the background. The call still raises TimeoutError correctly (so a shallow read looks right), which is what makes this a realistic near-miss rather than a generic syntax mutation: an agent that knows 'shield protects a task from cancellation' but doesn't realize that is the exact opposite of what a cancel-on-timeout wrapper needs.",
+      "expected_accept": false,
+      "verdict": "rejected_by_hidden_test",
+      "final_score": 0.75,
+      "functional_pass": false,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=rejected_by_hidden_test; failing_hidden_tests=['test_coroutine_is_cancelled_on_timeout']"
+    },
+    {
+      "name": "manual_wait_and_cancel",
+      "kind": "alternative",
+      "description": "Structurally different but behaviorally equivalent to the reference: instead of delegating to asyncio.wait_for, it drives asyncio.wait({task}, timeout=seconds) directly, and on timeout explicitly cancels the task and awaits asyncio.wait(pending) itself to block until the cancellation has actually completed before raising TimeoutError. Different control flow and a different low-level primitive (set-based wait/cancel loop vs. wait_for's single call), same contract: return the result if it finishes in time, otherwise raise TimeoutError and guarantee the coroutine is fully cancelled first.",
+      "expected_accept": true,
+      "verdict": "accepted",
+      "final_score": 1.0,
+      "functional_pass": true,
+      "matched_expectation": true,
+      "status": "pass",
+      "notes": "verdict=accepted"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'atimeout/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "atimeout/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "async-timeout",
+    "task_version": "1.0.1",
+    "task_json_hash": "sha256:f764ef2f1ebd824c911d89a35aa1179653f334f237c3d1c8b4f49db7fa3c4688",
+    "snapshot_hash": "sha256:2f50dbdd4a6cb8e782efad16aaf0431a2253b7dd341217b22187ba6a5879fd2c",
+    "reference_hash": "sha256:e241e446ccd0dd9163e8609625eb022caf05c464cc7767ebed2ddd73555c196f",
+    "grading_hash": "sha256:c6f5035d19572224fbb97a4b801ec900853efa1e21eaea3e82601c5b4b6ccfe8",
+    "controls_hash": "sha256:a2ab7e0604dbb0d8efd1a8b521f58a73b816e291f91f85e5df2ca14604bc0003",
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 128565
+}
