@@ -79,6 +79,7 @@ def test_openai_payload_shape_and_response_parsing(monkeypatch):
 
     def fake_urlopen(req, timeout=None):
         captured["url"] = req.full_url
+        captured["timeout"] = timeout
         captured["body"] = json.loads(req.data.decode())
         return _Resp(json.dumps(
             {"choices": [{"message": {"role": "assistant", "content": "HELLO"}}]}
@@ -93,3 +94,4 @@ def test_openai_payload_shape_and_response_parsing(monkeypatch):
     assert captured["body"]["messages"][0]["content"] == "hi"
     assert captured["body"]["model"] == "m"
     assert captured["body"]["seed"] == 7
+    assert captured["timeout"] == 5

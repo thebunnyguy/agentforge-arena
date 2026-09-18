@@ -25,7 +25,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from . import serialize
+from . import db, serialize
 from .projection import ProjectionUnavailable, db_path_for, open_projection
 
 router = APIRouter(prefix="/api/v1")
@@ -97,10 +97,26 @@ async def cell(request: Request, agent: str, task_id: str):
 
 @router.get("/run/{agent}/{task_id}/{idx}")
 async def run(request: Request, agent: str, task_id: str, idx: int):
-    return _project(
+    result = _project(
         request,
         lambda stores, raw: serialize.build_run(stores, raw, agent, task_id, idx),
     )
+    if isinstance(result, dict) and result.get("ambiguous"):
+        return JSONResponse(status_code=409, content=result)
+    return result
+
+
+@router.get("/runs/{run_id}")
+async def run_by_id(request: Request, run_id: int):
+    """Exact native raw identity; does not require global aggregate pooling."""
+    ro = db.connect_readonly(db_path_for(request))
+    try:
+        result = serialize.build_run_by_id(ro, run_id)
+    finally:
+        ro.close()
+    if not result.get("found"):
+        return JSONResponse(status_code=404, content=result)
+    return result
 
 
 @router.get("/meta")

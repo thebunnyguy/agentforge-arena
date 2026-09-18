@@ -27,7 +27,6 @@ import asyncio
 import json
 import sqlite3
 import sys
-import threading
 from pathlib import Path
 from typing import Any
 
@@ -45,6 +44,7 @@ from .schemas import (
     JobCreate,
     Settings,
     redact_settings,
+    reject_secret_fields,
 )
 
 for _p in (ROOT / "kernel", ROOT / "runner", ROOT / "examples"):
@@ -63,23 +63,12 @@ _SSE_POLL_S = 0.5
 # --------------------------------------------------------------------------- #
 
 def _dispatch_worker(request: Request, job_id: str) -> None:
-    """Run a freshly-created job in a daemon thread with its own connection.
-
-    The agent factory may be overridden on app.state (tests inject a mock); the
-    default is chosen from the job's backend kind inside ``run_job``.
-    """
-    factory = getattr(request.app.state, "agent_factory", None)
-    db_path = db_path_for(request)
-
-    def _work() -> None:
-        conn = db.connect(db_path)
-        try:
-            if jobs.claim_job(conn, job_id):
-                worker.run_job(conn, job_id, agent_factory=factory)
-        finally:
-            conn.close()
-
-    threading.Thread(target=_work, name=f"afa-job-{job_id}", daemon=True).start()
+    """Use the shared token-preserving worker dispatcher."""
+    worker.dispatch_job(
+        db_path_for(request),
+        job_id,
+        agent_factory=getattr(request.app.state, "agent_factory", None),
+    )
 
 
 def _conn(request: Request):
@@ -94,7 +83,14 @@ def _conn(request: Request):
 def create_job(request: Request, body: JobCreate):
     conn = _conn(request)
     try:
-        job = jobs.create_job(conn, body)
+        try:
+            job = jobs.create_job(conn, body)
+        except jobs.JobStateError as exc:
+            return JSONResponse(status_code=409, content={"error": str(exc)})
+        except RuntimeError as exc:
+            return JSONResponse(status_code=503, content={"error": str(exc)})
+        except (ValueError, sqlite3.Error) as exc:
+            return JSONResponse(status_code=422, content={"error": str(exc)})
     finally:
         conn.close()
     # Auto-dispatch unless explicitly disabled (tests may want manual control).
@@ -140,7 +136,12 @@ def cancel_job(request: Request, job_id: str):
 def retry_job(request: Request, job_id: str):
     conn = _conn(request)
     try:
-        new_job = jobs.retry_job(conn, job_id)
+        try:
+            new_job = jobs.retry_job(conn, job_id)
+        except RuntimeError as exc:
+            return JSONResponse(status_code=503, content={"error": str(exc)})
+        except (jobs.JobStateError, ValueError, sqlite3.Error) as exc:
+            return JSONResponse(status_code=409, content={"error": str(exc)})
     finally:
         conn.close()
     if new_job is None:
@@ -151,6 +152,56 @@ def retry_job(request: Request, job_id: str):
     if getattr(request.app.state, "auto_dispatch", True):
         _dispatch_worker(request, new_job.id)
     return new_job.model_dump()
+
+
+@router.post("/jobs/{job_id}/resume")
+def resume_job(request: Request, job_id: str):
+    """Explicit same-ID continuation of incomplete, snapshotted trials."""
+    conn = _conn(request)
+    try:
+        try:
+            resumed = jobs.resume_job(conn, job_id)
+        except RuntimeError as exc:
+            return JSONResponse(status_code=503, content={"error": str(exc)})
+        except jobs.JobStateError as exc:
+            return JSONResponse(status_code=409, content={"error": str(exc)})
+    finally:
+        conn.close()
+    if resumed is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    if getattr(request.app.state, "auto_dispatch", True):
+        _dispatch_worker(request, resumed.id)
+    return resumed.model_dump()
+
+
+@router.get("/jobs/{job_id}/trials")
+def get_trials(request: Request, job_id: str):
+    conn = _conn(request)
+    try:
+        result = jobs.evaluation_results(conn, job_id)
+    finally:
+        conn.close()
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    return result
+
+
+@router.get("/jobs/{job_id}/results")
+def get_results(request: Request, job_id: str):
+    """Stable-ID alias for the minimal evaluation-scoped result facts."""
+    return get_trials(request, job_id)
+
+
+@router.get("/jobs/{job_id}/trials/{task_id}/{idx}")
+def get_trial(request: Request, job_id: str, task_id: str, idx: int):
+    conn = _conn(request)
+    try:
+        result = jobs.trial_detail(conn, job_id, task_id, idx)
+    finally:
+        conn.close()
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": "trial not found"})
+    return result
 
 
 # --------------------------------------------------------------------------- #
@@ -248,6 +299,10 @@ def get_settings(request: Request):
 
 @router.put("/settings")
 def put_settings(request: Request, body: Settings):
+    try:
+        reject_secret_fields(body.model_dump())
+    except ValueError as exc:
+        return JSONResponse(status_code=422, content={"error": str(exc)})
     conn = _conn(request)
     try:
         stored = jobs.put_settings(conn, body.model_dump())
@@ -269,7 +324,8 @@ async def verify_backend(request: Request, body: BackendVerifyRequest):
             models=["mock"],
         ).model_dump()
 
-    base_url = (body.base_url or "http://localhost:11434").rstrip("/")
+    default_url = "http://localhost:11434" if body.kind == "ollama" else "http://localhost:1234"
+    base_url = (body.base_url or default_url).rstrip("/")
     # Ollama tags endpoint; OpenAI-compat /v1/models. Local servers only.
     if body.kind == "ollama":
         url = f"{base_url}/api/tags"

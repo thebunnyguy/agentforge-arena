@@ -13,8 +13,9 @@ generation. If one is ever supplied it is REDACTED on the way out
 from __future__ import annotations
 
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Job lifecycle states (worker state machine). queued -> running -> terminal.
 JobStatus = Literal["queued", "running", "succeeded", "failed", "canceled"]
@@ -22,6 +23,13 @@ TERMINAL_STATES: frozenset[str] = frozenset({"succeeded", "failed", "canceled"})
 
 # Backend kinds we support locally. Default is the deterministic offline mock.
 BackendKind = Literal["mock", "ollama", "openai_compat"]
+EvaluationMode = Literal["fresh", "reuse"]
+JobMode = Literal["fresh", "reuse", "legacy"]
+
+DEFAULT_BACKEND_URLS: dict[str, str] = {
+    "ollama": "http://localhost:11434",
+    "openai_compat": "http://localhost:1234",
+}
 
 
 # --------------------------------------------------------------------------- #
@@ -30,17 +38,40 @@ BackendKind = Literal["mock", "ollama", "openai_compat"]
 
 class Backend(BaseModel):
     """Which local engine drives the agent. Local-only by design; no hosted
-    paid APIs. ``mock`` needs no server."""
+    paid APIs. ``mock`` needs no server.
+
+    Credential-bearing URLs are rejected rather than persisted. The local
+    adapters intentionally do not accept an API-key field.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     kind: BackendKind = "mock"
     base_url: str | None = None
 
+    @field_validator("base_url")
+    @classmethod
+    def reject_credentials(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        parsed = urlsplit(value)
+        if parsed.username or parsed.password:
+            raise ValueError("backend base_url must not contain credentials")
+        if parsed.query or parsed.fragment:
+            raise ValueError(
+                "backend base_url must not contain query or fragment secrets"
+            )
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            raise ValueError("backend base_url must be an absolute http(s) URL")
+        return value.rstrip("/")
+
 
 class JobParams(BaseModel):
-    """Parameters of an evaluation job. Persisted verbatim as ``params_json``.
+    """Parameters of an evaluation job, persisted in ``params_json``.
 
-    A job is one model evaluated over ``tasks`` x ``repeats`` units. ``model``
-    is the agent name stamped onto ``runs.agent``.
+    A new job is fresh by default. Reuse is explicit and names its source
+    evaluation; resume is an operation on an existing job, never a new-job
+    flag.
     """
 
     backend: Backend = Field(default_factory=Backend)
@@ -51,11 +82,15 @@ class JobParams(BaseModel):
     base_seed: int = 1000
     temperature: float = 0.6
     request_timeout_s: int = Field(default=180, ge=1)
+    mode: EvaluationMode = "fresh"
+    source_evaluation_id: str | None = None
 
 
 class JobCreate(JobParams):
     """POST /api/v1/jobs body. Same shape as JobParams (flat, matches the plan
     example payload)."""
+
+    model_config = ConfigDict(extra="forbid")
 
 
 # --------------------------------------------------------------------------- #
@@ -72,10 +107,13 @@ class JobCounters(BaseModel):
 
 
 class Job(BaseModel):
-    """A job row projected to JSON. ``params`` is the parsed JobParams."""
+    """A durable evaluation/job row projected to JSON."""
 
     id: str
     status: JobStatus
+    mode: JobMode = "fresh"
+    source_evaluation_id: str | None = None
+    snapshot: dict[str, Any] | None = None
     cancel_requested: bool = False
     params: JobParams
     counters: JobCounters
@@ -127,6 +165,30 @@ class Settings(BaseModel):
     default_request_timeout_s: int = Field(default=180, ge=1)
     extra: dict[str, Any] = Field(default_factory=dict)
 
+    @field_validator("ollama_base_url", "openai_base_url")
+    @classmethod
+    def reject_url_secrets(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        parsed = urlsplit(value)
+        if parsed.username or parsed.password or parsed.query or parsed.fragment:
+            raise ValueError("backend settings URL must not contain credentials or secrets")
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            raise ValueError("backend settings URL must be an absolute http(s) URL")
+        return value.rstrip("/")
+
+
+def reject_secret_fields(data: Any, *, path: str = "settings") -> None:
+    """Reject secret-shaped settings instead of persisting then redacting them."""
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if key.lower() in SECRET_KEYS and value not in (None, "", "***"):
+                raise ValueError(f"unsupported credential-bearing field: {path}.{key}")
+            reject_secret_fields(value, path=f"{path}.{key}")
+    elif isinstance(data, list):
+        for index, value in enumerate(data):
+            reject_secret_fields(value, path=f"{path}[{index}]")
+
 
 def redact_settings(data: dict[str, Any]) -> dict[str, Any]:
     """Return a copy of a settings dict with any secret-looking field redacted.
@@ -149,9 +211,8 @@ def redact_settings(data: dict[str, Any]) -> dict[str, Any]:
 # Backend verification
 # --------------------------------------------------------------------------- #
 
-class BackendVerifyRequest(BaseModel):
-    kind: BackendKind = "mock"
-    base_url: str | None = None
+class BackendVerifyRequest(Backend):
+    """Local transport probe request with the same secret/URL discipline."""
 
 
 class BackendVerifyResponse(BaseModel):

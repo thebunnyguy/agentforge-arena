@@ -75,8 +75,10 @@ def test_retry_terminal_job_creates_new_job(client, tmp_db):
     try:
         src = jobs.create_job(conn, JobCreate(model="mock",
                               tasks=["fix-binary-search"], repeats=1))
-        jobs.claim_job(conn, src.id)
-        jobs.mark_terminal(conn, src.id, "succeeded")
+        assert jobs.claim_job(conn, src.id)
+        token = jobs.owner_token(conn, src.id)
+        assert token is not None
+        jobs.mark_terminal(conn, src.id, "succeeded", owner_token=token)
     finally:
         conn.close()
     new = client.post(f"/api/v1/jobs/{src.id}/retry").json()
@@ -85,14 +87,12 @@ def test_retry_terminal_job_creates_new_job(client, tmp_db):
     assert new["params"]["tasks"] == ["fix-binary-search"]
 
 
-def test_settings_redacts_secret_fields(client):
+def test_settings_reject_secret_fields(client):
     body = {"ollama_base_url": "http://localhost:11434",
             "extra": {"api_key": "supersecret", "note": "keep"}}
-    put = client.put("/api/v1/settings", json=body).json()
-    assert put["extra"]["api_key"] == "***"
-    assert put["extra"]["note"] == "keep"
-    got = client.get("/api/v1/settings").json()
-    assert got["extra"]["api_key"] == "***"
+    put = client.put("/api/v1/settings", json=body)
+    assert put.status_code == 422
+    assert "credential-bearing" in put.json()["error"]
 
 
 def test_backend_verify_mock(client):
@@ -113,7 +113,11 @@ def test_worker_runs_mock_job_end_to_end(tmp_db):
         job = jobs.create_job(conn, JobCreate(model="mock-e2e",
                               tasks=["fix-binary-search"], repeats=1))
         assert jobs.claim_job(conn, job.id)
-        worker.run_job(conn, job.id, agent_factory=worker.mock_agent_factory)
+        token = jobs.owner_token(conn, job.id)
+        assert token is not None
+        worker.run_job(
+            conn, job.id, agent_factory=worker.mock_agent_factory, owner_token=token
+        )
         done = jobs.get_job(conn, job.id)
         assert done.status == "succeeded"
         assert done.counters.completed_runs == 1
@@ -145,7 +149,11 @@ def test_cancel_between_runs(tmp_db):
         assert jobs.claim_job(conn, job.id)
         # Request cancel before the worker starts; honored before the first run.
         jobs.request_cancel(conn, job.id)
-        worker.run_job(conn, job.id, agent_factory=worker.mock_agent_factory)
+        token = jobs.owner_token(conn, job.id)
+        assert token is not None
+        worker.run_job(
+            conn, job.id, agent_factory=worker.mock_agent_factory, owner_token=token
+        )
         done = jobs.get_job(conn, job.id)
         assert done.status == "canceled"
         assert done.counters.completed_runs == 0

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import sys
 import tempfile
 from pathlib import Path
 
@@ -93,6 +94,11 @@ CREATE TABLE IF NOT EXISTS evaluation_jobs (
     voided_runs      INTEGER NOT NULL DEFAULT 0,
     failed_runs      INTEGER NOT NULL DEFAULT 0,
     reused_runs      INTEGER NOT NULL DEFAULT 0,
+    mode             TEXT    NOT NULL DEFAULT 'legacy',
+    source_evaluation_id TEXT,
+    snapshot_json    TEXT,
+    owner_token      TEXT,
+    owner_started_at TEXT,
     created_at       TEXT    NOT NULL DEFAULT (datetime('now')),
     started_at       TEXT,
     finished_at      TEXT,
@@ -116,14 +122,39 @@ CREATE TABLE IF NOT EXISTS app_settings (
     updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
--- Append-only join table that links a job to the raw runs it produced, so the
--- legacy `runs` table need not be UPDATEd. The hard-constraint also asks for a
--- nullable runs.job_id column (added below); both are kept and stay consistent.
+-- Compatibility association used by existing callers. Evaluation trials are
+-- the canonical per-position state; this table remains a convenient raw link.
 CREATE TABLE IF NOT EXISTS job_runs (
     job_id TEXT    NOT NULL,
     run_id INTEGER NOT NULL,
     PRIMARY KEY (job_id, run_id)
 );
+
+-- One durable row per requested position. A primary key here, rather than a
+-- global raw uniqueness constraint, permits independent fresh evaluations while
+-- making duplicate completion within one evaluation impossible.
+CREATE TABLE IF NOT EXISTS evaluation_trials (
+    evaluation_id          TEXT NOT NULL REFERENCES evaluation_jobs(id),
+    task_id                TEXT NOT NULL,
+    idx                    INTEGER NOT NULL,
+    task_version           TEXT NOT NULL,
+    task_digest            TEXT NOT NULL,
+    trial_state            TEXT NOT NULL DEFAULT 'pending',
+    evidence_state         TEXT NOT NULL DEFAULT 'missing',
+    run_id                 INTEGER REFERENCES runs(id),
+    source_evaluation_id   TEXT,
+    source_run_id          INTEGER,
+    origin_evaluation_id   TEXT,
+    claim_token            TEXT,
+    claimed_at             TEXT,
+    completed_at           TEXT,
+    error_message          TEXT,
+    PRIMARY KEY (evaluation_id, task_id, idx)
+);
+CREATE INDEX IF NOT EXISTS ix_evaluation_trials_run
+    ON evaluation_trials(run_id);
+CREATE INDEX IF NOT EXISTS ix_evaluation_trials_state
+    ON evaluation_trials(evaluation_id, trial_state);
 """
 
 
@@ -228,27 +259,121 @@ def _table_exists(conn: sqlite3.Connection, table: str) -> bool:
     return row is not None
 
 
-def _heal_stale_app_tables(conn: sqlite3.Connection) -> None:
-    """One-time, idempotent reshape of the control-plane tables.
+def _has_unique_key(
+    conn: sqlite3.Connection, table: str, columns: tuple[str, ...]
+) -> bool:
+    """Check for an unconditional identity constraint, not just column names."""
+    info = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    primary = tuple(
+        row["name"] for row in sorted(info, key=lambda row: row["pk"]) if row["pk"]
+    )
+    if primary == columns:
+        return True
+    for index in conn.execute(f"PRAGMA index_list({table})").fetchall():
+        if not index["unique"]:
+            continue
+        # A partial unique index protects only the rows matching its WHERE
+        # clause; it cannot establish identity for the complete table.
+        if "partial" in index.keys() and index["partial"]:
+            continue
+        names = tuple(
+            row["name"]
+            for row in conn.execute(f"PRAGMA index_info({index['name']})").fetchall()
+        )
+        if names == columns:
+            return True
+    return False
 
-    An earlier build created ``evaluation_jobs`` / ``job_events`` /
-    ``app_settings`` with a different column shape. Those tables are app-only
-    (NEVER benchmark data) and are dropped + recreated to the current schema
-    when the legacy shape is detected. The raw benchmark layer
-    (runs/run_scores/diffs/test_results) is never touched. ``CREATE TABLE IF NOT
-    EXISTS`` cannot alter an existing table, so this guard is what lets the
-    migration converge on an already-initialized DB.
+
+def _require_identity_key(
+    conn: sqlite3.Connection, table: str, columns: tuple[str, ...]
+) -> None:
+    if not _has_unique_key(conn, table, columns):
+        raise RuntimeError(
+            f"unsupported existing {table} schema; missing unique identity key "
+            "(must be unconditional); no app tables were dropped"
+        )
+
+
+def _validate_identity_keys(conn: sqlite3.Connection) -> None:
+    """Validate every app-table identity used by control-plane writes."""
+    for table, columns in (
+        ("evaluation_jobs", ("id",)),
+        ("app_settings", ("id",)),
+        ("job_events", ("job_id", "seq")),
+        ("job_runs", ("job_id", "run_id")),
+        ("evaluation_trials", ("evaluation_id", "task_id", "idx")),
+    ):
+        if _table_exists(conn, table):
+            _require_identity_key(conn, table, columns)
+
+
+def _ensure_raw_schema(conn: sqlite3.Connection) -> None:
+    """Create the frozen raw schema only when a fresh runtime DB has none.
+
+    The runner remains the raw-schema owner; importing its DDL here avoids a
+    fresh API volume failing before the additive app migration can run.
+    Existing raw tables are never reshaped or rewritten.
     """
-    if _table_exists(conn, "evaluation_jobs") and not _column_exists(
-        conn, "evaluation_jobs", "cancel_requested"
-    ):
-        conn.execute("DROP TABLE IF EXISTS job_events")
-        conn.execute("DROP TABLE IF EXISTS evaluation_jobs")
-        conn.execute("DROP TABLE IF EXISTS app_settings")
-    if _table_exists(conn, "app_settings") and not _column_exists(
-        conn, "app_settings", "settings_json"
-    ):
-        conn.execute("DROP TABLE IF EXISTS app_settings")
+    if _table_exists(conn, "runs"):
+        return
+    runner_root = ROOT / "runner"
+    kernel_root = ROOT / "kernel"
+    for path in (kernel_root, runner_root):
+        if str(path) not in sys.path:
+            sys.path.insert(0, str(path))
+    from afa_runner.store import SQLITE_SCHEMA  # type: ignore
+
+    conn.executescript(SQLITE_SCHEMA)
+
+
+def _require_columns(
+    conn: sqlite3.Connection, table: str, required: tuple[str, ...]
+) -> None:
+    """Fail closed on an unrecognized populated app-table shape.
+
+    The old implementation dropped such tables. Preserving them and refusing
+    the migration keeps job/event/settings history recoverable for a deliberate
+    compatibility migration instead of silently destroying it.
+    """
+    if not _table_exists(conn, table):
+        return
+    present = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+    missing = sorted(set(required) - present)
+    if missing:
+        raise RuntimeError(
+            f"unsupported existing {table} schema; missing columns {missing}; "
+            """no app tables were dropped"""
+        )
+
+
+def _heal_stale_app_tables(conn: sqlite3.Connection) -> None:
+    """Validate existing app tables without destructive healing."""
+    _require_columns(
+        conn,
+        "evaluation_jobs",
+        (
+            "id", "status", "cancel_requested", "params_json", "total_runs",
+            "completed_runs", "passed_runs", "voided_runs", "failed_runs",
+            "created_at",
+        ),
+    )
+    _require_columns(
+        conn, "job_events", ("id", "job_id", "seq", "ts", "type", "payload_json")
+    )
+    _require_columns(conn, "app_settings", ("id", "settings_json", "updated_at"))
+    _require_columns(conn, "job_runs", ("job_id", "run_id"))
+    _require_columns(
+        conn,
+        "evaluation_trials",
+        (
+            "evaluation_id", "task_id", "idx", "task_version", "task_digest",
+            "trial_state", "evidence_state", "run_id", "source_evaluation_id",
+            "source_run_id", "origin_evaluation_id", "claim_token", "claimed_at",
+            "completed_at", "error_message",
+        ),
+    )
+    _validate_identity_keys(conn)
 
 
 def _guard_migration_target(conn: sqlite3.Connection) -> None:
@@ -273,21 +398,53 @@ def migrate(conn: sqlite3.Connection) -> None:
       written by the legacy insert path).
     """
     _guard_migration_target(conn)
+    if conn.in_transaction:
+        raise RuntimeError(
+            "migration requires a clean connection; refusing to commit caller work"
+        )
     _apply_pragmas(conn)
+    # Validate any existing control-plane tables before creating or altering
+    # other schema objects; unsupported shapes are refused without app repair.
     _heal_stale_app_tables(conn)
+    _ensure_raw_schema(conn)
     conn.executescript(_APP_SCHEMA)
+    # Validate both pre-existing and newly created tables before seeding or
+    # altering any remaining control-plane state.
+    _validate_identity_keys(conn)
+
+    # Existing app tables are expanded only with additive nullable/defaulted
+    # columns. An unrecognized core shape was rejected above, never dropped.
+    for column, definition in (
+        ("reused_runs", "INTEGER NOT NULL DEFAULT 0"),
+        ("mode", "TEXT NOT NULL DEFAULT 'legacy'"),
+        ("source_evaluation_id", "TEXT"),
+        ("snapshot_json", "TEXT"),
+        ("owner_token", "TEXT"),
+        ("owner_started_at", "TEXT"),
+        ("started_at", "TEXT"),
+        ("finished_at", "TEXT"),
+        ("error_message", "TEXT"),
+    ):
+        if not _column_exists(conn, "evaluation_jobs", column):
+            conn.execute(
+                f"ALTER TABLE evaluation_jobs ADD COLUMN {column} {definition}"
+            )
+
     if not _column_exists(conn, "runs", "job_id"):
         # ALTER ADD COLUMN with no default => existing rows get NULL, no rewrite.
         conn.execute("ALTER TABLE runs ADD COLUMN job_id TEXT")
-    # reused_runs was added after the first release; backfill it on app DBs that
-    # predate it so the counter stays consistent.
-    if _table_exists(conn, "evaluation_jobs") and not _column_exists(
-        conn, "evaluation_jobs", "reused_runs"
-    ):
-        conn.execute(
-            "ALTER TABLE evaluation_jobs "
-            "ADD COLUMN reused_runs INTEGER NOT NULL DEFAULT 0"
-        )
+
+    _require_columns(
+        conn,
+        "evaluation_trials",
+        (
+            "evaluation_id", "task_id", "idx", "task_version", "task_digest",
+            "trial_state", "evidence_state", "run_id", "source_evaluation_id",
+            "source_run_id", "origin_evaluation_id", "claim_token", "claimed_at",
+            "completed_at", "error_message",
+        ),
+    )
+    _validate_identity_keys(conn)
     # Seed the single settings row if missing (id=1 enforced by CHECK).
     conn.execute(
         "INSERT OR IGNORE INTO app_settings (id, settings_json, updated_at) "

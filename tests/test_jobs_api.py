@@ -84,6 +84,12 @@ def _assert_monotonic_gapfree(events) -> None:
     assert seqs == list(range(seqs[0], seqs[0] + len(seqs))), f"gap in seq: {seqs}"
 
 
+def _run_claimed(conn, job_id, **kwargs):
+    token = jobs.owner_token(conn, job_id)
+    assert token is not None
+    return worker.run_job(conn, job_id, owner_token=token, **kwargs)
+
+
 # --------------------------------------------------------------------------- #
 # Full lifecycle: POST /jobs -> worker over tiny tasks x repeats -> persisted.
 # --------------------------------------------------------------------------- #
@@ -285,7 +291,7 @@ def test_cancel_running_job_is_honored_between_runs(tmp_db):
         )
         assert jobs.claim_job(conn, job.id)
         jobs.request_cancel(conn, job.id)
-        worker.run_job(conn, job.id, agent_factory=worker.mock_agent_factory)
+        _run_claimed(conn, job.id, agent_factory=worker.mock_agent_factory)
         done = jobs.get_job(conn, job.id)
         assert done.status == "canceled"
         assert done.counters.completed_runs == 0
@@ -315,6 +321,15 @@ def test_reclaim_stale_running_requeues_orphaned_job(tmp_db):
         jobs.bump_counters(conn, job.id, completed=1, passed=1)  # partial progress
         assert jobs.get_job(conn, job.id).status == "running"
 
+        # A current owner is protected; only a demonstrably stale lease is
+        # eligible for startup recovery.
+        assert job.id not in jobs.reclaim_stale_running(conn)
+        conn.execute(
+            "UPDATE evaluation_jobs SET owner_started_at=datetime('now', '-1 hour') "
+            "WHERE id=?",
+            (job.id,),
+        )
+        conn.commit()
         reclaimed = jobs.reclaim_stale_running(conn)
         assert job.id in reclaimed
         back = jobs.get_job(conn, job.id)
@@ -328,10 +343,8 @@ def test_reclaim_stale_running_requeues_orphaned_job(tmp_db):
         conn.close()
 
 
-def test_reused_runs_are_skipped_not_reexecuted(tmp_db):
-    """Re-running the same (model, task, version, idx) REUSES the prior run: it is
-    reported as run_skipped + counted in reused_runs, never re-executed, and
-    passed/failed reflect only freshly executed runs."""
+def test_same_parameters_are_fresh_and_not_reused(tmp_db):
+    """Default creation is independent evidence, not implicit global reuse."""
     conn = db.connect(tmp_db)
     try:
         # First job actually executes + persists 2 runs for this fresh agent.
@@ -339,22 +352,63 @@ def test_reused_runs_are_skipped_not_reexecuted(tmp_db):
             conn, JobCreate(model="mock-reuse", tasks=[TASK], repeats=2)
         )
         assert jobs.claim_job(conn, j1.id)
-        worker.run_job(conn, j1.id, agent_factory=worker.mock_agent_factory)
+        _run_claimed(conn, j1.id, agent_factory=worker.mock_agent_factory)
         assert jobs.get_job(conn, j1.id).status == "succeeded"
 
-        # Second job: same model+task+repeats -> both units already exist.
+        before = conn.execute("SELECT COUNT(*) AS n FROM runs").fetchone()["n"]
+        # Same parameters still create a new evaluation and two new raw rows.
         j2 = jobs.create_job(
             conn, JobCreate(model="mock-reuse", tasks=[TASK], repeats=2)
         )
+        assert j2.id != j1.id
         assert jobs.claim_job(conn, j2.id)
-        worker.run_job(conn, j2.id, agent_factory=worker.mock_agent_factory)
+        _run_claimed(conn, j2.id, agent_factory=worker.mock_agent_factory)
         done = jobs.get_job(conn, j2.id)
         assert done.status == "succeeded"
         assert done.counters.completed_runs == 2
-        assert done.counters.reused_runs == 2   # both reused, none re-run
-        assert done.counters.passed_runs == 0   # nothing freshly executed
+        assert done.counters.reused_runs == 0
+        assert set(jobs.run_ids_for_job(conn, j1.id)).isdisjoint(
+            jobs.run_ids_for_job(conn, j2.id)
+        )
+        assert conn.execute("SELECT COUNT(*) AS n FROM runs").fetchone()["n"] == before + 2
         types = [e.type for e in jobs.events_since(conn, j2.id, 0)]
-        assert types.count("run_skipped") == 2
-        assert "run_started" not in types       # never re-executed the model
+        assert types.count("run_started") == 2
+        assert "run_skipped" not in types
+    finally:
+        conn.close()
+
+
+def test_explicit_reuse_links_exact_source_trials(tmp_db):
+    conn = db.connect(tmp_db)
+    try:
+        source = jobs.create_job(
+            conn, JobCreate(model="mock-explicit", tasks=[TASK], repeats=2)
+        )
+        assert jobs.claim_job(conn, source.id)
+        _run_claimed(conn, source.id, agent_factory=worker.mock_agent_factory)
+        source_ids = jobs.run_ids_for_job(conn, source.id)
+        before = conn.execute("SELECT COUNT(*) AS n FROM runs").fetchone()["n"]
+
+        reused = jobs.create_job(
+            conn,
+            JobCreate(
+                model="mock-explicit",
+                tasks=[TASK],
+                repeats=2,
+                mode="reuse",
+                source_evaluation_id=source.id,
+            ),
+        )
+        assert reused.counters.completed_runs == 2
+        assert reused.counters.reused_runs == 2
+        assert jobs.claim_job(conn, reused.id)
+        _run_claimed(conn, reused.id, agent_factory=worker.mock_agent_factory)
+        done = jobs.get_job(conn, reused.id)
+        assert done.status == "succeeded"
+        assert jobs.run_ids_for_job(conn, reused.id) == source_ids
+        assert conn.execute("SELECT COUNT(*) AS n FROM runs").fetchone()["n"] == before
+        details = jobs.evaluation_results(conn, reused.id)
+        assert all(t["evidence_state"] == "reused" for t in details["trials"])
+        assert all(t["source_run_id"] in source_ids for t in details["trials"])
     finally:
         conn.close()

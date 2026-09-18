@@ -19,12 +19,12 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import db
+from . import db, jobs, worker
 from .routes_jobs import router as jobs_router
 from .routes_readonly import router as readonly_router
 
@@ -45,18 +45,28 @@ async def lifespan(app: FastAPI):
     app.state.db_path = db_path
     db.ensure_working_db(db_path)
 
-    # Additive migration first (safe/idempotent against the live DB). Run it
-    # against whichever DB this app instance is bound to.
+    # Additive migration and same-host recovery share one startup boundary.
+    # If either refuses the DB, job/control routes remain fail-closed while
+    # exact raw forensic reads can still use the canonical read-only path.
+    recovered: list[str] = []
     try:
         conn = db.connect(db_path)
         try:
             db.migrate(conn)
+            recovered = jobs.reclaim_stale_running(conn, recover_unlocked=True)
         finally:
             conn.close()
     except Exception as exc:  # pragma: no cover - defensive
         app.state.migrate_error = str(exc)
     else:
         app.state.migrate_error = None
+        if getattr(app.state, "auto_dispatch", True):
+            for job_id in recovered:
+                worker.dispatch_job(
+                    db_path,
+                    job_id,
+                    agent_factory=getattr(app.state, "agent_factory", None),
+                )
 
     # Read projections are deliberately built per request, so post-startup
     # writes are visible without cache invalidation or an app restart.
@@ -109,6 +119,23 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def migration_guard(request: Request, call_next):
+        path = request.url.path
+        guarded = (
+            path == "/api/v1/jobs"
+            or path.startswith("/api/v1/jobs/")
+            or path in {"/api/v1/settings", "/api/v1/reports/regenerate"}
+        )
+        error = getattr(request.app.state, "migrate_error", None)
+        if guarded and error:
+            return JSONResponse(
+                status_code=503,
+                content={"error": f"control plane unavailable: {error}"},
+            )
+        return await call_next(request)
+
     app.include_router(readonly_router)
     app.include_router(jobs_router)
     _maybe_mount_spa(app)
