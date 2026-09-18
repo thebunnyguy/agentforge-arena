@@ -1,6 +1,6 @@
 {
   "id": "toposort",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Implement deterministic topological sort",
   "description": "graphkit.topo.toposort(graph) must return a dependency-respecting order for a graph mapping each node to the list of nodes it depends on (dependencies before dependents). Ties are broken in lexicographic order for determinism. Any cycle (including a self-loop) must raise graphkit.topo.CycleError. The function is currently a stub. Implement graphkit/topo.py. Do not modify any test files.",
   "snapshot_dir": "snapshot",

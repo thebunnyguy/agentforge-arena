@@ -1,6 +1,6 @@
 {
   "id": "fix-list-dedup",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Fix order-losing list dedup",
   "description": "listkit.dedup must remove duplicate elements while preserving first-occurrence order. It currently uses set() and loses order. Fix listkit/dedup.py so order is preserved. Do not modify any test files.",
   "snapshot_dir": "snapshot",
@@ -33,7 +33,16 @@
     "paths": [
       "test_hidden.py"
     ],
-    "weights": {}
+    "weights": {
+      "test_hidden.py::test_preserves_first_occurrence_order_ints": 1.5,
+      "test_hidden.py::test_preserves_first_occurrence_order_strings": 1.5,
+      "test_hidden.py::test_longer_sequence_order": 1.5,
+      "test_hidden.py::test_empty_list": 0.5,
+      "test_hidden.py::test_already_unique_preserved": 0.5,
+      "test_hidden.py::test_element_appearing_three_or_more_times": 0.5,
+      "test_hidden.py::test_no_duplicates_preserved_when_nonascending": 1.5,
+      "test_hidden.py::test_repeated_element_survives_multiple_times_nonascending_order": 1.5
+    }
   },
   "regression": {
     "src": "grading",

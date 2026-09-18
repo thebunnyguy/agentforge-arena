@@ -1,0 +1,44 @@
+{
+  "declared_equivalent_mutants": [
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:991dd09e65173f6c2fb83c927d062cad7fadc2e777cf080c3a8157ad16bc95e2",
+      "reason": "remove_branch_force_false on `if expr[j] == '.':` inside the digit-scan loop of _tokenize (line 32) disables the inner double-decimal-point check, but every scanned literal token is still handed to float() in _Parser._parse_number. float() itself rejects any string with more than one '.' (e.g. float('1.2.3') and float('1..2') both raise ValueError). So for every input, a multi-dot literal still raises ValueError -- just from float()'s own guard a few frames later instead of from the tokenizer's explicit check, with a different (but contract-unspecified) message. No input exists for which this mutant accepts or misevaluates a multi-dot literal that the reference rejects. Verified empirically against a battery of malformed inputs (see audit)."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:772f936b11a7237f87ab2ef271bb44255e4d044eacb4279e6b61cccd2434c969",
+      "reason": "remove_branch_force_false on `if seen_dot:` (line 33) disables just the inner raise-guard, so a second '.' is absorbed into the token instead of raising immediately. Same reasoning as the sibling mutant on the outer `if expr[j] == '.':` check: the resulting multi-dot token still fails float() conversion with ValueError downstream. Equivalent for the same reason -- float() is the real enforcement point, this check is a redundant early exit."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:92866f4bc5a089ace1988b24d5b8a68aae8f9b7eb1c304d8d7fca98b667e509a",
+      "reason": "remove_validation on the `if seen_dot: raise ValueError(...)` body (line 33) removes only the raise, leaving seen_dot's bookkeeping intact but inert. Identical effect and identical reasoning to the two sibling dot-guard mutants above: a multi-dot literal is still fully scanned into one token and float() still raises ValueError on it. Equivalent."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:6d32337dba33fccb16ff4e719040148274c4920ebb200c4f70d158b1b7790036",
+      "reason": "delete_state_update deletes `seen_dot = True` (line 35), so seen_dot can never become truthy and the `if seen_dot: raise` guard can never fire. Same root cause and same conclusion as the other dot-guard mutants: every multi-dot literal this disables detection for is still caught by float()'s own single-decimal-point rule with ValueError. Equivalent."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:b6953917f8992d964b259768f5e836b6bc4a397e6e6f5ea02c8f6b6fba0122ef",
+      "reason": "swap_boolean_literal changes the literal in `seen_dot = True` to `seen_dot = False` (line 35), which is functionally identical to deleting that assignment (the sibling delete_state_update mutant above): seen_dot never becomes truthy, so the duplicate-dot raise never fires, and float() catches the resulting multi-dot literal with ValueError regardless. Equivalent for the same reason."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:3685ca30cd90e29deed0cdf3fec9f2afff01c8bb74c518a145e3028be81f7426",
+      "reason": "remove_validation removes the raise from `if self._next() != ')': raise ValueError('expected closing parenthesis')` (line 99) inside the '(' factor handling. Empirically verified (a hand-materialized copy of this exact mutant was graded against a battery of 30+ malformed-parenthesization inputs, including nested/nested-missing/extra-close/interleaved-groups cases) that it never accepts an unbalanced-parenthesis input or produces a wrong numeric result: `_next()` is still called unconditionally, so it still consumes exactly one token (or overshoots by one when none remain) at that position regardless of what the token actually is. This preserves a strict token-count invariant -- one absorbed token per '(' -- so any missing or misplaced ')' always leaves parser.pos != len(tokens) by the time the top-level expect_end() runs, and expect_end() (an entirely separate, unmutated check) still raises ValueError('unexpected trailing tokens: ...') for every case tested, only with a sometimes-empty token list in the message rather than a message naming the missing paren. No test input was found (or could be constructed, given the invariant) where this mutant silently returns a numeric answer or raises a non-ValueError exception for malformed parenthesization. Equivalent."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:a2d60b2867d5d6508c232c53b853dcf240106c049a6e32c87079f163eb123b60",
+      "reason": "remove_branch_force_false on `if tok in ('+', '-', '*', '/', '(', ')'): raise ValueError('expected a number but found %r' % tok)` inside _parse_number (line 107) disables the explicit operator-as-number guard, but every one of those six token strings ('+','-','*','/','(',')') still fails float() conversion (e.g. float('*') raises ValueError: could not convert string to float: '*'). Verified for all six token values. Same exception type (ValueError) is still raised on every input this guard exists to catch, just from float() a line later with a different message. Equivalent."
+    },
+    {
+      "file": "calckit/evaluate.py",
+      "diff_hash": "sha256:95720a35a7ead5eccead27a8a30ffcabc64aae03bf8035c7b3899f35d7bdcf22",
+      "reason": "remove_validation on the same `if tok in (...): raise ...` body (line 107, the if-guard's raise removed rather than the branch forced false) has the identical effect and the identical equivalence argument as the sibling remove_branch mutant above: float() still raises ValueError for every one of the six operator/paren token strings. Equivalent."
+    }
+  ]
+}

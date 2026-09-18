@@ -23,6 +23,19 @@ def test_absolute_component_raises():
         safe_join("/srv/data", "/etc/passwd")
 
 
+def test_absolute_component_raises_even_when_it_reads_as_inside_base():
+    # Semantic contract (see task.json's clarified description): an absolute
+    # component must raise ValueError unconditionally, because it is never
+    # actually joined under base -- it replaces base outright. This must hold
+    # even in the coincidental case where the absolute string itself happens
+    # to read as a location inside base, such as "/srv/data/inside" under
+    # base "/srv/data": that string similarity does not make it a join, and a
+    # correct implementation must still reject it, exactly as it must reject
+    # "/etc/passwd" above.
+    with pytest.raises(ValueError):
+        safe_join("/srv/data", "/srv/data/inside")
+
+
 def test_deep_dotdot_escape_raises():
     with pytest.raises(ValueError):
         safe_join("/srv/data", "reports", "..", "..", "etc", "passwd")

@@ -1,0 +1,9 @@
+{
+  "declared_equivalent_mutants": [
+    {
+      "file": "aretry/retry.py",
+      "diff_hash": "sha256:cd44a29dd9c0911daa69c8bf96b21d506ee06e500b33281608129c2c71bc4b86",
+      "reason": "Deletes the `last_exc = None` initializer on line 12 (replaced with pass). The preceding guard `if attempts <= 0: raise ValueError(...)` guarantees the loop `for _ in range(attempts)` always executes at least one iteration for every input the contract admits (attempts is a positive integer). Every iteration either (a) returns successfully, ending the function before `last_exc` is ever read, (b) catches an Exception and assigns `last_exc = exc` before the loop can end, or (c) lets a non-Exception BaseException propagate out of the function immediately (per the clarified contract), never reaching `raise last_exc` at all. Therefore the only code path that reaches `raise last_exc` is one where the except-handler assigned `last_exc` on every one of the >=1 iterations, so the initial `None` value is never read on any reachable path for any contract-admitted input. Removing it is a pure dead-store elimination, not an observable behavior change."
+    }
+  ]
+}

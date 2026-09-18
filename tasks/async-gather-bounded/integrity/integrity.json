@@ -1,0 +1,9 @@
+{
+  "declared_equivalent_mutants": [
+    {
+      "file": "asynckit/bounded.py",
+      "diff_hash": "sha256:a4bc9ffcaeb787940f6e6b826c89bce5a5c324a21037db46720d20d605796988",
+      "reason": "Deletes the `if not factories: return results` early return on line 24 (forced to never trigger). That branch only matters when coro_factories is empty: with it removed, `factories == []` still produces `tasks = []` (the list comprehension over `enumerate([])` yields nothing), so `await asyncio.gather(*tasks)` is `await asyncio.gather()`, which for zero children resolves immediately to an already-completed empty result without ever raising -- the `except BaseException` branch is unreachable on this path. Execution falls through to the unconditional `return results` at the bottom, and `results` is `[None] * len(factories)` == `[]`, identical to what the removed branch would have returned directly. Verified empirically (10/10 trials across limit=1/4/100) that both versions return `[]` for empty input with no observable difference in timing, exceptions, or result value. This is a pure dead-code/optimization removal, not a behavior change, for every input the task contract admits."
+    }
+  ]
+}

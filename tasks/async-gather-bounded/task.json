@@ -1,8 +1,8 @@
 {
   "id": "async-gather-bounded",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Implement bounded-concurrency async gather",
-  "description": "Implement asynckit.bounded.gather_bounded(coro_factories, limit): an async function that runs the given coroutine factories with at most `limit` coroutines in flight at once, returns their results in input order, and propagates the first exception raised. The snapshot is a stub that raises NotImplementedError. Fix asynckit/bounded.py. Do not modify any test files.",
+  "description": "Implement asynckit.bounded.gather_bounded(coro_factories, limit): an async function that runs the given coroutine factories with at most `limit` coroutines in flight at once, returns their results in input order, and propagates the first exception raised. The snapshot is a stub that raises NotImplementedError. Fix asynckit/bounded.py. Do not modify any test files. Clarification: `limit` must be a positive integer; the function must raise ValueError if `limit <= 0`, unconditionally and before doing any scheduling work -- this validation must happen even when `coro_factories` is empty, so an empty-input short-circuit can never be used to dodge it (a limit of zero or less can never provide a working bound: nothing could ever acquire a slot, so silently accepting it would deadlock forever on non-empty input instead of failing fast). Clarification: \"the first exception raised\" means the exception belonging to whichever coroutine's failure actually happens first in real execution order, not whichever factory is listed first in `coro_factories`; when cleaning up the remaining in-flight coroutines after a failure, that cleanup must never let a different, already-completed coroutine's exception be substituted for the genuinely-first one.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],

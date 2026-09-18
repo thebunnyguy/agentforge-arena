@@ -1,6 +1,6 @@
 {
   "id": "sanitize-filename",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Reject unsafe filenames in safe_name",
   "description": "safename.name.safe_name(name) must return a safe single-component filename, returning the name unchanged when it is safe but raising ValueError when name is empty, '.', '..', contains a path separator ('/' or '\\\\'), contains a null byte, or contains any '..' path component. The snapshot is BUGGY: it returns the name unchanged and performs no rejection. Fix safename/name.py using pure string/stdlib logic only (NO real filesystem access). Do not modify any test files.",
   "snapshot_dir": "snapshot",

@@ -1,0 +1,9 @@
+{
+  "declared_equivalent_mutants": [
+    {
+      "file": "topk/core.py",
+      "diff_hash": "sha256:12f1168a678594828d2d4d15c6ed3ab0d7aa37e25171a3afb1ed27b1ab4c681b",
+      "reason": "boundary_operator on line 17 (`if k <= 0: return []`) changes the guard to `if k < 0: return []`. The two versions can only disagree on k == 0 (every k < 0 still short-circuits to [] under the mutant, and every k > 0 skips the guard under both). For k == 0 the mutant falls through to compute `counts`, `first_index`, and `ordered` (all pure, side-effect-free reads over `items` -- no mutation, and the sort key is `(-counts[x], first_index[x])`, a tuple of ints, so it never invokes comparison on the items themselves and cannot raise for any hashable input) and then returns `ordered[:0]`. A slice `some_list[:0]` is `[]` for every list, regardless of its length or contents -- this is a fixed property of Python slicing, not something that depends on `items` or on ties/frequencies. So for every input the task contract admits (any sequence of hashable items, k == 0), the mutant's output is provably identical to the reference's early-return `[]`, not merely identical on the cases the current hidden suite happens to exercise. Confirmed empirically: probing k == 0 against inputs of varying size/content, and the sibling remove_branch_force_false mutant at the same line (which removes the guard for ALL k <= 0, including negative k) is correctly killed by test_negative_k_returns_empty_regardless_of_distinct_count, showing the hidden suite does discriminate real guard removals -- it just cannot (and should not) discriminate this specific off-by-one on the guard's boundary, because that boundary is behaviorally inert."
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "id": "async-first-success",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Implement first_success that cancels the losers",
-  "description": "Implement afirst.first.first_success(make_coros): an async function that runs all the given coroutine factories concurrently, returns the result of the FIRST one to succeed, and cancels the remaining coroutines. If every coroutine fails, raise the last exception (the exception from the last factory in input order). The snapshot is a stub that raises NotImplementedError. Fix afirst/first.py. Do not modify any test files.",
+  "description": "Implement afirst.first.first_success(make_coros): an async function that runs all the given coroutine factories concurrently, returns the result of the FIRST one to succeed, and cancels the remaining coroutines. If every coroutine fails, raise the last exception (the exception from the last factory in input order). make_coros must be non-empty; if it is empty, raise ValueError. The snapshot is a stub that raises NotImplementedError. Fix afirst/first.py. Do not modify any test files.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],

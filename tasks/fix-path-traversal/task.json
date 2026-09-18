@@ -1,8 +1,8 @@
 {
   "id": "fix-path-traversal",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Fix path-traversal escape in safe_join",
-  "description": "safepath.join.safe_join(base, *parts) must join parts under base but raise ValueError if the result escapes base (via '..' or an absolute component). It currently uses a naive posixpath.join that allows escape. Fix safepath/join.py using posixpath string logic only (NO real filesystem access). Do not modify any test files.",
+  "description": "safepath.join.safe_join(base, *parts) must join parts under base but raise ValueError if the result escapes base (via '..' or an absolute component). It currently uses a naive posixpath.join that allows escape. Fix safepath/join.py using posixpath string logic only (NO real filesystem access). Do not modify any test files. Clarification: an absolute component in `parts` (e.g. \"/etc/passwd\") must be rejected with ValueError unconditionally -- not only when the final joined-and-normalized string happens to fall outside base. `posixpath.join` resets to an absolute component and discards every earlier component including base, so an absolute part is never actually joined under base regardless of where that absolute string itself points; a call such as `safe_join(\"/srv/data\", \"/srv/data/logs/app.log\")` must still raise even though that absolute string happens to read as being inside base.",
   "snapshot_dir": "snapshot",
   "reference_dir": "reference",
   "setup": [],

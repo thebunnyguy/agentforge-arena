@@ -104,3 +104,48 @@ def test_results_input_order_with_varied_speeds():
     ]
     result = asyncio.run(gather_bounded(factories, limit=3))
     assert result == [100, 1, 50]
+
+
+def test_rejects_nonpositive_limit_before_any_scheduling():
+    """Semantic contract (see task.json's clarified description): `limit`
+    must be validated eagerly and unconditionally. A limit of zero (or
+    negative) can never provide a working bound -- asyncio.Semaphore only
+    ever lets an acquire succeed if its count is >= 1, so a bound of 0 can
+    never release a single slot -- so any correct implementation must reject
+    it up front with ValueError rather than silently accepting it, which for
+    non-empty input would deadlock forever (nothing could ever acquire the
+    semaphore). This validation must run even when coro_factories is empty,
+    so an empty-input short-circuit can never be used to dodge it.
+    """
+    with pytest.raises(ValueError):
+        asyncio.run(gather_bounded([], limit=0))
+    with pytest.raises(ValueError):
+        asyncio.run(gather_bounded([], limit=-5))
+
+
+def test_propagates_the_temporally_first_exception_not_the_first_listed():
+    """Semantic contract (see task.json's clarified description): "the first
+    exception raised" means whichever coroutine's failure actually happens
+    first in real execution order -- not whichever factory sits first in
+    coro_factories. This exercises the cleanup path taken after the initial
+    failure: the coroutine listed FIRST yields once (via asyncio.sleep(0))
+    before it fails, so it is still in flight -- not yet failed -- at the
+    exact moment the SECOND-listed coroutine fails immediately with no
+    yield at all. The second-listed one is therefore the true first failure
+    and must be what propagates. An implementation whose post-failure
+    cleanup re-gathers the remaining tasks in a way that can itself raise
+    (instead of purely absorbing every remaining outcome so the ORIGINAL
+    exception is what propagates) can end up surfacing the first-LISTED
+    coroutine's exception instead, once it also finishes -- which is what
+    this test catches. Distinct exception types are used so the assertion
+    cannot be satisfied by either failure.
+    """
+    async def fails_after_one_hop():
+        await asyncio.sleep(0)
+        raise KeyError("listed first, fails second")
+
+    async def fails_immediately():
+        raise ValueError("listed second, fails first")
+
+    with pytest.raises(ValueError, match="listed second, fails first"):
+        asyncio.run(gather_bounded([fails_after_one_hop, fails_immediately], limit=2))

@@ -56,3 +56,27 @@ def test_inner_dots_allowed():
     # (a `".." in name` substring check would wrongly reject these).
     assert safe_name("safe..file") == "safe..file"
     assert safe_name("my..report.txt") == "my..report.txt"
+
+
+def test_name_with_space_unchanged():
+    # Semantic property: safe_name must return the name UNCHANGED unless it
+    # matches one of exactly five documented unsafe conditions (empty, ".",
+    # "..", a path separator, a null byte, or a ".." component). A space is
+    # none of those five, so an implementation may not add an undocumented
+    # character allowlist that rejects it.
+    assert safe_name("my file.txt") == "my file.txt"
+
+
+def test_name_with_punctuation_unchanged():
+    # Same property as test_name_with_space_unchanged, exercised with ordinary
+    # punctuation that is not itself a path separator or null byte. Rejecting
+    # this would mean an implementation is enforcing a character allowlist the
+    # task never specifies, not one of the five documented unsafe conditions.
+    assert safe_name("report (1).txt") == "report (1).txt"
+
+
+def test_name_with_non_ascii_unchanged():
+    # Same property again, exercised with a non-ASCII character. The task's
+    # five unsafe conditions say nothing about character set/encoding, so an
+    # ASCII-only allowlist is an undocumented, contract-violating restriction.
+    assert safe_name("résumé.pdf") == "résumé.pdf"

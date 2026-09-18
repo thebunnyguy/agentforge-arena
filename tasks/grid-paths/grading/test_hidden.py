@@ -43,3 +43,34 @@ def test_large_grid_requires_polynomial_solution():
     # order of 2**34 calls and is cut off by the grader timeout; a DP table /
     # memoization / closed form computes this in well under a second.
     assert count_paths(18, 18) == 2333606220
+
+
+# SEMANTIC PROPERTY: a grid with zero or negative rows or columns has no cells
+# at all, so there is no top-left cell and no bottom-right cell to path
+# between -- the count of paths is 0. This is a distinct code path from every
+# test above (all of which use rows >= 1 and cols >= 1) and must be handled
+# explicitly, independent of which dimension is degenerate: dropping the
+# guard, loosening it from "<= 0" to "< 0" on EITHER dimension, or weakening
+# "or" to "and" all incorrectly fall through into the row/column DP
+# machinery, which does not degrade gracefully to zero on a 0-length
+# dimension (e.g. `[1] * 0` produces an empty table, and indexing its last
+# element is either an IndexError or -- because the outer "walk down the
+# rows" loop also silently does nothing when rows <= 1 -- coincidentally 1).
+def test_zero_rows_grid_has_no_cells():
+    assert count_paths(0, 4) == 0
+
+
+def test_zero_cols_grid_has_no_cells():
+    assert count_paths(4, 0) == 0
+
+
+def test_zero_by_zero_grid_has_no_cells():
+    assert count_paths(0, 0) == 0
+
+
+def test_negative_rows_grid_has_no_cells():
+    assert count_paths(-3, 4) == 0
+
+
+def test_negative_cols_grid_has_no_cells():
+    assert count_paths(4, -3) == 0
