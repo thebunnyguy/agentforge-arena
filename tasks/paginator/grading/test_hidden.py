@@ -53,3 +53,26 @@ def test_middle_page_flags():
     p = Paginator(25, 10).page(2)   # page 2 of 3
     assert p.has_next is True
     assert p.has_previous is True
+
+
+def test_exact_multiple_num_pages_not_off_by_one():
+    # Semantic contract: num_pages must equal the exact ceiling of
+    # total_items / per_page, INCLUDING when total_items is a perfect
+    # multiple of per_page (9 items at 3 per page is exactly 3 pages, not
+    # 4). A "divide then add one for the remainder" implementation
+    # (num_pages = total_items // per_page + 1) coincidentally matches the
+    # correct ceiling whenever there IS a remainder, but reports one
+    # extra, entirely out-of-range page whenever the division is exact.
+    # Guard against that whole defect class directly: the true last page
+    # must be valid and complete, and there must be no phantom page past it.
+    paginator = Paginator(9, 3)
+    assert paginator.num_pages == 3
+
+    last_page = paginator.page(paginator.num_pages)
+    assert last_page.number == 3
+    assert last_page.start_index == 6
+    assert last_page.end_index == 9
+    assert last_page.has_next is False
+
+    with pytest.raises(ValueError):
+        paginator.page(paginator.num_pages + 1)
