@@ -104,13 +104,25 @@ def classify(
     run_backend: str | None,
     snapshot_backend: str | None,
     params_backend: str | None = None,
+    agent: str | None = None,
 ) -> RunProvenance:
     """Classify one run from its own provider value and its evaluation's.
 
     ``snapshot_backend`` / ``params_backend`` are the evaluation's recorded
     provider (snapshot preferred; params_json for evaluations that predate
     snapshots). Unknown kind strings are integrity conflicts, never exceptions.
+    A run persisted under a reserved synthetic-baseline name is always a
+    conflict, whatever its provider.
     """
+    if agent in RESERVED_AGENT_NAMES:
+        resolved = run_backend if run_backend in _CLASS_BY_KIND else (
+            snapshot_backend if snapshot_backend in _CLASS_BY_KIND else (
+                params_backend if params_backend in _CLASS_BY_KIND else None
+            )
+        )
+        return RunProvenance(
+            run_id, job_id, resolved, "run" if run_backend else "none", CLASS_CONFLICT
+        )
     if run_backend is not None and run_backend not in _CLASS_BY_KIND:
         return RunProvenance(run_id, job_id, None, "run", CLASS_CONFLICT)
     job_kind = snapshot_backend if snapshot_backend in _CLASS_BY_KIND else (
@@ -174,13 +186,15 @@ def read_provenance(
     raw: sqlite3.Connection, run_ids: list[int] | None = None
 ) -> dict[int, RunProvenance]:
     """Classify persisted runs. Tolerates databases that predate the provenance
-    column or the evaluation tables (everything is then ``legacy``)."""
+    column or the evaluation tables: job-less runs are then ``legacy``, while a
+    run that names a job which cannot be found is unattestable (``conflict``)."""
     run_cols = _columns(raw, "runs")
     if not run_cols:
         return {}
     has_backend = "backend_kind" in run_cols
     has_job = "job_id" in run_cols
     select = "SELECT id"
+    select += ", agent" if "agent" in run_cols else ", NULL AS agent"
     select += ", job_id" if has_job else ", NULL AS job_id"
     select += ", backend_kind" if has_backend else ", NULL AS backend_kind"
     sql = select + " FROM runs"
@@ -213,6 +227,16 @@ def read_provenance(
             row["backend_kind"],
             snapshot_kinds.get(row["job_id"]),
             params_kinds.get(row["job_id"]),
+            agent=row["agent"],
         )
         for row in rows
     }
+
+
+def score_formula_predicate(conn: sqlite3.Connection, alias: str = "s") -> str:
+    """Join predicate (leading ``AND``) pinning ``SCORE_FORMULA_VERSION`` on
+    ``run_scores``; empty for a database whose run_scores predates the column
+    (it is then keyed by run_id alone, so there is nothing to pin)."""
+    if "formula_version" not in _columns(conn, "run_scores"):
+        return ""
+    return f" AND {alias}.formula_version = '{SCORE_FORMULA_VERSION}'"

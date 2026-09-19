@@ -63,6 +63,10 @@ export interface ExcludedEvidence {
   synthetic_runs: number;
   synthetic_models?: string[];
   provenance_conflict_runs: number;
+  /** runs of a class the selected scope does not include (e.g. legacy under "real") */
+  out_of_scope_runs?: number;
+  /** runs the projection cannot see (no score/diff rows) */
+  unaccounted_runs?: number;
 }
 
 /** Per-entry coverage on GLOBAL leaderboard entries (absent on task scope). */

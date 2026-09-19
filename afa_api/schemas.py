@@ -76,6 +76,8 @@ class JobParams(BaseModel):
     flag.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     backend: Backend = Field(default_factory=Backend)
     model: str = "mock"
     name: str | None = None

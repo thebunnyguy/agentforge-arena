@@ -251,6 +251,7 @@ def load_stores(
         excluded_synthetic_runs = 0
         excluded_synthetic_models: set[str] = set()
         excluded_conflict_runs = 0
+        excluded_out_of_scope_runs = 0
         excluded_cells: dict[tuple[str, str], dict[str, int]] = {}
         stored_cell_versions: dict[tuple[str, str], set[str]] = {}
         stored_task_versions: dict[str, set[str]] = {}
@@ -274,19 +275,17 @@ def load_stores(
                 for record in disk.load_runs(agent=agent):
                     projected_runs += 1
                     prov = provenance.get(record.run_id, evidence.UNATTESTED_PROVENANCE)
-                    if agent in evidence.RESERVED_AGENT_NAMES:
-                        # persisted under a synthetic baseline's name: never real
-                        prov = evidence.RunProvenance(
-                            prov.run_id, prov.job_id, prov.backend_kind,
-                            prov.provider_source, evidence.CLASS_CONFLICT,
-                        )
+                    # Persisted under a synthetic baseline's name: a conflict (set by
+                    # read_provenance) that is NEVER aggregated, in any scope
+                    # (examples/report_combined does the same).
+                    reserved = agent in evidence.RESERVED_AGENT_NAMES
                     stored_cell_versions.setdefault((agent, record.task_id), set()).add(
                         record.task_version
                     )
                     stored_task_versions.setdefault(record.task_id, set()).add(
                         record.task_version
                     )
-                    if prov.evidence_class not in in_scope_classes:
+                    if reserved or prov.evidence_class not in in_scope_classes:
                         cell_ex = excluded_cells.setdefault(
                             (agent, record.task_id),
                             {"synthetic_runs": 0, "provenance_conflict_runs": 0},
@@ -298,6 +297,9 @@ def load_stores(
                         elif prov.evidence_class == evidence.CLASS_CONFLICT:
                             excluded_conflict_runs += 1
                             cell_ex["provenance_conflict_runs"] += 1
+                        else:
+                            # e.g. legacy runs under the real / synthetic scope
+                            excluded_out_of_scope_runs += 1
                         continue
                     is_current = (
                         current_versions.get(record.task_id) == record.task_version
@@ -392,6 +394,9 @@ def load_stores(
                 "synthetic_runs": excluded_synthetic_runs,
                 "synthetic_models": sorted(excluded_synthetic_models),
                 "provenance_conflict_runs": excluded_conflict_runs,
+                # runs of a class the selected scope does not include (and that
+                # are neither synthetic nor a conflict): counted, never hidden
+                "out_of_scope_runs": excluded_out_of_scope_runs,
                 # runs rows the loader cannot see (no run_scores row of the
                 # pinned formula, or no diffs row): visible, never silently lost
                 "unaccounted_runs": max(0, total_runs_in_db - projected_runs),

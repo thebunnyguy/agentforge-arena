@@ -60,21 +60,25 @@ def _project(request: Request, builder: Callable[..., Any]) -> Any:
 
 @router.get("/healthz")
 def healthz(request: Request) -> dict:
+    recovery_error = getattr(request.app.state, "recovery_error", None)
     try:
         with open_projection(request):
-            return {
-                "status": "ok",
+            body = {
+                "status": "degraded" if recovery_error else "ok",
                 "stores_loaded": True,
                 "load_error": None,
                 "db_path": str(db_path_for(request)),
             }
     except ProjectionUnavailable as exc:
-        return {
+        body = {
             "status": "degraded",
             "stores_loaded": False,
             "load_error": str(exc),
             "db_path": str(db_path_for(request)),
         }
+    if recovery_error:
+        body["recovery_error"] = recovery_error
+    return body
 
 
 @router.get("/overview")

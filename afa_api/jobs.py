@@ -131,6 +131,31 @@ _EXECUTION_REQUIRED_KEYS = (
 )
 
 
+def _refuse_constant(constant: str):
+    raise ValueError(constant)
+
+
+def _finite_float(literal: str) -> float:
+    value = float(literal)
+    if not math.isfinite(value):
+        raise ValueError(literal)  # e.g. the legal JSON number 1e999 parses to inf
+    return value
+
+
+def _loads_finite(text: str | None):
+    """json.loads that refuses NaN / Infinity / 1e999: a non-finite number would
+    make the response renderer raise, turning one corrupt row into a 500 for the
+    whole listing. Returns None for anything unusable."""
+    if not text:
+        return None
+    try:
+        return json.loads(
+            text, parse_constant=_refuse_constant, parse_float=_finite_float
+        )
+    except (TypeError, ValueError):
+        return None
+
+
 def _validation_field_names(exc: ValidationError) -> str:
     """Field names only. Pydantic locs can contain attacker/garbage-chosen dict
     keys (an unexpected key inside ``backend``), so an ``extra_forbidden`` error is
@@ -153,6 +178,9 @@ def strict_params_from_json(raw_json: str) -> JobParams:
     else.
     """
     try:
+        # Plain loads on purpose: a non-finite number then parses and is rejected
+        # BY FIELD NAME below (temperature, base_seed, ...), which is more useful
+        # than "not valid JSON"; every field is strictly typed, so none can pass.
         raw = json.loads(raw_json)
     except (TypeError, ValueError):
         raise InvalidPersistedParams(
@@ -166,6 +194,11 @@ def strict_params_from_json(raw_json: str) -> JobParams:
     if missing:
         raise InvalidPersistedParams(
             f"{_INVALID_PREFIX}: missing fields: {', '.join(missing)}"
+        )
+    if any(key not in JobParams.model_fields for key in raw):
+        # never echo the key: it is attacker/garbage-chosen text
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: invalid fields: <unexpected key>"
         )
     try:
         params = JobParams.model_validate(raw, strict=True)
@@ -216,26 +249,22 @@ def _snapshot_disagreements(params: JobParams, snapshot: dict[str, Any]) -> list
     return [name for name, agrees in checks.items() if not agrees]
 
 
-def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
-    """The ONLY parameters an evaluation may be executed, resumed, retried or
-    recovered with: strictly parsed and in agreement with the creation snapshot.
-
-    Raises InvalidPersistedParams (a JobStateError) otherwise. Callers must not
-    execute, create a fresh clone of, or requeue an evaluation on failure.
-    """
-    row = conn.execute(
-        "SELECT params_json, mode, source_evaluation_id FROM evaluation_jobs WHERE id=?",
-        (evaluation_id,),
-    ).fetchone()
-    if row is None:
-        raise JobStateError(f"evaluation not found: {evaluation_id}")
-    params = strict_params_from_json(row["params_json"])
+def verify_persisted_params(
+    params_json: str,
+    snapshot_json: str | None,
+    mode: str | None,
+    source_evaluation_id: str | None,
+) -> JobParams:
+    """Strictly parse persisted params AND require them to agree with the row's
+    own control columns and its creation snapshot. The single source of truth for
+    "these are the parameters this evaluation may run / be shown with"."""
+    params = strict_params_from_json(params_json)
     # The persisted params must also agree with the row's own control columns.
     column_disagreements = [
         name
         for name, agrees in (
-            ("mode", params.mode == row["mode"]),
-            ("source_evaluation_id", params.source_evaluation_id == row["source_evaluation_id"]),
+            ("mode", params.mode == mode),
+            ("source_evaluation_id", params.source_evaluation_id == source_evaluation_id),
         )
         if not agrees
     ]
@@ -244,8 +273,8 @@ def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
             f"{_INVALID_PREFIX}: parameters disagree with the evaluation row "
             f"({', '.join(column_disagreements)})"
         )
-    snapshot = get_snapshot(conn, evaluation_id)
-    if snapshot is None:
+    snapshot = _loads_finite(snapshot_json)
+    if not isinstance(snapshot, dict):
         raise InvalidPersistedParams(
             f"{_INVALID_PREFIX}: evaluation has no creation snapshot"
         )
@@ -258,48 +287,60 @@ def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
     return params
 
 
-def _job_params_for_display(raw_json: str) -> tuple[JobParams | None, str | None]:
+def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
+    """The ONLY parameters an evaluation may be executed, resumed, retried or
+    recovered with: strictly parsed and in agreement with the creation snapshot.
+
+    Raises InvalidPersistedParams (a JobStateError) otherwise. Callers must not
+    execute, create a fresh clone of, or requeue an evaluation on failure.
+    """
+    row = conn.execute(
+        "SELECT params_json, mode, source_evaluation_id, snapshot_json "
+        "FROM evaluation_jobs WHERE id=?",
+        (evaluation_id,),
+    ).fetchone()
+    if row is None:
+        raise JobStateError(f"evaluation not found: {evaluation_id}")
+    return verify_persisted_params(
+        row["params_json"], row["snapshot_json"], row["mode"], row["source_evaluation_id"]
+    )
+
+
+def _job_params_for_display(row: sqlite3.Row) -> tuple[JobParams | None, str | None]:
     """Params for LISTING/inspection: exactly what execution would accept.
 
-    Uses the SAME strict parse as ``execution_params`` (minus the snapshot
-    agreement check), so a listing can never show clean-looking parameters for a
-    row that execution refuses (no coercion of "2" to 2, no defaulted or empty
-    ``tasks``, no silently dropped credential-bearing keys), and a non-finite
-    number can never reach the JSON response. A row that fails returns
+    Runs the SAME verification as ``execution_params`` (strict parse, agreement
+    with the row's control columns and with the creation snapshot), so a listing
+    can never show clean-looking parameters for a row that execution refuses (no
+    coercion of "2" to 2, no defaulted or empty ``tasks``, no silently dropped
+    keys, no values that contradict the snapshot), and a non-finite number can
+    never reach the JSON response. A row that fails returns
     ``(None, sanitised_reason)``: display data only, never a substitute.
     """
     try:
-        return strict_params_from_json(raw_json), None
+        return (
+            verify_persisted_params(
+                row["params_json"],
+                _row_value(row, "snapshot_json"),
+                _row_value(row, "mode", "legacy") or "legacy",
+                _row_value(row, "source_evaluation_id"),
+            ),
+            None,
+        )
     except InvalidPersistedParams as exc:
         return None, str(exc).removeprefix(f"{_INVALID_PREFIX}: ")
 
 
-def _loads_finite(text: str | None):
-    """json.loads that refuses NaN/Infinity (they are not valid JSON and would
-    make the response renderer raise, turning one corrupt row into a 500 for the
-    whole listing). Returns None for anything unusable."""
-
-    def _refuse(constant: str):
-        raise ValueError(constant)
-
-    if not text:
-        return None
-    try:
-        return json.loads(text, parse_constant=_refuse)
-    except (TypeError, ValueError):
-        return None
-
-
 def _job_from_row(row: sqlite3.Row) -> Job:
-    params, params_problem = _job_params_for_display(row["params_json"])
+    params, params_problem = _job_params_for_display(row)
     mode = _row_value(row, "mode", "legacy") or "legacy"
     raw_snapshot = _row_value(row, "snapshot_json")
     snapshot = _loads_finite(raw_snapshot)
     if not isinstance(snapshot, dict):
         snapshot = None
-    backend_kind = evidence.snapshot_backend_kind(raw_snapshot) or (
-        params.backend.kind if params is not None else None
-    )
+    # Verified params always agree with the snapshot, so the snapshot's recorded
+    # backend is the one source of the job-level class.
+    backend_kind = evidence.snapshot_backend_kind(raw_snapshot)
     evidence_class = {
         "mock": "synthetic",
         "ollama": "real",
@@ -455,10 +496,7 @@ def get_snapshot(conn: sqlite3.Connection, evaluation_id: str) -> dict[str, Any]
     ).fetchone()
     if row is None or not row["snapshot_json"]:
         return None
-    try:
-        value = json.loads(row["snapshot_json"])
-    except (TypeError, json.JSONDecodeError):
-        return None
+    value = _loads_finite(row["snapshot_json"])
     return value if isinstance(value, dict) else None
 
 
@@ -535,7 +573,8 @@ def create_job(conn: sqlite3.Connection, params: JobCreate) -> Job:
                     "SELECT r.id, r.job_id, d.patch_text, "
                     "(SELECT COUNT(*) FROM test_results tr WHERE tr.run_id=r.id) AS test_count "
                     "FROM runs r "
-                    f"JOIN run_scores s ON s.run_id=r.id AND s.formula_version='{evidence.SCORE_FORMULA_VERSION}' "
+                    "JOIN run_scores s ON s.run_id=r.id"
+                    f"{evidence.score_formula_predicate(conn)} "
                     "JOIN diffs d ON d.run_id=r.id WHERE r.id=?",
                     (source_row["run_id"],),
                 ).fetchone()
@@ -745,8 +784,8 @@ def refresh_counters(
         "COALESCE(SUM(CASE WHEN t.evidence_state='fresh' AND s.functional_pass=1 THEN 1 ELSE 0 END),0) AS passed, "
         "COALESCE(SUM(CASE WHEN t.evidence_state='fresh' AND s.voided=1 THEN 1 ELSE 0 END),0) AS voided, "
         "COALESCE(SUM(CASE WHEN t.evidence_state='fresh' AND s.functional_pass=0 AND s.voided=0 THEN 1 ELSE 0 END),0) AS failed "
-        "FROM evaluation_trials t LEFT JOIN run_scores s ON s.run_id=t.run_id "
-        f"AND s.formula_version='{evidence.SCORE_FORMULA_VERSION}' "
+        "FROM evaluation_trials t LEFT JOIN run_scores s ON s.run_id=t.run_id"
+        f"{evidence.score_formula_predicate(conn)} "
         "WHERE t.evaluation_id=? AND t.trial_state='completed'",
         (evaluation_id,),
     ).fetchone()
@@ -806,8 +845,8 @@ def trial_detail(
         "r.transcript_hash, r.duration_ms, r.created_at, s.final_score, "
         "s.functional_pass, s.voided, d.patch_text "
         "FROM evaluation_trials t LEFT JOIN runs r ON r.id=t.run_id "
-        "LEFT JOIN run_scores s ON s.run_id=t.run_id "
-        f"AND s.formula_version='{evidence.SCORE_FORMULA_VERSION}' "
+        "LEFT JOIN run_scores s ON s.run_id=t.run_id"
+        f"{evidence.score_formula_predicate(conn)} "
         "LEFT JOIN diffs d ON d.run_id=t.run_id "
         "WHERE t.evaluation_id=? AND t.task_id=? AND t.idx=?",
         (evaluation_id, task_id, idx),
@@ -1039,7 +1078,10 @@ def reclaim_stale_running(
                     request_timeout = int(
                         json.loads(row["params_json"]).get("request_timeout_s", 0)
                     )
-                except (TypeError, ValueError, json.JSONDecodeError, AttributeError):
+                except (TypeError, ValueError, OverflowError, AttributeError):
+                    # unusable hint only: the strict check below decides the
+                    # evaluation's fate, and one corrupt row must never stop the
+                    # recovery of the others
                     pass
                 threshold = max(base_threshold, request_timeout + 60)
                 stale = conn.execute(

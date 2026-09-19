@@ -195,6 +195,7 @@ def _excluded_dict(stores: LoadedStores) -> dict[str, Any]:
         "synthetic_runs": stores.excluded.get("synthetic_runs", 0),
         "synthetic_models": list(stores.excluded.get("synthetic_models", [])),
         "provenance_conflict_runs": stores.excluded.get("provenance_conflict_runs", 0),
+        "out_of_scope_runs": stores.excluded.get("out_of_scope_runs", 0),
         "unaccounted_runs": stores.excluded.get("unaccounted_runs", 0),
     }
 

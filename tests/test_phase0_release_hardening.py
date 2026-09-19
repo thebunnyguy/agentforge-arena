@@ -416,6 +416,7 @@ def test_overview_current_benchmark_and_real_counts_are_current_only(pristine):
         "synthetic_runs": 0,
         "synthetic_models": [],
         "provenance_conflict_runs": 0,
+        "out_of_scope_runs": 0,
         "unaccounted_runs": 0,
     }
     for model in MODELS:
@@ -1764,6 +1765,7 @@ def test_mock_evaluation_under_a_real_name_does_not_move_the_default_views(mockc
         "synthetic_runs": 4,  # 2 (qwen3.5:9b: fbs + sanitize) + 2 (mock-only-model)
         "synthetic_models": sorted([MOCK_REAL_NAME, MOCK_ONLY]),
         "provenance_conflict_runs": 0,
+        "out_of_scope_runs": 0,
         "unaccounted_runs": 0,
     }
     assert MOCK_ONLY not in now["models"] and MOCK_ONLY not in now["real_counts"]
@@ -1828,7 +1830,7 @@ def test_synthetic_and_all_scopes_expose_the_mock_evidence(mockc):
     assert entry["n"] == 32
     assert everything["excluded"] == {
         "synthetic_runs": 0, "synthetic_models": [], "provenance_conflict_runs": 0,
-        "unaccounted_runs": 0,
+        "out_of_scope_runs": 0, "unaccounted_runs": 0,
     }
     cell = mockc.get(f"/api/v1/cell/{_enc(MOCK_ONLY)}/{TASK}?evidence=synthetic").json()
     assert cell["state"] == "captured" and cell["current_runs"] == 2

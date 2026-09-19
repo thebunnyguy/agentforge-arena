@@ -289,7 +289,8 @@ def test_f3_master_era_mock_runs_stay_out_of_the_default_scope_and_the_report(ma
     assert set(ov["models"]) == LEGACY_MODELS | {models["ollama"]}
     assert ov["evidence_counts"][models["ollama"]]["current_by_class"] == {"real": 1}
     assert ov["excluded"] == {"synthetic_runs": 1, "synthetic_models": [models["mock"]],
-                              "provenance_conflict_runs": 2, "unaccounted_runs": 0}
+                              "provenance_conflict_runs": 2, "out_of_scope_runs": 0,
+                              "unaccounted_runs": 0}
     assert real["models"] == [models["ollama"]] and syn["models"] == [models["mock"]]
     html, real_counts, _ = _report(path)
     assert set(real_counts) == LEGACY_MODELS | {models["ollama"]}
@@ -509,10 +510,13 @@ def test_f16_reuse_of_a_conflicting_source_keeps_the_conflict_visible_per_trial(
 @pytest.mark.parametrize("snapshot,params,expected", [
     (None, None, ("ollama", "real")),  # snapshot and params both usable
     (None, "mock", ("ollama", "real")),  # the snapshot wins over params
-    ("{nope", "mock", ("mock", "synthetic")),  # junk snapshot falls back to params
+    # A junk snapshot leaves the params unverifiable (they can no longer be checked
+    # against the creation record), so the class is unknown -- it does NOT fall back
+    # to params any more (the listing shows exactly what execution would accept).
+    ("{nope", "mock", (None, "unknown")),
     ('{"backend": {"kind": "Mock??"}}', "{nope", (None, "unknown")),  # nothing usable
 ])
-def test_f16_job_level_evidence_class_comes_from_snapshot_then_params(tmp_path, snapshot, params, expected):
+def test_f16_job_level_evidence_class_comes_from_the_verified_snapshot(tmp_path, snapshot, params, expected):
     path = _fresh_copy(tmp_path / "jobclass.sqlite")
     job_id = _new_job(path, "job-class-model", "ollama")
     if snapshot is not None:
@@ -562,13 +566,15 @@ def test_f10_persisted_reserved_name_runs_are_conflicts_excluded_and_counted(res
         cell = client.get(f"/api/v1/cell/{_enc(ORACLE)}/{TASK}").json()
         cell_all = client.get(f"/api/v1/cell/{_enc(ORACLE)}/{TASK}?evidence=all").json()
     assert ov["excluded"] == {"synthetic_runs": 0, "synthetic_models": [], "provenance_conflict_runs": 5,
-                              "unaccounted_runs": 0}  # every reserved-name run is a conflict, whatever its provider
+                              "out_of_scope_runs": 0, "unaccounted_runs": 0}  # every reserved-name run is a conflict, whatever its provider
     assert meta["excluded"]["provenance_conflict_runs"] == 5
     assert set(ov["models"]) == LEGACY_MODELS and not {ORACLE, NOOP} & set(ov["real_counts"])
     assert not [e for e in ov["leaderboard"] if e["agent"] in (ORACLE, NOOP)]
     assert all(v == {"n_runs": 30, "n_tasks": 6} for v in ov["real_counts"].values())
     assert cell["state"] == "synthetic" and cell["runs"] == [] and cell["excluded"]["provenance_conflict_runs"] == 3
-    assert {r["evidence_class"] for r in cell_all["runs"]} == {"conflict"}  # visible on request, labelled
+    # A reserved-name run is never part of ANY projection (not even evidence=all: it
+    # would blend into the bookend); it stays counted and inspectable by exact id.
+    assert cell_all["runs"] == [] and cell_all["excluded"]["provenance_conflict_runs"] == 3
 
 
 @pytest.mark.parametrize("scope", sorted(evidence.SCOPES))

@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import db, jobs, worker
+from . import db, startup
 from .routes_jobs import router as jobs_router
 from .projection import retry_migration_if_failed
 from .routes_readonly import router as readonly_router
@@ -47,28 +47,12 @@ async def lifespan(app: FastAPI):
     app.state.db_path = db_path
     db.ensure_working_db(db_path)
 
-    # Additive migration and same-host recovery share one startup boundary.
-    # If either refuses the DB, job/control routes remain fail-closed while
-    # exact raw forensic reads can still use the canonical read-only path.
-    recovered: list[str] = []
-    try:
-        conn = db.connect(db_path)
-        try:
-            db.migrate(conn)
-            recovered = jobs.reclaim_stale_running(conn, recover_unlocked=True)
-        finally:
-            conn.close()
-    except Exception as exc:  # pragma: no cover - defensive
-        app.state.migrate_error = str(exc)
-    else:
-        app.state.migrate_error = None
-        if getattr(app.state, "auto_dispatch", True):
-            for job_id in recovered:
-                worker.dispatch_job(
-                    db_path,
-                    job_id,
-                    agent_factory=getattr(app.state, "agent_factory", None),
-                )
+    # Additive migration and same-host recovery share one startup boundary but
+    # are recorded separately (see startup.py). If the migration is refused, job
+    # and control routes stay fail-closed (503) while exact raw forensic reads
+    # can still use the canonical read-only path.
+    if startup.migrate_control_plane(app):
+        startup.recover_stale_jobs(app)
 
     # Read projections are deliberately built per request, so post-startup
     # writes are visible without cache invalidation or an app restart.

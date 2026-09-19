@@ -42,16 +42,12 @@ def retry_migration_if_failed(app) -> None:
         if not getattr(app.state, "migrate_error", None):
             return
         app.state.migrate_retry_at = time.monotonic()
-        try:
-            conn = db.connect(db.resolve_db_path(getattr(app.state, "db_path", None)))
-            try:
-                db.migrate(conn)
-            finally:
-                conn.close()
-        except Exception as exc:  # noqa: BLE001 - the failure is the state
-            app.state.migrate_error = str(exc)
-            return
-        app.state.migrate_error = None
+        # Deferred import: startup pulls in the worker, which projections never need.
+        from . import startup
+
+        if startup.migrate_control_plane(app):
+            # Startup recovery was skipped when the migration failed; do it now.
+            startup.recover_stale_jobs(app)
 
 
 @dataclass
