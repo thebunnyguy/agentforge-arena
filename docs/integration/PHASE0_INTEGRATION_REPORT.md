@@ -1,7 +1,7 @@
 # Phase-0 Integration Report — ORACLE x ATLAS
 
 Integration branch: **`integration/phase0-benchmark-integrity`**. Verified code state: **`2ee57c845420c541ed879999fbd394e8bd16b57d`**
-(everything after that commit is documentation and evidence only). `master` is untouched; the frozen `oracle` and
+(everything after that commit is documentation and evidence only, including one test docstring). `master` is untouched; the frozen `oracle` and
 `codex/phase-0-evaluation-integrity` branches are untouched; **no model re-evaluation was run**.
 
 The two questions the integrated product can now answer:
@@ -335,7 +335,9 @@ the other 15 remediated tasks got no patch-by-patch historical exploitation audi
   **1.0.2**" in its header while its evidence tile says `1.0.1` (rows are 1.0.1). Not blank, not restamped, but easy to misread.
 * **L4 — digest residuals.** After fix 2, `integrity/` edits, `.DS_Store` and any other non-bytecode file still change the
   digest; that makes older evaluations refuse resume/reuse (fail-closed, spurious for grading). Recommendation: keep, or later
-  narrow to runner-read subtrees with a digest-schema bump.
+  narrow to runner-read subtrees with a digest-schema bump. The 24 `test_task_digest_is_a_function_of_committed_content_only`
+  tests are **intentionally** checkout-sensitive to this: an untracked non-bytecode file under `tasks/<id>/` (e.g. a Finder
+  `.DS_Store`) makes them fail on purpose — clean the checkout, do not weaken the test.
 * **L5 — the mock backend is indistinguishable in `runs`.** Mock runs are stored under the model name and become "real models" in
   leaderboards; **never use the mock backend for campaign evidence.** Repeat evaluations of one model at one version double-count
   in aggregates.

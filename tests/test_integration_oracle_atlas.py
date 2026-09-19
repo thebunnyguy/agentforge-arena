@@ -207,7 +207,12 @@ ALL_TASKS = sorted(p.name for p in (REPO / "tasks").iterdir() if p.is_dir())
 def test_task_digest_is_a_function_of_committed_content_only(task_id: str):
     """Regression for checkout-dependent digests: identical committed content
     must produce the identical digest whether or not the checkout holds
-    untracked bytecode caches (__pycache__/*.pyc), which the grader never reads."""
+    untracked bytecode caches (__pycache__/*.pyc), which the grader never reads.
+
+    Intentionally checkout-sensitive in one direction: if an untracked
+    NON-bytecode file (for example a macOS .DS_Store) sits inside tasks/<id>/,
+    the digest really does differ from the committed content and this test
+    fails on purpose. Clean the checkout; do not weaken the test."""
     assert jobs.task_snapshot(task_id)["task_digest"] == _committed_task_digest(task_id)
 
 
