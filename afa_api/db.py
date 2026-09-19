@@ -20,9 +20,11 @@ discipline. Existing inserts and tests are never broken.
 from __future__ import annotations
 
 import os
+import random
 import sqlite3
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 # Repo root = .../agentforge arena (afa_api/ lives directly under it).
@@ -159,11 +161,45 @@ CREATE INDEX IF NOT EXISTS ix_evaluation_trials_state
 
 
 def _apply_pragmas(conn: sqlite3.Connection) -> None:
-    """WAL + foreign keys + busy timeout. WAL is a db-file/connection setting;
-    we set it here because the frozen store leaves the DB in ``delete`` mode."""
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
+    """busy_timeout + WAL + foreign keys.
+
+    ``busy_timeout`` is set FIRST so that the delete->WAL journal switch (which
+    needs a brief exclusive lock) waits for a concurrent initializer instead of
+    failing immediately with ``database is locked``. WAL is a db-file setting;
+    we set it here because the frozen store leaves the DB in ``delete`` mode.
+    These pragmas are connection-level and must run OUTSIDE a transaction
+    (``journal_mode`` errors and ``foreign_keys`` is a silent no-op inside one),
+    so ``migrate`` applies them before it opens its write transaction.
+    """
     conn.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
+    _enable_wal(conn)
+    conn.execute("PRAGMA foreign_keys=ON")
+
+
+def _enable_wal(conn: sqlite3.Connection) -> None:
+    """``PRAGMA journal_mode=WAL`` with a bounded retry on ``database is locked``.
+
+    Switching a delete-mode file to WAL needs an exclusive lock, and SQLite
+    deliberately does NOT invoke the busy handler when waiting could deadlock
+    (a connection holding a shared lock escalating while another already holds
+    a pending one), so ``busy_timeout`` alone still fails when several
+    initializers race a fresh, delete-mode DB. Retrying only this one pragma,
+    with jittered backoff and the same overall budget as ``busy_timeout``, lets
+    exactly one initializer perform the (persistent) switch. Once the deadline
+    passes the ``OperationalError`` is re-raised unchanged; every other error
+    propagates immediately. A no-op when the file is already in WAL mode.
+    """
+    deadline = time.monotonic() + _BUSY_TIMEOUT_MS / 1000.0
+    delay = 0.005
+    while True:
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as exc:
+            if "locked" not in str(exc).lower() or time.monotonic() >= deadline:
+                raise
+        time.sleep(delay * (1.0 + random.random()))
+        delay = min(delay * 2, 0.1)
 
 
 def connect(db_path: str | Path | None = None) -> sqlite3.Connection:
@@ -297,15 +333,103 @@ def _require_identity_key(
 
 def _validate_identity_keys(conn: sqlite3.Connection) -> None:
     """Validate every app-table identity used by control-plane writes."""
-    for table, columns in (
-        ("evaluation_jobs", ("id",)),
-        ("app_settings", ("id",)),
-        ("job_events", ("job_id", "seq")),
-        ("job_runs", ("job_id", "run_id")),
-        ("evaluation_trials", ("evaluation_id", "task_id", "idx")),
-    ):
+    for table, columns in _IDENTITY_KEYS:
         if _table_exists(conn, table):
             _require_identity_key(conn, table, columns)
+
+
+# Core columns every supported control-plane table must already have. An
+# existing table missing any of these is an unrecognised shape: the migration
+# refuses it (fail closed, nothing dropped) instead of guessing.
+_REQUIRED_APP_COLUMNS: dict[str, tuple[str, ...]] = {
+    "evaluation_jobs": (
+        "id", "status", "cancel_requested", "params_json", "total_runs",
+        "completed_runs", "passed_runs", "voided_runs", "failed_runs",
+        "created_at",
+    ),
+    "job_events": ("id", "job_id", "seq", "ts", "type", "payload_json"),
+    "app_settings": ("id", "settings_json", "updated_at"),
+    "job_runs": ("job_id", "run_id"),
+    "evaluation_trials": (
+        "evaluation_id", "task_id", "idx", "task_version", "task_digest",
+        "trial_state", "evidence_state", "run_id", "source_evaluation_id",
+        "source_run_id", "origin_evaluation_id", "claim_token", "claimed_at",
+        "completed_at", "error_message",
+    ),
+}
+
+# Unconditional identity of each app table (see _has_unique_key).
+_IDENTITY_KEYS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("evaluation_jobs", ("id",)),
+    ("app_settings", ("id",)),
+    ("job_events", ("job_id", "seq")),
+    ("job_runs", ("job_id", "run_id")),
+    ("evaluation_trials", ("evaluation_id", "task_id", "idx")),
+)
+
+# Additive columns: added with ALTER TABLE ... ADD COLUMN only when absent.
+_EVALUATION_JOBS_ADDITIVE: tuple[tuple[str, str], ...] = (
+    ("reused_runs", "INTEGER NOT NULL DEFAULT 0"),
+    ("mode", "TEXT NOT NULL DEFAULT 'legacy'"),
+    ("source_evaluation_id", "TEXT"),
+    ("snapshot_json", "TEXT"),
+    ("owner_token", "TEXT"),
+    ("owner_started_at", "TEXT"),
+    ("started_at", "TEXT"),
+    ("finished_at", "TEXT"),
+    ("error_message", "TEXT"),
+)
+# ``runs.job_id`` links a raw run to its job; ``runs.backend_kind`` is the
+# provenance of the agent backend (NULL = legacy / unknown provider). Both are
+# nullable with no default, so ADD COLUMN never rewrites a historical row. The
+# CHECK text must match runner/afa_runner/store.py SQLITE_SCHEMA (BACKEND_KINDS).
+_RUNS_ADDITIVE: tuple[tuple[str, str], ...] = (
+    ("job_id", "TEXT"),
+    (
+        "backend_kind",
+        "TEXT CHECK (backend_kind IS NULL "
+        "OR backend_kind IN ('mock', 'ollama', 'openai_compat'))",
+    ),
+)
+
+# Raw tables (owned by the runner) and the app indexes a current DB must have.
+_RAW_TABLES = ("runs", "run_scores", "diffs", "test_results")
+_APP_INDEXES = (
+    "ix_job_events_job_seq",
+    "ix_evaluation_trials_run",
+    "ix_evaluation_trials_state",
+)
+
+
+def _split_statements(script: str) -> list[str]:
+    """Split a DDL script into single statements.
+
+    ``executescript`` issues a COMMIT first and cannot run inside a transaction,
+    so the migration executes its schema statement by statement instead.
+    Statement boundaries are decided by SQLite itself
+    (``sqlite3.complete_statement``), which understands quoting and comments.
+    Comment-only fragments are dropped; an unterminated trailing statement is an
+    error rather than being silently discarded.
+    """
+    statements: list[str] = []
+    buf = ""
+    for line in script.splitlines(keepends=True):
+        buf += line
+        if sqlite3.complete_statement(buf):
+            statements.append(buf.strip())
+            buf = ""
+    leftover = [
+        ln for ln in buf.splitlines() if ln.strip() and not ln.strip().startswith("--")
+    ]
+    if leftover:
+        raise ValueError(f"unterminated SQL statement in schema script: {leftover[0]!r}")
+    return statements
+
+
+def _execute_script(conn: sqlite3.Connection, script: str) -> None:
+    """Run a DDL script inside the caller's open transaction (no implicit COMMIT)."""
+    for statement in _split_statements(script):
+        conn.execute(statement)
 
 
 def _ensure_raw_schema(conn: sqlite3.Connection) -> None:
@@ -324,7 +448,7 @@ def _ensure_raw_schema(conn: sqlite3.Connection) -> None:
             sys.path.insert(0, str(path))
     from afa_runner.store import SQLITE_SCHEMA  # type: ignore
 
-    conn.executescript(SQLITE_SCHEMA)
+    _execute_script(conn, SQLITE_SCHEMA)
 
 
 def _require_columns(
@@ -349,30 +473,8 @@ def _require_columns(
 
 def _heal_stale_app_tables(conn: sqlite3.Connection) -> None:
     """Validate existing app tables without destructive healing."""
-    _require_columns(
-        conn,
-        "evaluation_jobs",
-        (
-            "id", "status", "cancel_requested", "params_json", "total_runs",
-            "completed_runs", "passed_runs", "voided_runs", "failed_runs",
-            "created_at",
-        ),
-    )
-    _require_columns(
-        conn, "job_events", ("id", "job_id", "seq", "ts", "type", "payload_json")
-    )
-    _require_columns(conn, "app_settings", ("id", "settings_json", "updated_at"))
-    _require_columns(conn, "job_runs", ("job_id", "run_id"))
-    _require_columns(
-        conn,
-        "evaluation_trials",
-        (
-            "evaluation_id", "task_id", "idx", "task_version", "task_digest",
-            "trial_state", "evidence_state", "run_id", "source_evaluation_id",
-            "source_run_id", "origin_evaluation_id", "claim_token", "claimed_at",
-            "completed_at", "error_message",
-        ),
-    )
+    for table, required in _REQUIRED_APP_COLUMNS.items():
+        _require_columns(conn, table, required)
     _validate_identity_keys(conn)
 
 
@@ -388,14 +490,101 @@ def _guard_migration_target(conn: sqlite3.Connection) -> None:
             return
 
 
-def migrate(conn: sqlite3.Connection) -> None:
-    """Idempotent, additive migration. Safe to run repeatedly against the live
-    600-run DB; never UPDATEs or deletes existing raw rows.
+def _schema_is_current(conn: sqlite3.Connection) -> bool:
+    """Read-only, conservative "nothing to do" check (takes no write lock).
 
-    * sets WAL/foreign_keys/busy_timeout;
-    * creates evaluation_jobs / job_events / app_settings (IF NOT EXISTS);
-    * adds a NULLABLE ``runs.job_id`` column only if absent (no default, never
-      written by the legacy insert path).
+    True only when EVERY table, index, column, identity key and the seeded
+    settings row that ``_migrate_locked`` would create or add already exists.
+    Any missing piece or unexpected shape returns False (never raises): the
+    caller then takes the locked path, which re-inspects under the lock and
+    raises the existing fail-closed ``RuntimeError`` for an unsupported shape.
+    Schema only ever grows, so a concurrent migration can make this read see
+    "more done" but never a wrongly-complete mix.
+    """
+    try:
+        master = conn.execute(
+            "SELECT type, name FROM sqlite_master WHERE type IN ('table', 'index')"
+        ).fetchall()
+        tables = {r[1] for r in master if r[0] == "table"}
+        indexes = {r[1] for r in master if r[0] == "index"}
+        if not (set(_RAW_TABLES) | set(_REQUIRED_APP_COLUMNS)) <= tables:
+            return False
+        if not set(_APP_INDEXES) <= indexes:
+            return False
+
+        def columns(table: str) -> set[str]:
+            return {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+
+        for table, required in _REQUIRED_APP_COLUMNS.items():
+            if not set(required) <= columns(table):
+                return False
+        if not {c for c, _ in _EVALUATION_JOBS_ADDITIVE} <= columns("evaluation_jobs"):
+            return False
+        if not {c for c, _ in _RUNS_ADDITIVE} <= columns("runs"):
+            return False
+        for table, key in _IDENTITY_KEYS:
+            if not _has_unique_key(conn, table, key):
+                return False
+        return (
+            conn.execute("SELECT 1 FROM app_settings WHERE id = 1").fetchone()
+            is not None
+        )
+    except (sqlite3.Error, RuntimeError, LookupError, TypeError):
+        return False
+
+
+def _migrate_locked(conn: sqlite3.Connection) -> None:
+    """The full additive migration. Must run inside ``BEGIN IMMEDIATE``.
+
+    Every check below is a RE-INSPECTION under the write lock, so an initializer
+    that lost the race to another one finds the work done and adds nothing.
+    """
+    # Validate any existing control-plane tables before creating or altering
+    # other schema objects; unsupported shapes are refused without app repair.
+    _heal_stale_app_tables(conn)
+    _ensure_raw_schema(conn)
+    _execute_script(conn, _APP_SCHEMA)
+    # Validate both pre-existing and newly created tables before seeding or
+    # altering any remaining control-plane state.
+    _validate_identity_keys(conn)
+
+    # Existing app tables are expanded only with additive nullable/defaulted
+    # columns. An unrecognized core shape was rejected above, never dropped.
+    for column, definition in _EVALUATION_JOBS_ADDITIVE:
+        if not _column_exists(conn, "evaluation_jobs", column):
+            conn.execute(
+                f"ALTER TABLE evaluation_jobs ADD COLUMN {column} {definition}"
+            )
+
+    for column, definition in _RUNS_ADDITIVE:
+        if not _column_exists(conn, "runs", column):
+            # ALTER ADD COLUMN with no default => existing rows get NULL, no rewrite.
+            conn.execute(f"ALTER TABLE runs ADD COLUMN {column} {definition}")
+
+    _heal_stale_app_tables(conn)
+    # Seed the single settings row if missing (id=1 enforced by CHECK).
+    conn.execute(
+        "INSERT OR IGNORE INTO app_settings (id, settings_json, updated_at) "
+        "VALUES (1, '{}', datetime('now'))"
+    )
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    """Idempotent, additive, concurrency-safe migration. Safe to run repeatedly
+    (it is called on every worker poll) and from many processes/threads at once;
+    never UPDATEs or deletes existing raw rows.
+
+    * sets busy_timeout, then WAL/foreign_keys;
+    * FAST PATH: if the schema is already current, returns after a handful of
+      read-only queries, taking no write lock;
+    * otherwise serialises on SQLite's own write lock (``BEGIN IMMEDIATE``),
+      re-inspects inside it, creates evaluation_jobs / job_events /
+      app_settings / job_runs / evaluation_trials (IF NOT EXISTS), adds the
+      NULLABLE ``runs.job_id`` and ``runs.backend_kind`` columns and the
+      additive ``evaluation_jobs`` columns only if absent, and commits;
+    * any failure ROLLBACKs (SQLite DDL is transactional) and re-raises: a
+      concurrent initializer's lock wait that times out surfaces as
+      ``sqlite3.OperationalError``; it is never swallowed.
     """
     _guard_migration_target(conn)
     if conn.in_transaction:
@@ -403,54 +592,17 @@ def migrate(conn: sqlite3.Connection) -> None:
             "migration requires a clean connection; refusing to commit caller work"
         )
     _apply_pragmas(conn)
-    # Validate any existing control-plane tables before creating or altering
-    # other schema objects; unsupported shapes are refused without app repair.
-    _heal_stale_app_tables(conn)
-    _ensure_raw_schema(conn)
-    conn.executescript(_APP_SCHEMA)
-    # Validate both pre-existing and newly created tables before seeding or
-    # altering any remaining control-plane state.
-    _validate_identity_keys(conn)
-
-    # Existing app tables are expanded only with additive nullable/defaulted
-    # columns. An unrecognized core shape was rejected above, never dropped.
-    for column, definition in (
-        ("reused_runs", "INTEGER NOT NULL DEFAULT 0"),
-        ("mode", "TEXT NOT NULL DEFAULT 'legacy'"),
-        ("source_evaluation_id", "TEXT"),
-        ("snapshot_json", "TEXT"),
-        ("owner_token", "TEXT"),
-        ("owner_started_at", "TEXT"),
-        ("started_at", "TEXT"),
-        ("finished_at", "TEXT"),
-        ("error_message", "TEXT"),
-    ):
-        if not _column_exists(conn, "evaluation_jobs", column):
-            conn.execute(
-                f"ALTER TABLE evaluation_jobs ADD COLUMN {column} {definition}"
-            )
-
-    if not _column_exists(conn, "runs", "job_id"):
-        # ALTER ADD COLUMN with no default => existing rows get NULL, no rewrite.
-        conn.execute("ALTER TABLE runs ADD COLUMN job_id TEXT")
-
-    _require_columns(
-        conn,
-        "evaluation_trials",
-        (
-            "evaluation_id", "task_id", "idx", "task_version", "task_digest",
-            "trial_state", "evidence_state", "run_id", "source_evaluation_id",
-            "source_run_id", "origin_evaluation_id", "claim_token", "claimed_at",
-            "completed_at", "error_message",
-        ),
-    )
-    _validate_identity_keys(conn)
-    # Seed the single settings row if missing (id=1 enforced by CHECK).
-    conn.execute(
-        "INSERT OR IGNORE INTO app_settings (id, settings_json, updated_at) "
-        "VALUES (1, '{}', datetime('now'))"
-    )
-    conn.commit()
+    if _schema_is_current(conn):
+        return
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        # Another initializer may have finished while we waited for the lock.
+        if not _schema_is_current(conn):
+            _migrate_locked(conn)
+        conn.commit()
+    except BaseException:
+        conn.rollback()
+        raise
 
 
 _ensured_paths: set[Path] = set()

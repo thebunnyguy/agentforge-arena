@@ -44,6 +44,12 @@ class RunStore(Protocol):
     def close(self) -> None: ...
 
 
+# Closed set of values runs.backend_kind may hold (NULL = legacy/unknown is not
+# a member: it is expressed by omitting the argument). Mirrored by the CHECK in
+# SQLITE_SCHEMA and by the guarded ALTER in afa_api.db.
+BACKEND_KINDS: tuple[str, ...] = ("mock", "ollama", "openai_compat")
+
+
 # DDL for the SQLite raw layer. Mirrors db/schema.sql (Postgres) at the column
 # level; types are SQLite-flavored. Append-only by discipline (no UPDATE paths).
 SQLITE_SCHEMA = """
@@ -57,7 +63,13 @@ CREATE TABLE IF NOT EXISTS runs (
     transcript_hash TEXT    NOT NULL,
     duration_ms     INTEGER NOT NULL,
     created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
-    job_id          TEXT
+    job_id          TEXT,
+    -- Provenance of the agent backend that produced this run. NULL means a
+    -- legacy row / unknown provider (never a guess). Kept in lock-step with
+    -- afa_api.db.migrate(), which ADDs the same column to pre-existing DBs.
+    backend_kind    TEXT
+        CHECK (backend_kind IS NULL
+               OR backend_kind IN ('mock', 'ollama', 'openai_compat'))
 );
 CREATE INDEX IF NOT EXISTS ix_runs_task_agent ON runs(task_id, agent);
 
@@ -147,16 +159,43 @@ class SqliteRunStore:
         *,
         commit: bool = True,
         job_id: str | None = None,
+        backend_kind: str | None = None,
     ) -> int:
         """Insert raw evidence and return its native ``runs.id``.
 
         ``commit=False`` is the explicit transaction seam used by the app when
         it must publish the raw row and evaluation-trial association together.
         Existing standalone callers keep the default committed behavior.
+
+        ``backend_kind`` records the provenance of the agent backend
+        (``mock`` | ``ollama`` | ``openai_compat``). ``None`` (the default)
+        leaves ``runs.backend_kind`` NULL, meaning legacy/unknown provider; the
+        column is then omitted from the INSERT, so legacy callers keep working
+        even against an old file that predates the column. Any other value is
+        validated BEFORE the database is touched (``ValueError``). A non-None
+        value is written in both insert branches (with and without ``job_id``);
+        if the file's ``runs`` table lacks the column (a pre-existing DB that
+        ``afa_api.db.migrate`` has not upgraded, since ``SQLITE_SCHEMA`` is
+        ``CREATE TABLE IF NOT EXISTS`` and cannot alter a table) the save fails
+        closed with ``RuntimeError`` rather than silently dropping provenance.
         """
         if self._read_only:
             raise sqlite3.ProgrammingError("cannot save a run to a read-only store")
+        if backend_kind is not None and (
+            not isinstance(backend_kind, str) or backend_kind not in BACKEND_KINDS
+        ):
+            raise ValueError(
+                f"invalid backend_kind {backend_kind!r}; expected one of "
+                f"{list(BACKEND_KINDS)} or None (legacy/unknown provider)"
+            )
         conn = self._conn
+        if backend_kind is not None and not any(
+            row[1] == "backend_kind" for row in conn.execute("PRAGMA table_info(runs)")
+        ):
+            raise RuntimeError(
+                "runs.backend_kind column is missing from this database; run "
+                "afa_api.db.migrate() to add it (refusing to drop provenance)"
+            )
         score = record.score
         # Every record produced by run_once/run_group carries its GradeReport.
         # Keep the explicit argument for callers that construct RunRecords
@@ -168,36 +207,43 @@ class SqliteRunStore:
             conn.execute("BEGIN")
         conn.execute(f"SAVEPOINT {savepoint}")
         try:
-            if job_id is None:
+            base = (
+                record.task_id,
+                record.task_version,
+                record.agent,
+                record.idx,
+                record.status.value,
+                record.transcript_hash,
+                record.duration_ms,
+            )
+            if job_id is None and backend_kind is None:
                 cur = conn.execute(
                     "INSERT INTO runs "
                     "(task_id, task_version, agent, idx, status, transcript_hash, duration_ms) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (
-                        record.task_id,
-                        record.task_version,
-                        record.agent,
-                        record.idx,
-                        record.status.value,
-                        record.transcript_hash,
-                        record.duration_ms,
-                    ),
+                    base,
+                )
+            elif job_id is None:
+                cur = conn.execute(
+                    "INSERT INTO runs "
+                    "(task_id, task_version, agent, idx, status, transcript_hash, "
+                    "duration_ms, backend_kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (*base, backend_kind),
+                )
+            elif backend_kind is None:
+                cur = conn.execute(
+                    "INSERT INTO runs "
+                    "(task_id, task_version, agent, idx, status, transcript_hash, "
+                    "duration_ms, job_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (*base, job_id),
                 )
             else:
                 cur = conn.execute(
                     "INSERT INTO runs "
                     "(task_id, task_version, agent, idx, status, transcript_hash, "
-                    "duration_ms, job_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (
-                        record.task_id,
-                        record.task_version,
-                        record.agent,
-                        record.idx,
-                        record.status.value,
-                        record.transcript_hash,
-                        record.duration_ms,
-                        job_id,
-                    ),
+                    "duration_ms, job_id, backend_kind) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (*base, job_id, backend_kind),
                 )
             run_id = cur.lastrowid
 
