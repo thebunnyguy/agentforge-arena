@@ -513,7 +513,7 @@ def build_run(
     version: str | None = None,
 ) -> dict[str, Any]:
     """One run detail by (agent, task_id, idx) within one stored version (default:
-    the current version) and the requested evidence scope — never by runs.id.
+    the current version), regardless of evidence class — never by runs.id.
 
     Reads raw columns load_runs omits (patch_text, created_at, touched_protected,
     per-test results) directly from the read-only DB. Synthetic baselines are not
@@ -557,19 +557,17 @@ def build_run(
         (agent, task_id, idx),
     ).fetchall()
     provenance = evidence.read_provenance(ro, [row["id"] for row in all_rows])
-    in_scope = evidence.SCOPES[stores.scope]
-    scoped = [
-        row for row in all_rows
-        if provenance[row["id"]].evidence_class in in_scope
-    ]
-    # A task outside the pack has no current version to select against.
+    # Forensic route: deliberately NOT filtered by evidence class. Mock and
+    # legacy rows stay inspectable (each carries its evidence_class label); only
+    # the stored version is selected, so (agent, task, idx) never collides across
+    # versions. A task outside the pack has no current version to select against.
     rows = (
-        scoped if selected is None
-        else [row for row in scoped if row["task_version"] == selected]
+        all_rows if selected is None
+        else [row for row in all_rows if row["task_version"] == selected]
     )
     if not rows:
         other_versions = sorted(
-            {row["task_version"] for row in scoped} - {selected},
+            {row["task_version"] for row in all_rows} - {selected},
             key=version_sort_key,
             reverse=True,
         )

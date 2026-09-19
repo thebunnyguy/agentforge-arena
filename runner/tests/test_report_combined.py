@@ -102,24 +102,7 @@ def test_combined_report_closes_aggregate_on_render_failure(tmp_path, monkeypatc
 
 
 def test_combined_report_uses_db_rows_and_labels_only_synthetic_baselines(tmp_path):
-    db_path = tmp_path / "runs.sqlite"
-    disk = SqliteRunStore(db_path)
-    disk.save_run(_persisted_record())
-    disk.close()
-
-    manifest_path = tmp_path / "manifest.json"
-    manifest_path.write_text(
-        json.dumps(
-            [
-                {
-                    "id": "task-one",
-                    "version": "1.0.1",
-                    "manual_difficulty": 2,
-                    "domains": [["backend", 1.0]],
-                }
-            ]
-        )
-    )
+    db_path, manifest_path = _report_fixture(tmp_path)  # stored 1.0.0 == current 1.0.0
 
     html, combined, counts = report_combined.build_report(db_path, manifest_path)
     try:
@@ -135,13 +118,42 @@ def test_combined_report_uses_db_rows_and_labels_only_synthetic_baselines(tmp_pa
         assert "1</b><span>persisted runs" in html
         assert "artifacts: patches 0/1; test rows on 0/1 runs" in html
         assert "artifacts: not persisted (synthetic/derived baseline)" in html
-        assert "task-one evaluated v1.0.0 → current v1.0.1" in html
-        assert "Leaderboard values remain frozen to the stored task versions" in html
+        # current evidence only: nothing to warn about when versions agree
+        assert "Current benchmark evidence only" not in html
     finally:
         combined.close()
 
 
-def test_combined_report_refuses_to_pool_multiple_task_versions(tmp_path):
+def test_combined_report_excludes_historical_version_rows_and_says_so(tmp_path):
+    """Stored 1.0.0, current 1.0.1: the row is HISTORICAL. It is preserved in the
+    DB (still counted as persisted), excluded from the current aggregates, and the
+    report states that instead of presenting old-version numbers as current."""
+    db_path = tmp_path / "runs.sqlite"
+    disk = SqliteRunStore(db_path)
+    disk.save_run(_persisted_record())
+    disk.close()
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            [{"id": "task-one", "version": "1.0.1", "manual_difficulty": 2,
+              "domains": [["backend", 1.0]]}]
+        )
+    )
+
+    html, combined, counts = report_combined.build_report(db_path, manifest_path)
+    try:
+        assert counts["qwen2.5-coder:7b"] == (0, 0)  # CURRENT in-scope evidence
+        assert combined.load_runs(agent="qwen2.5-coder:7b") == []
+        assert len(combined.load_runs(agent=report_combined.ORACLE)) == 5
+        assert "1</b><span>persisted runs" in html  # persisted evidence is still shown
+        assert "task-one evaluated v1.0.0 → current v1.0.1" in html
+        assert "Current benchmark evidence only: 1 historical-version run(s)" in html
+        assert "never pooled with current versions" in html
+    finally:
+        combined.close()
+
+
+def test_combined_report_separates_multiple_task_versions_instead_of_pooling(tmp_path):
     db_path = tmp_path / "runs.sqlite"
     disk = SqliteRunStore(db_path)
     disk.save_run(_persisted_record())
@@ -176,5 +188,13 @@ def test_combined_report_refuses_to_pool_multiple_task_versions(tmp_path):
         )
     )
 
-    with pytest.raises(ValueError, match="refusing to pool multiple task versions"):
-        report_combined.build_report(db_path, manifest_path)
+    # Same cell holds 1.0.0 and 1.0.1 rows: the report no longer refuses. Only the
+    # CURRENT (1.0.1) row is aggregated; the 1.0.0 row is excluded and reported.
+    html, combined, counts = report_combined.build_report(db_path, manifest_path)
+    try:
+        assert counts["qwen2.5-coder:7b"] == (1, 1)
+        rows = combined.load_runs(agent="qwen2.5-coder:7b")
+        assert [(r.task_version, r.idx) for r in rows] == [("1.0.1", 1)]
+        assert "Current benchmark evidence only: 1 historical-version run(s)" in html
+    finally:
+        combined.close()

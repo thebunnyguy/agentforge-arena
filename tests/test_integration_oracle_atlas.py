@@ -374,15 +374,16 @@ def test_historical_old_version_evidence_is_never_restamped_or_pooled_into_new_e
     assert client.get(f"/api/v1/runs/{hist_run_id}").json()["task_version"] == entry["old_version"]
 
 
-def test_reevaluating_a_historical_model_on_a_bumped_task_trips_the_global_guard(
+def test_reevaluating_a_historical_model_on_a_bumped_task_no_longer_collapses_the_projections(
     client: TestClient, tmp_path: Path, monkeypatch
 ):
-    """ATLAS's fail-closed mixed-version guard is PRESERVED, not weakened.
+    """Superseded release behaviour (was: trips the global mixed-version guard).
 
     Persisting a new-version run for a model that already has old-version rows
-    for the same task makes every aggregate projection refuse (503) and report
-    regeneration 409, while evaluation-scoped and exact-run surfaces keep
-    working. This is the behaviour the re-evaluation campaign must plan around.
+    for the same task used to make every aggregate projection 503 and report
+    regeneration 409. Versions are now SEPARATED instead of refused: the default
+    views represent the current benchmark, the old rows stay preserved and
+    inspectable, nothing is pooled, and the campaign can proceed in one DB.
     """
     import report_combined
 
@@ -390,6 +391,7 @@ def test_reevaluating_a_historical_model_on_a_bumped_task_trips_the_global_guard
     task_id = "sanitize-filename"
     entry = BUMPED[task_id]
     historical_model = entry["known_affected_runs"]["models"][0]
+    hm = _enc(historical_model)
 
     assert client.get("/api/v1/overview").status_code == 200  # healthy before
 
@@ -398,20 +400,38 @@ def test_reevaluating_a_historical_model_on_a_bumped_task_trips_the_global_guard
     evaluation_id = created.json()["id"]
     assert _wait_terminal(client, evaluation_id)["status"] == "succeeded"
 
-    for path in ("/api/v1/overview", "/api/v1/leaderboard", "/api/v1/meta"):
-        response = client.get(path)
-        assert response.status_code == 503, path
-        error = response.json()["error"]
-        assert "refusing to pool multiple task versions" in error
-        assert task_id in error
-        assert entry["old_version"] in error and entry["new_version"] in error
-    assert client.post("/api/v1/reports/regenerate").status_code == 409
+    # No projection collapses (this was a global 503 / 409 before).
+    for path in ("/api/v1/overview", "/api/v1/leaderboard", "/api/v1/meta", "/api/v1/export"):
+        assert client.get(path).status_code == 200, path
+    assert client.get("/api/v1/healthz").json()["status"] == "ok"
+    assert client.post("/api/v1/reports/regenerate").status_code == 200
+
+    # The re-evaluation used the MOCK backend, so it is synthetic evidence: the
+    # default benchmark view excludes it (reported) and the old rows stay old.
+    default_cell = client.get(f"/api/v1/cell/{hm}/{task_id}").json()
+    assert default_cell["state"] == "historical_only"
+    assert default_cell["historical_versions"] == [entry["old_version"]]
+    assert default_cell["excluded"]["synthetic_runs"] == 1
+    assert client.get("/api/v1/overview").json()["excluded"]["synthetic_models"] == [historical_model]
+
+    # The explicit synthetic/all views show the NEW-version run, and the two
+    # versions are listed and aggregated separately (never pooled).
+    all_cell = client.get(f"/api/v1/cell/{hm}/{task_id}?evidence=all").json()
+    assert all_cell["state"] == "captured"
+    assert all_cell["selected_version"] == entry["new_version"]
+    assert [(v["version"], v["status"], v["n_runs"]) for v in all_cell["versions"]] == [
+        (entry["new_version"], "current", 1),
+        (entry["old_version"], "historical", 5),
+    ]
+    assert all_cell["aggregate"]["n_valid"] == 1  # the 5 old-version rows are NOT pooled in
+    assert all_cell["task_versions"] == [entry["old_version"], entry["new_version"]]
 
     # evaluation-scoped + exact-run surfaces are unaffected
     report = client.get(f"/api/v1/jobs/{evaluation_id}/report.json")
     assert report.status_code == 200
     (trial,) = report.json()["trials"]
     assert trial["task_version"] == entry["new_version"]
+    assert trial["backend_kind"] == "mock" and trial["provenance"] == "consistent"
     assert client.get(f"/api/v1/runs/{trial['run_id']}").status_code == 200
     assert client.get(f"/api/v1/jobs/{evaluation_id}/results").status_code == 200
 

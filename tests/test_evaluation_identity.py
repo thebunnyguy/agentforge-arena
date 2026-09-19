@@ -365,8 +365,30 @@ def test_exact_run_route_and_ambiguous_tuple_route(temp_db: Path):
         exact_after_mixed = client.get(f"/api/v1/runs/{first_id}")
         assert exact_after_mixed.status_code == 200
         assert exact_after_mixed.json()["run_id"] == first_id
+        # A stored version that differs from the current one is HISTORICAL: the
+        # aggregate projection keeps answering (it never refuses) and separates it.
         aggregate = client.get("/api/v1/overview")
-        assert aggregate.status_code == 503
+        assert aggregate.status_code == 200
+        overview = aggregate.json()
+        assert model not in overview["models"]  # mock evidence: excluded by default
+        assert model in overview["excluded"]["synthetic_models"]
+        synthetic = client.get("/api/v1/overview?evidence=synthetic").json()
+        assert synthetic["evidence_counts"][model]["current_runs"] == 1
+        assert synthetic["evidence_counts"][model]["historical_runs"] == 1
+        cell = client.get(f"/api/v1/cell/{model}/{TASK}?evidence=synthetic").json()
+        assert cell["historical_versions"] == ["unrelated-version"]
+        assert {v["version"]: v["status"] for v in cell["versions"]}["unrelated-version"] == "historical"
+
+        # The tuple route is a forensic route, not an aggregate: it is never
+        # class-filtered (mock rows stay inspectable) and it now resolves per
+        # version, so the formerly ambiguous (agent, task, 0) is exact.
+        current_only = client.get(f"/api/v1/run/{model}/{TASK}/0")
+        assert current_only.status_code == 200
+        assert current_only.json()["run_id"] == second_id
+        assert current_only.json()["evidence_class"] == "synthetic"
+        old_version = client.get(f"/api/v1/run/{model}/{TASK}/0?version=unrelated-version")
+        assert old_version.json()["run_id"] == first_id
+        assert old_version.json()["version_status"] == "historical"
 
 
 def test_resume_api_preserves_id_and_rejects_live_owner(temp_db: Path):

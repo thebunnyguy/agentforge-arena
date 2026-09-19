@@ -102,7 +102,15 @@ def _persist_sentinel(path) -> None:
 def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
     tmp_path, monkeypatch
 ):
-    """A real post-startup write is visible through every global projection."""
+    """A real post-startup write is visible through every global projection.
+
+    The worker-created run comes from the MOCK backend, i.e. synthetic evidence:
+    it is invisible to the default benchmark view (and reported as excluded) and
+    discoverable at once through the explicit synthetic view. A second, job-less
+    row with no recorded provider is LEGACY evidence: it appears in the default
+    view immediately, and ``evidence=all`` sees both. No restart, cache
+    invalidation or reload is involved anywhere.
+    """
     working = tmp_path / "working.sqlite"
     fallback = tmp_path / "fallback.sqlite"
     target = f"phase0-live-projection-target-{uuid.uuid4().hex}"
@@ -119,6 +127,9 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
 
     report_output = tmp_path / "leaderboard.html"
     monkeypatch.setattr(report_combined, "OUTPUT", report_output, raising=False)
+
+    syn = "evidence=synthetic"
+    allv = "evidence=all"
 
     with TestClient(app) as client:
         before = client.get("/api/v1/overview").json()
@@ -144,37 +155,45 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
         assert health["status"] == "ok"
         assert health["db_path"] == str(working.resolve())
 
-        overview = client.get("/api/v1/overview").json()
+        # The mock run is EXCLUDED from the default benchmark view, and said so.
+        default_overview = client.get("/api/v1/overview").json()
+        assert target not in default_overview["models"]
+        assert target in default_overview["excluded"]["synthetic_models"]
+        assert SENTINEL not in default_overview["models"]
+        assert target not in client.get("/api/v1/export").json()["models"]
+
+        overview = client.get(f"/api/v1/overview?{syn}").json()
         assert target in overview["models"]
         assert SENTINEL not in overview["models"]
         assert overview["real_counts"][target] == {"n_runs": 1, "n_tasks": 1}
         assert overview["agent_observability"][target]["total_runs"] == 1
         assert any(e["agent"] == target for e in overview["leaderboard"])
 
-        meta = client.get("/api/v1/meta").json()
+        meta = client.get(f"/api/v1/meta?{syn}").json()
         assert target in meta["models"]
         assert SENTINEL not in meta["models"]
 
-        leaderboard = client.get(
-            f"/api/v1/leaderboard?task_id={TASK}"
-        ).json()
+        leaderboard = client.get(f"/api/v1/leaderboard?task_id={TASK}&{syn}").json()
         target_entry = next(
             e for e in leaderboard["entries"] if e["agent"] == target
         )
         assert target_entry["n"] == 1
         assert target_entry["pass_rate"] == 1.0
 
-        cell = client.get(f"/api/v1/cell/{_enc(target)}/{TASK}").json()
+        cell = client.get(f"/api/v1/cell/{_enc(target)}/{TASK}?{syn}").json()
         assert cell["state"] == "captured"
         assert cell["captured"] is True
         assert len(cell["runs"]) == 1
+        assert cell["runs"][0]["evidence_class"] == "synthetic"
 
-        domains = client.get(f"/api/v1/domains/{_enc(target)}").json()
+        domains = client.get(f"/api/v1/domains/{_enc(target)}?{syn}").json()
         assert domains["captured"] is True
 
+        # The tuple route is a forensic route: never filtered by evidence class.
         run = client.get(f"/api/v1/run/{_enc(target)}/{TASK}/0").json()
         assert run["found"] is True
         assert run["patch_available"] is True
+        assert run["evidence_class"] == "synthetic"
         # Assert the selected DB's actual forensic values, not only the
         # availability flag. This guards the raw artifact/provenance path.
         assert isinstance(run["patch_text"], str)
@@ -182,7 +201,7 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
         assert run["created_at"]
         assert run["task_version"] == "1.0.0"
 
-        exported = client.get("/api/v1/export").json()
+        exported = client.get(f"/api/v1/export?{syn}").json()
         assert target in exported["models"]
         assert SENTINEL not in exported["models"]
         assert exported["real_counts"][target] == {"n_runs": 1, "n_tasks": 1}
@@ -191,7 +210,7 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
         )
         assert export_entry["n"] == 1
 
-        regenerated = client.post("/api/v1/reports/regenerate")
+        regenerated = client.post(f"/api/v1/reports/regenerate?{syn}")
         assert regenerated.status_code == 200
         assert regenerated.json()["real_counts"][target] == {
             "n_runs": 1,
@@ -200,25 +219,41 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
         assert target in report_output.read_text()
         assert SENTINEL not in report_output.read_text()
 
-        # A second post-startup persistence/update/read cycle changes the
-        # aggregate numerator and denominator without restarting the app.
+        # A second post-startup persistence: a job-less row with NO recorded
+        # provider is LEGACY evidence, so the DEFAULT view discovers the model
+        # at once while the synthetic view still counts only the mock run.
         _persist_record(working, _record(target, idx=1, passed=False))
 
-        overview_after = client.get("/api/v1/overview").json()
+        overview_default = client.get("/api/v1/overview").json()
+        assert target in overview_default["models"]
+        assert overview_default["real_counts"][target] == {"n_runs": 1, "n_tasks": 1}
+        assert target in overview_default["excluded"]["synthetic_models"]
+        default_entry = next(
+            e for e in client.get(f"/api/v1/leaderboard?task_id={TASK}").json()["entries"]
+            if e["agent"] == target
+        )
+        assert default_entry["n"] == 1 and default_entry["pass_rate"] == 0.0
+        legacy_run = client.get(f"/api/v1/run/{_enc(target)}/{TASK}/1").json()
+        assert legacy_run["evidence_class"] == "legacy" and legacy_run["backend_kind"] is None
+        assert client.get(f"/api/v1/overview?{syn}").json()["real_counts"][target] == {
+            "n_runs": 1, "n_tasks": 1,
+        }
+
+        # ``evidence=all`` sees mock + legacy: numerator and denominator change
+        # without restarting the app.
+        overview_after = client.get(f"/api/v1/overview?{allv}").json()
         assert overview_after["real_counts"][target] == {"n_runs": 2, "n_tasks": 1}
-        leaderboard_after = client.get(
-            f"/api/v1/leaderboard?task_id={TASK}"
-        ).json()
+        leaderboard_after = client.get(f"/api/v1/leaderboard?task_id={TASK}&{allv}").json()
         target_entry_after = next(
             e for e in leaderboard_after["entries"] if e["agent"] == target
         )
         assert target_entry_after["n"] == 2
         assert target_entry_after["pass_rate"] == 0.5
 
-        cell_after = client.get(f"/api/v1/cell/{_enc(target)}/{TASK}").json()
+        cell_after = client.get(f"/api/v1/cell/{_enc(target)}/{TASK}?{allv}").json()
         assert len(cell_after["runs"]) == 2
 
-        exported_after = client.get("/api/v1/export").json()
+        exported_after = client.get(f"/api/v1/export?{allv}").json()
         assert exported_after["real_counts"][target] == {
             "n_runs": 2,
             "n_tasks": 1,
@@ -229,7 +264,7 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
         assert export_entry_after["n"] == 2
         assert export_entry_after["pass_rate"] == 0.5
 
-        regenerated_after = client.post("/api/v1/reports/regenerate")
+        regenerated_after = client.post(f"/api/v1/reports/regenerate?{allv}")
         assert regenerated_after.status_code == 200
         assert regenerated_after.json()["real_counts"][target] == {
             "n_runs": 2,

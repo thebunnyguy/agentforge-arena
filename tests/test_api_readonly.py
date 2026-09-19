@@ -315,12 +315,12 @@ def test_synthetic_bookend_state_cell(client):
 
 
 # --------------------------------------------------------------------------- #
-# Mixed-version refusal is SURFACED, not swallowed.
+# Mixed stored versions are SEPARATED (current vs historical), never pooled.
 # --------------------------------------------------------------------------- #
 
 def _make_mixed_version_db(src, dst) -> None:
     """Copy the live DB and inject a second task_version into the anchor cell so
-    load_stores must refuse to pool it."""
+    load_stores has to keep it out of the current aggregates."""
     shutil.copy(src, dst)
     conn = sqlite3.connect(str(dst))
     conn.row_factory = sqlite3.Row
@@ -351,10 +351,14 @@ def _make_mixed_version_db(src, dst) -> None:
         conn.close()
 
 
-def test_mixed_version_refusal_surfaces_as_503(tmp_path):
-    """When the load path raises the mixed-version ValueError, the app captures
-    it and the read-only endpoints return 503 with the EXACT message — never a
-    500 and never a silent empty success."""
+def test_mixed_version_rows_are_separated_never_pooled_and_never_refused(tmp_path):
+    """A second stored task_version in one cell no longer makes every read-only
+    endpoint 503. Aggregates use the CURRENT version only; the other version is
+    preserved, labelled historical, aggregated independently and never pooled.
+
+    2.0.0 is NEWER than the anchor task's current 1.0.0: the rule is simply
+    "any stored version other than the task.json version is not current".
+    """
     mixed = tmp_path / "mixed.sqlite"
     _make_mixed_version_db(db.DB_PATH, mixed)
 
@@ -362,23 +366,48 @@ def test_mixed_version_refusal_surfaces_as_503(tmp_path):
     app2.state.db_path = mixed
     with TestClient(app2) as c:
         health = c.get("/api/v1/healthz").json()
-        assert health["stores_loaded"] is False
-        assert "refusing to pool multiple task versions" in health["load_error"]
-        assert f"{ANCHOR_AGENT}/{ANCHOR_TASK}" in health["load_error"]
+        assert health["status"] == "ok"
+        assert health["stores_loaded"] is True
+        assert health["load_error"] is None
 
-        resp = c.get("/api/v1/overview")
-        assert resp.status_code == 503
-        body = resp.json()
-        assert "refusing to pool multiple task versions" in body["error"]
-
-        # Every read-only projection endpoint refuses, not just overview.
+        # Every projection endpoint answers (none refuses).
         for path in (
+            "/api/v1/overview",
             "/api/v1/leaderboard",
             f"/api/v1/domains/{_enc(ANCHOR_AGENT)}",
-            f"/api/v1/cell/{_enc(ANCHOR_AGENT)}/{ANCHOR_TASK}",
-            f"/api/v1/run/{_enc(ANCHOR_AGENT)}/{ANCHOR_TASK}/0",
             "/api/v1/meta",
+            "/api/v1/export",
         ):
-            r = c.get(path)
-            assert r.status_code == 503, path
-            assert "refusing to pool" in r.json()["error"], path
+            assert c.get(path).status_code == 200, path
+
+        overview = c.get("/api/v1/overview").json()
+        # The injected 2.0.0 run is not counted as current evidence.
+        assert overview["real_counts"][ANCHOR_AGENT] == {"n_runs": 30, "n_tasks": 6}
+        assert overview["evidence_counts"][ANCHOR_AGENT]["historical_runs"] == 91  # 90 + 1
+
+        cell = c.get(f"/api/v1/cell/{_enc(ANCHOR_AGENT)}/{ANCHOR_TASK}").json()
+        assert cell["state"] == "captured"
+        assert cell["selected_version"] == cell["current_version"] == "1.0.0"
+        assert cell["aggregate"]["n_valid"] == 5  # the 2.0.0 row is NOT pooled in
+        assert {r["task_version"] for r in cell["runs"]} == {"1.0.0"}
+        assert cell["historical_runs"] == 1 and cell["historical_versions"] == ["2.0.0"]
+        # stored versions across the cell, each aggregated on its own
+        assert cell["task_versions"] == ["1.0.0", "2.0.0"]
+        assert [(v["version"], v["status"], v["n_runs"]) for v in cell["versions"]] == [
+            ("1.0.0", "current", 5), ("2.0.0", "historical", 1),
+        ]
+
+        # The other version stays inspectable, labelled, and separate.
+        old = c.get(
+            f"/api/v1/cell/{_enc(ANCHOR_AGENT)}/{ANCHOR_TASK}?version=2.0.0"
+        ).json()
+        assert old["evidence_status"] == "historical" and old["selected_version"] == "2.0.0"
+        assert len(old["runs"]) == 1 and old["aggregate"]["n_valid"] == 1
+
+        # Tuple identity (agent, task, idx) resolves per version.
+        default = c.get(f"/api/v1/run/{_enc(ANCHOR_AGENT)}/{ANCHOR_TASK}/99").json()
+        assert default["found"] is False and default["historical_versions"] == ["2.0.0"]
+        hist = c.get(
+            f"/api/v1/run/{_enc(ANCHOR_AGENT)}/{ANCHOR_TASK}/99?version=2.0.0"
+        ).json()
+        assert hist["found"] is True and hist["version_status"] == "historical"

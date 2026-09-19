@@ -357,8 +357,14 @@ def test_legacy_bad_params_remain_listable_without_secret_echo(temp_db: Path):
         conn.commit()
         listed = jobs.list_jobs(conn)
         legacy = next(job for job in listed if job.id == "legacy-secret")
-        assert legacy.params.model == "mock"
+        # A malformed row is listable, but its parameters are reported as
+        # unverifiable: they are never replaced by JobParams() defaults (which
+        # would claim backend=mock, model="mock") and never echo the secret.
+        assert legacy.params is None
+        assert legacy.params_status == "unverifiable"
+        assert legacy.params_error.startswith("invalid persisted evaluation parameters")
         assert "password" not in legacy.model_dump_json()
+        assert legacy.backend_kind is None and legacy.evidence_class == "unknown"
     finally:
         conn.close()
 
