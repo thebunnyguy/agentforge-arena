@@ -8,6 +8,7 @@ use hand-written XML; integration tests drive the real fix-list-dedup task.
 
 from __future__ import annotations
 
+import ast
 import shutil
 from pathlib import Path
 
@@ -28,6 +29,19 @@ from afa_runner.task import load_task
 # This test file lives at <root>/runner/tests/test_grader.py.
 ROOT = Path(__file__).resolve().parents[2]
 TASK_DIR = ROOT / "tasks" / "fix-list-dedup"
+
+
+def _hidden_suite_test_names() -> set[str]:
+    """The test functions the task's hidden suite really defines, read from its
+    source. Deriving this (instead of pinning a count) keeps the "RunInput
+    carries the actual graded tests" assertions valid when the oracle is
+    hardened, which changes the number of hidden tests."""
+    tree = ast.parse((TASK_DIR / "grading" / "test_hidden.py").read_text(encoding="utf-8"))
+    return {
+        node.name
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
+    }
 
 
 # --------------------------------------------------------------------------
@@ -265,7 +279,7 @@ def test_reference_overlay_scores_perfect(tmp_path):
     assert gates.product() == 1
 
     # Hidden results carried into the RunInput must be the actual graded tests.
-    assert len(report.run_input.hidden) == 6
+    assert {t.name for t in report.run_input.hidden} == _hidden_suite_test_names()
     assert all(t.passed for t in report.run_input.hidden)
 
     score = score_run(report.run_input)
@@ -486,7 +500,7 @@ def test_grade_ignores_stale_snapshot_bytecode(tmp_path):
 
         assert report.hidden.all_passed is True
         assert report.hidden.errored is False
-        assert len(report.run_input.hidden) == 6
+        assert {t.name for t in report.run_input.hidden} == _hidden_suite_test_names()
         assert score_run(report.run_input).final_score == 1.0
     finally:
         # Never leave compiled artifacts in the committed task fixture.
