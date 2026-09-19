@@ -28,10 +28,12 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import httpx
 from fastapi import APIRouter, Request
+from fastapi import Path as PathParam
+from fastapi import Query as QueryParam
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from . import db, evidence, jobs, serialize, worker
@@ -218,7 +220,9 @@ def get_evaluation_report_markdown(request: Request, job_id: str):
 
 
 @router.get("/jobs/{job_id}/trials/{task_id}/{idx}")
-def get_trial(request: Request, job_id: str, task_id: str, idx: int):
+def get_trial(
+    request: Request, job_id: str, task_id: str, idx: Annotated[int, PathParam(ge=0, le=9223372036854775807)]
+):
     conn = _conn(request)
     try:
         result = jobs.trial_detail(conn, job_id, task_id, idx)
@@ -234,7 +238,10 @@ def get_trial(request: Request, job_id: str, task_id: str, idx: int):
 # --------------------------------------------------------------------------- #
 
 @router.get("/jobs/{job_id}/events")
-async def job_events(request: Request, job_id: str, since: int | None = None):
+async def job_events(
+    request: Request, job_id: str,
+    since: Annotated[int | None, QueryParam(ge=0, le=9223372036854775807)] = None,
+):
     """If ``?since=`` is present -> JSON poll fallback. Otherwise -> SSE stream.
 
     SSE honors the ``Last-Event-ID`` header (resume after last seen seq), sends

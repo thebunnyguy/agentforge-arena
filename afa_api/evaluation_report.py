@@ -59,10 +59,7 @@ def _persisted_parameters(raw_json: Any) -> dict[str, Any]:
     for legacy listings. Reports must not mistake those defaults for provenance,
     so this projection parses the persisted payload independently.
     """
-    try:
-        raw = json.loads(raw_json)
-    except (TypeError, json.JSONDecodeError):
-        return {}
+    raw = jobs._loads_finite(raw_json)  # None for garbage, non-finite or absurdly nested JSON
     if not isinstance(raw, dict):
         return {}
 
@@ -99,10 +96,7 @@ def _stored_snapshot(row: sqlite3.Row) -> dict[str, Any] | None:
     raw_snapshot = row["snapshot_json"] if "snapshot_json" in row.keys() else None
     if not raw_snapshot:
         return None
-    try:
-        snapshot = json.loads(raw_snapshot)
-    except (TypeError, json.JSONDecodeError):
-        return None
+    snapshot = jobs._loads_finite(raw_snapshot)
     return snapshot if isinstance(snapshot, dict) else None
 
 
@@ -244,6 +238,20 @@ def _build_evaluation_report(
 
     trials: list[dict[str, Any]] = []
     limitations: list[str] = []
+    try:
+        jobs.verify_persisted_params(
+            row["params_json"],
+            row["snapshot_json"] if "snapshot_json" in row.keys() else None,
+            row["mode"] if "mode" in row.keys() else None,
+            row["source_evaluation_id"] if "source_evaluation_id" in row.keys() else None,
+        )
+    except jobs.InvalidPersistedParams as exc:
+        limitations.append(
+            "Persisted evaluation parameters could not be verified against the creation "
+            "record (" + str(exc).removeprefix(f"{jobs._INVALID_PREFIX}: ") + "); "
+            "the values below come from the creation snapshot and this evaluation "
+            "cannot be resumed or retried."
+        )
     for trial_row in jobs.trial_rows(conn, evaluation_id):
         detail = jobs.trial_detail(
             conn, evaluation_id, trial_row["task_id"], int(trial_row["idx"])

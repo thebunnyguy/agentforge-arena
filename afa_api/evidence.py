@@ -158,7 +158,7 @@ def snapshot_backend_kind(snapshot_json: str | None) -> str | None:
         return None
     try:
         snapshot = json.loads(snapshot_json)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, RecursionError):
         return None
     if not isinstance(snapshot, dict):
         return None
@@ -173,7 +173,7 @@ def params_backend_kind(params_json: str | None) -> str | None:
         return None
     try:
         params = json.loads(params_json)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, RecursionError):
         return None
     if not isinstance(params, dict):
         return None

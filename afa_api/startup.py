@@ -31,19 +31,23 @@ def migrate_control_plane(app) -> bool:
 
 def recover_stale_jobs(app) -> None:
     """Fail closed / requeue orphaned running evaluations and dispatch the
-    requeued ones. A failure is recorded, never swallowed."""
+    requeued ones. A failure is recorded (``app.state.recovery_error``), never
+    swallowed, and never costs the rows that WERE requeued their dispatch."""
     db_path = db.resolve_db_path(getattr(app.state, "db_path", None))
     recovered: list[str] = []
+    error: str | None = None
     try:
         conn = db.connect(db_path)
         try:
             recovered = jobs.reclaim_stale_running(conn, recover_unlocked=True)
         finally:
             conn.close()
+    except jobs.RecoveryIncomplete as exc:
+        recovered = exc.recovered  # already committed as queued: still dispatch
+        error = str(exc)
     except Exception as exc:  # noqa: BLE001 - the failure is the state
-        app.state.recovery_error = str(exc)
-        return
-    app.state.recovery_error = None
+        error = f"{type(exc).__name__}: {exc}"
+    app.state.recovery_error = error
     if getattr(app.state, "auto_dispatch", True):
         for job_id in recovered:
             worker.dispatch_job(

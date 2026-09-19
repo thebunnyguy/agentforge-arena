@@ -938,7 +938,7 @@ def test_task_versions_span_all_evidence_classes_while_views_stay_current_only(m
     assert cell["state"] == "historical_only"  # the 1.0.2 row is mock: not benchmark evidence
     assert cell["evidence_status"] == "none" and cell["runs"] == [] and cell["aggregate"] is None
     assert [v["version"] for v in cell["versions"]] == ["1.0.1"]
-    assert cell["excluded"] == {"synthetic_runs": 1, "provenance_conflict_runs": 0}
+    assert cell["excluded"] == {"synthetic_runs": 1, "provenance_conflict_runs": 0, "out_of_scope_runs": 0}
     assert cell["current_runs"] == 0 and cell["historical_runs"] == 5
     meta = mockc.get("/api/v1/meta").json()
     task = next(t for t in meta["tasks"] if t["task_id"] == SANITIZE)
@@ -1786,7 +1786,7 @@ def test_mock_evaluation_does_not_move_leaderboard_domains_cell_export(mockc, pr
         assert a.json() == b.json() or _only_excluded_differs(a.json(), b.json()), url
     cell = mockc.get(f"/api/v1/cell/{_enc(MOCK_REAL_NAME)}/{TASK}").json()
     assert cell["aggregate"]["n_valid"] == 5 and cell["current_runs"] == 5
-    assert cell["excluded"] == {"synthetic_runs": 1, "provenance_conflict_runs": 0}
+    assert cell["excluded"] == {"synthetic_runs": 1, "provenance_conflict_runs": 0, "out_of_scope_runs": 0}
     assert {r["evidence_class"] for r in cell["runs"]} == {"legacy"}
     export = mockc.get("/api/v1/export").json()
     assert MOCK_ONLY not in export["models"]
@@ -1947,7 +1947,7 @@ def test_a_run_that_contradicts_its_evaluation_snapshot_is_a_conflict(mock_world
         assert allv["real_counts"][MOCK_ONLY] == {"n_runs": 2, "n_tasks": 1}
         assert allv["excluded"]["provenance_conflict_runs"] == 0
         cell = client.get(f"/api/v1/cell/{_enc(MOCK_ONLY)}/{TASK}").json()
-        assert cell["excluded"] == {"synthetic_runs": 1, "provenance_conflict_runs": 1}
+        assert cell["excluded"] == {"synthetic_runs": 1, "provenance_conflict_runs": 1, "out_of_scope_runs": 0}
         cell_all = client.get(f"/api/v1/cell/{_enc(MOCK_ONLY)}/{TASK}?evidence=all").json()
         assert {r["evidence_class"] for r in cell_all["runs"]} == {"conflict", "synthetic"}
         assert client.get("/api/v1/export").json()["excluded"]["provenance_conflict_runs"] == 1

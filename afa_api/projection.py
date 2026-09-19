@@ -24,30 +24,39 @@ _migration_retry_lock = threading.Lock()
 
 
 def retry_migration_if_failed(app) -> None:
-    """Re-attempt a FAILED startup migration instead of staying 503 until restart.
+    """Re-attempt a FAILED startup step instead of staying broken until restart.
 
     A migration can fail transiently (for example another initializer held the
     write lock longer than busy_timeout while the launcher started the worker and
-    the API together). ``migrate_error`` used to be sticky, which took every
-    projection down until the process was restarted. Retrying is safe: migrate()
-    is idempotent, serialised, and refuses unsupported shapes with the same error
-    (so a permanent refusal simply stays a refusal). Rate-limited so a permanent
-    failure costs at most one attempt per second.
+    the API together), and startup recovery can fail on one row or a busy DB.
+    Both used to be sticky. Retrying is safe: migrate() is idempotent, serialised
+    and refuses unsupported shapes with the same error (a permanent refusal simply
+    stays a refusal); recovery isolates rows and re-runs only what is still
+    orphaned. Rate-limited so a permanent failure costs at most one attempt per
+    second. Blocking (bounded by busy_timeout): callers on the event loop must run
+    it in a thread (the app middleware does).
     """
-    if not getattr(app.state, "migrate_error", None):
+    if not (
+        getattr(app.state, "migrate_error", None)
+        or getattr(app.state, "recovery_error", None)
+    ):
         return
     if time.monotonic() - getattr(app.state, "migrate_retry_at", 0.0) < _MIGRATION_RETRY_INTERVAL_S:
         return
     with _migration_retry_lock:
-        if not getattr(app.state, "migrate_error", None):
+        if not (
+            getattr(app.state, "migrate_error", None)
+            or getattr(app.state, "recovery_error", None)
+        ):
             return
         app.state.migrate_retry_at = time.monotonic()
         # Deferred import: startup pulls in the worker, which projections never need.
         from . import startup
 
-        if startup.migrate_control_plane(app):
-            # Startup recovery was skipped when the migration failed; do it now.
-            startup.recover_stale_jobs(app)
+        if getattr(app.state, "migrate_error", None) and not startup.migrate_control_plane(app):
+            return
+        # Recovery was skipped when the migration failed (or failed itself).
+        startup.recover_stale_jobs(app)
 
 
 @dataclass
@@ -76,7 +85,6 @@ def open_projection(
     ``evidence_scope`` selects which provenance classes may enter the aggregates
     (default: the benchmark scope, which excludes synthetic/mock evidence).
     """
-    retry_migration_if_failed(request.app)
     migration_error = getattr(request.app.state, "migrate_error", None)
     if migration_error:
         raise ProjectionUnavailable(f"database migration failed: {migration_error}")

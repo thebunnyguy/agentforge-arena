@@ -128,7 +128,7 @@ def _observability_html(summary: RunStoreSummary) -> str:
     return (
         '<section><h2>Data provenance</h2>'
         '<div class="provenance">'
-        f'<div><b>{summary.total_runs}</b><span>persisted runs</span></div>'
+        f'<div><b>{summary.total_runs}</b><span>persisted runs (all versions and evidence classes)</span></div>'
         f'<div><b>{summary.runs_with_patch}/{summary.total_runs}</b>'
         '<span>runs with patch artifacts</span></div>'
         f'<div><b>{summary.runs_with_test_results}/{summary.total_runs}</b>'

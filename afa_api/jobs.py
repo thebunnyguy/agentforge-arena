@@ -152,7 +152,8 @@ def _loads_finite(text: str | None):
         return json.loads(
             text, parse_constant=_refuse_constant, parse_float=_finite_float
         )
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, RecursionError):
+        # RecursionError: absurdly nested JSON is unusable input, not a crash
         return None
 
 
@@ -182,7 +183,7 @@ def strict_params_from_json(raw_json: str) -> JobParams:
         # BY FIELD NAME below (temperature, base_seed, ...), which is more useful
         # than "not valid JSON"; every field is strictly typed, so none can pass.
         raw = json.loads(raw_json)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, RecursionError):
         raise InvalidPersistedParams(
             f"{_INVALID_PREFIX}: params_json is not valid JSON"
         ) from None
@@ -230,9 +231,10 @@ def _snapshot_disagreements(params: JobParams, snapshot: dict[str, Any]) -> list
     backend = backend if isinstance(backend, dict) else {}
     generation = snapshot.get("generation")
     generation = generation if isinstance(generation, dict) else {}
+    raw_tasks = snapshot.get("tasks")
     snapshot_tasks = [
         item.get("task_id")
-        for item in (snapshot.get("tasks") or [])
+        for item in (raw_tasks if isinstance(raw_tasks, list) else [])
         if isinstance(item, dict)
     ]
     checks = {
@@ -257,34 +259,48 @@ def verify_persisted_params(
 ) -> JobParams:
     """Strictly parse persisted params AND require them to agree with the row's
     own control columns and its creation snapshot. The single source of truth for
-    "these are the parameters this evaluation may run / be shown with"."""
-    params = strict_params_from_json(params_json)
-    # The persisted params must also agree with the row's own control columns.
-    column_disagreements = [
-        name
-        for name, agrees in (
-            ("mode", params.mode == mode),
-            ("source_evaluation_id", params.source_evaluation_id == source_evaluation_id),
-        )
-        if not agrees
-    ]
-    if column_disagreements:
+    "these are the parameters this evaluation may run / be shown with".
+
+    Fail closed on ANY malformed input: only InvalidPersistedParams can escape, so
+    one corrupt row can never crash a listing, a recovery loop or a worker.
+    """
+    try:
+        params = strict_params_from_json(params_json)
+        # The persisted params must also agree with the row's own control columns.
+        column_disagreements = [
+            name
+            for name, agrees in (
+                ("mode", params.mode == mode),
+                (
+                    "source_evaluation_id",
+                    params.source_evaluation_id == source_evaluation_id,
+                ),
+            )
+            if not agrees
+        ]
+        if column_disagreements:
+            raise InvalidPersistedParams(
+                f"{_INVALID_PREFIX}: parameters disagree with the evaluation row "
+                f"({', '.join(column_disagreements)})"
+            )
+        snapshot = _loads_finite(snapshot_json)
+        if not isinstance(snapshot, dict):
+            raise InvalidPersistedParams(
+                f"{_INVALID_PREFIX}: evaluation has no creation snapshot"
+            )
+        disagreements = _snapshot_disagreements(params, snapshot)
+        if disagreements:
+            raise InvalidPersistedParams(
+                f"{_INVALID_PREFIX}: parameters disagree with the creation snapshot "
+                f"({', '.join(disagreements)})"
+            )
+        return params
+    except InvalidPersistedParams:
+        raise
+    except Exception:  # noqa: BLE001 - unreadable persisted state must fail closed
         raise InvalidPersistedParams(
-            f"{_INVALID_PREFIX}: parameters disagree with the evaluation row "
-            f"({', '.join(column_disagreements)})"
-        )
-    snapshot = _loads_finite(snapshot_json)
-    if not isinstance(snapshot, dict):
-        raise InvalidPersistedParams(
-            f"{_INVALID_PREFIX}: evaluation has no creation snapshot"
-        )
-    disagreements = _snapshot_disagreements(params, snapshot)
-    if disagreements:
-        raise InvalidPersistedParams(
-            f"{_INVALID_PREFIX}: parameters disagree with the creation snapshot "
-            f"({', '.join(disagreements)})"
-        )
-    return params
+            f"{_INVALID_PREFIX}: persisted evaluation state is unreadable"
+        ) from None
 
 
 def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
@@ -331,7 +347,47 @@ def _job_params_for_display(row: sqlite3.Row) -> tuple[JobParams | None, str | N
         return None, str(exc).removeprefix(f"{_INVALID_PREFIX}: ")
 
 
+def _unreadable_job(row: sqlite3.Row) -> Job:
+    """A listable placeholder for a control row whose columns cannot form a Job
+    (unknown status/mode literal, non-numeric counters, non-finite numbers ...).
+    Fail-closed: terminal, unverifiable, never resumable or retryable."""
+
+    def text(key: str) -> str | None:
+        try:
+            value = row[key]
+        except (IndexError, KeyError):
+            return None
+        return None if value is None else str(value)[:64]
+
+    return Job(
+        id=text("id") or "unknown",
+        status="failed",
+        mode="legacy",
+        cancel_requested=False,
+        backend_kind=None,
+        evidence_class="unknown",
+        params=None,
+        params_status="unverifiable",
+        params_error=f"{_INVALID_PREFIX}: evaluation row is unreadable",
+        counters=JobCounters(
+            total_runs=0, completed_runs=0, passed_runs=0, voided_runs=0,
+            failed_runs=0, reused_runs=0,
+        ),
+        created_at=text("created_at") or "",
+        started_at=text("started_at"),
+        finished_at=text("finished_at"),
+        error_message="evaluation row is unreadable (corrupt control columns)",
+    )
+
+
 def _job_from_row(row: sqlite3.Row) -> Job:
+    try:
+        return _job_from_row_checked(row)
+    except (ValidationError, TypeError, ValueError, KeyError, OverflowError, RecursionError):
+        return _unreadable_job(row)
+
+
+def _job_from_row_checked(row: sqlite3.Row) -> Job:
     params, params_problem = _job_params_for_display(row)
     mode = _row_value(row, "mode", "legacy") or "legacy"
     raw_snapshot = _row_value(row, "snapshot_json")
@@ -376,7 +432,7 @@ def _job_from_row(row: sqlite3.Row) -> Job:
 
 
 def _event_from_row(row: sqlite3.Row) -> JobEvent:
-    payload = json.loads(row["payload_json"]) if row["payload_json"] else None
+    payload = _loads_finite(row["payload_json"])
     return JobEvent(
         job_id=row["job_id"],
         seq=row["seq"],
@@ -1048,100 +1104,64 @@ def _fail_unverifiable_running_job(
     return True
 
 
+class RecoveryIncomplete(RuntimeError):
+    """Recovery finished for every row it could, but some rows raised.
+
+    ``recovered`` holds the ids that WERE requeued (their transition is already
+    committed, so the caller must still dispatch them); ``failures`` describes the
+    rows that could not be processed (type names only, never row content)."""
+
+    def __init__(self, recovered: list[str], failures: list[str]) -> None:
+        super().__init__(
+            f"recovery incomplete for {len(failures)} evaluation(s): " + "; ".join(failures)
+        )
+        self.recovered = recovered
+        self.failures = failures
+
+
 def reclaim_stale_running(
     conn: sqlite3.Connection, *, stale_after_s: int = 300,
-    recover_unlocked: bool = False,
+    recover_unlocked: bool = False, only_job_id: str | None = None,
 ) -> list[str]:
     """Recover only evaluations whose same-host owner lock is free.
 
     Lease age is a diagnostic fallback for old owners; current owners hold the
     OS lock for model/grading work, so a live owner is never reclaimed merely
     because a request took longer than the lease.
+
+    Rows are isolated from one another: an unexpected error on one row is
+    recorded and the rest are still recovered; ``RecoveryIncomplete`` (carrying
+    the ids that were requeued) is raised at the end so the failure is never
+    silent. ``only_job_id`` restricts the scan to one evaluation.
     """
     caller_owned_transaction = conn.in_transaction
-    rows = conn.execute(
+    sql = (
         "SELECT id, owner_token, owner_started_at, params_json FROM evaluation_jobs "
         "WHERE status='running'"
-    ).fetchall()
+    )
+    rows = (
+        conn.execute(sql + " AND id=?", (only_job_id,)).fetchall()
+        if only_job_id is not None
+        else conn.execute(sql).fetchall()
+    )
     ids: list[str] = []
     unverifiable: list[tuple[str, str]] = []
+    failures: list[str] = []
     base_threshold = max(0, int(stale_after_s))
     for row in rows:
-        lock = try_acquire_owner_lock(conn, row["id"])
-        if lock is None:
-            continue
         try:
-            stale = row["owner_started_at"] is None
-            if not stale:
-                request_timeout = 0
-                try:
-                    request_timeout = int(
-                        json.loads(row["params_json"]).get("request_timeout_s", 0)
-                    )
-                except (TypeError, ValueError, OverflowError, AttributeError):
-                    # unusable hint only: the strict check below decides the
-                    # evaluation's fate, and one corrupt row must never stop the
-                    # recovery of the others
-                    pass
-                threshold = max(base_threshold, request_timeout + 60)
-                stale = conn.execute(
-                    "SELECT 1 FROM evaluation_jobs WHERE id=? AND owner_started_at < "
-                    "datetime('now', ?)",
-                    (row["id"], f"-{threshold} seconds"),
-                ).fetchone() is not None
-            if not stale and not recover_unlocked:
-                continue
-
-            # Fail closed: an evaluation whose persisted parameters or creation
-            # snapshot cannot be trusted must never be requeued (and therefore
-            # never auto-dispatched) with defaults. It becomes an explicit
-            # failed / unverifiable evaluation instead.
-            try:
-                execution_params(conn, row["id"])
-            except InvalidPersistedParams as exc:
-                if _fail_unverifiable_running_job(
-                    conn, row, str(exc), caller_owned_transaction
-                ):
-                    unverifiable.append((row["id"], str(exc)))
-                continue
-
-            # The owner may finish between the stale observation and this
-            # conditional update. Keep this small state transition inside a
-            # savepoint and clean up a no-op DML transaction; never commit a
-            # caller transaction that happened to be open on this connection.
-            savepoint = f"afa_reclaim_{uuid.uuid4().hex}"
-            conn.execute(f"SAVEPOINT {savepoint}")
-            try:
-                cur = conn.execute(
-                    "UPDATE evaluation_jobs SET status='queued', owner_token=NULL, "
-                    "owner_started_at=NULL, started_at=NULL "
-                    "WHERE id=? AND status='running' AND owner_token IS ? "
-                    "AND owner_started_at IS ?",
-                    (row["id"], row["owner_token"], row["owner_started_at"]),
-                )
-                if cur.rowcount != 1:
-                    conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
-                    conn.execute(f"RELEASE SAVEPOINT {savepoint}")
-                    if not caller_owned_transaction and conn.in_transaction:
-                        conn.rollback()
-                    continue
-                conn.execute(
-                    "UPDATE evaluation_trials SET trial_state='pending', claim_token=NULL, "
-                    "claimed_at=NULL WHERE evaluation_id=? AND trial_state='claimed'",
-                    (row["id"],),
-                )
-                conn.execute(f"RELEASE SAVEPOINT {savepoint}")
-            except Exception:
-                conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
-                conn.execute(f"RELEASE SAVEPOINT {savepoint}")
-                if not caller_owned_transaction and conn.in_transaction:
-                    conn.rollback()
-                raise
-            if not caller_owned_transaction:
-                conn.commit()
+            outcome = _reclaim_one(
+                conn, row, base_threshold, recover_unlocked, caller_owned_transaction
+            )
+        except Exception as exc:  # noqa: BLE001 - isolate the row, report it below
+            if not caller_owned_transaction and conn.in_transaction:
+                conn.rollback()
+            failures.append(f"{str(row['id'])[:12]}: {type(exc).__name__}")
+            continue
+        if outcome == "requeued":
             ids.append(row["id"])
-        finally:
-            lock.release()
+        elif isinstance(outcome, tuple):
+            unverifiable.append((row["id"], outcome[1]))
     for jid, reason in unverifiable:
         refresh_counters(conn, jid, commit=not caller_owned_transaction)
         append_event(
@@ -1156,7 +1176,94 @@ def reclaim_stale_running(
             {"reason": "owner lock was released; resuming remaining trials"},
             commit=not caller_owned_transaction,
         )
+    if failures:
+        raise RecoveryIncomplete(ids, failures)
     return ids
+
+
+def _reclaim_one(
+    conn: sqlite3.Connection,
+    row: sqlite3.Row,
+    base_threshold: int,
+    recover_unlocked: bool,
+    caller_owned_transaction: bool,
+):
+    """Recover one running evaluation. Returns "requeued", ("unverifiable", reason)
+    or None (left alone: live owner, not stale, or changed under us)."""
+    lock = try_acquire_owner_lock(conn, row["id"])
+    if lock is None:
+        return None
+    try:
+        stale = row["owner_started_at"] is None
+        if not stale:
+            request_timeout = 0
+            try:
+                request_timeout = int(
+                    json.loads(row["params_json"]).get("request_timeout_s", 0)
+                )
+            except (TypeError, ValueError, OverflowError, AttributeError, RecursionError):
+                # unusable hint only: the strict check below decides the
+                # evaluation's fate
+                pass
+            threshold = max(base_threshold, request_timeout + 60)
+            stale = conn.execute(
+                "SELECT 1 FROM evaluation_jobs WHERE id=? AND owner_started_at < "
+                "datetime('now', ?)",
+                (row["id"], f"-{threshold} seconds"),
+            ).fetchone() is not None
+        if not stale and not recover_unlocked:
+            return None
+
+        # Fail closed: an evaluation whose persisted parameters or creation
+        # snapshot cannot be trusted must never be requeued (and therefore
+        # never auto-dispatched) with defaults. It becomes an explicit
+        # failed / unverifiable evaluation instead.
+        try:
+            execution_params(conn, row["id"])
+        except InvalidPersistedParams as exc:
+            if _fail_unverifiable_running_job(
+                conn, row, str(exc), caller_owned_transaction
+            ):
+                return ("unverifiable", str(exc))
+            return None
+
+        # The owner may finish between the stale observation and this
+        # conditional update. Keep this small state transition inside a
+        # savepoint and clean up a no-op DML transaction; never commit a
+        # caller transaction that happened to be open on this connection.
+        savepoint = f"afa_reclaim_{uuid.uuid4().hex}"
+        conn.execute(f"SAVEPOINT {savepoint}")
+        try:
+            cur = conn.execute(
+                "UPDATE evaluation_jobs SET status='queued', owner_token=NULL, "
+                "owner_started_at=NULL, started_at=NULL "
+                "WHERE id=? AND status='running' AND owner_token IS ? "
+                "AND owner_started_at IS ?",
+                (row["id"], row["owner_token"], row["owner_started_at"]),
+            )
+            if cur.rowcount != 1:
+                conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+                conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+                if not caller_owned_transaction and conn.in_transaction:
+                    conn.rollback()
+                return None
+            conn.execute(
+                "UPDATE evaluation_trials SET trial_state='pending', claim_token=NULL, "
+                "claimed_at=NULL WHERE evaluation_id=? AND trial_state='claimed'",
+                (row["id"],),
+            )
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+        except Exception:
+            conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+            if not caller_owned_transaction and conn.in_transaction:
+                conn.rollback()
+            raise
+        if not caller_owned_transaction:
+            conn.commit()
+        return "requeued"
+    finally:
+        lock.release()
 
 
 def resume_job(conn: sqlite3.Connection, job_id: str) -> Job | None:
@@ -1173,7 +1280,12 @@ def resume_job(conn: sqlite3.Connection, job_id: str) -> Job | None:
     if job.status == "succeeded":
         raise JobStateError("succeeded evaluations are not resumable")
     if job.status == "running":
-        reclaimed = reclaim_stale_running(conn, stale_after_s=300)
+        # Only THIS evaluation: resuming one job must not silently requeue other
+        # stale orphans that nothing here would dispatch.
+        try:
+            reclaimed = reclaim_stale_running(conn, stale_after_s=300, only_job_id=job_id)
+        except RecoveryIncomplete as exc:
+            reclaimed = exc.recovered
         if job_id not in reclaimed:
             raise JobStateError("evaluation is owned by a live worker")
     cur = conn.execute(

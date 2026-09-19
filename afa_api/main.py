@@ -21,6 +21,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -98,6 +99,23 @@ def create_app() -> FastAPI:
         description="Read-only projection of the frozen kernel/runner aggregates.",
         lifespan=lifespan,
     )
+    @app.exception_handler(RequestValidationError)
+    async def _validation_error(request: Request, exc: RequestValidationError):
+        # FastAPI's default handler echoes the submitted value (``input``) and the
+        # validator context. A non-finite number (NaN / Infinity / 1e999) cannot be
+        # rendered as JSON, which turned a plain 422 into a 500, and echoing a
+        # rejected value (e.g. a URL carrying credentials) is needless. Report the
+        # location, message and type only.
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": [
+                    {"loc": list(err["loc"]), "msg": err["msg"], "type": err["type"]}
+                    for err in exc.errors()
+                ]
+            },
+        )
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_LOCAL_ORIGINS,
@@ -114,7 +132,10 @@ def create_app() -> FastAPI:
             or path.startswith("/api/v1/jobs/")
             or path in {"/api/v1/settings", "/api/v1/reports/regenerate"}
         )
-        if guarded and getattr(request.app.state, "migrate_error", None):
+        if path.startswith("/api/v1/") and (
+            getattr(request.app.state, "migrate_error", None)
+            or getattr(request.app.state, "recovery_error", None)
+        ):
             # blocking (bounded by busy_timeout): keep it off the event loop
             await asyncio.to_thread(retry_migration_if_failed, request.app)
         error = getattr(request.app.state, "migrate_error", None)

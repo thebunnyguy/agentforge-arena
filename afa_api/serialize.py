@@ -463,6 +463,7 @@ def build_cell(
         "excluded": {
             "synthetic_runs": cell_excluded.get("synthetic_runs", 0),
             "provenance_conflict_runs": cell_excluded.get("provenance_conflict_runs", 0),
+            "out_of_scope_runs": cell_excluded.get("out_of_scope_runs", 0),
         },
         # Versions STORED for this cell across every evidence class (a persisted
         # fact independent of scope; see LoadedStores.stored_cell_versions).

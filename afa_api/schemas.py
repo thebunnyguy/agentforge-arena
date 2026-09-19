@@ -12,6 +12,7 @@ generation. If one is ever supplied it is REDACTED on the way out
 
 from __future__ import annotations
 
+import math
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
@@ -82,7 +83,7 @@ class JobParams(BaseModel):
     model: str = "mock"
     name: str | None = None
     tasks: list[str] = Field(default_factory=list)
-    repeats: int = Field(default=1, ge=1)
+    repeats: int = Field(default=1, ge=1, le=10_000)
     base_seed: int = 1000
     temperature: float = 0.6
     request_timeout_s: int = Field(default=180, ge=1)
@@ -96,6 +97,17 @@ class JobParams(BaseModel):
         # persisted under one would blend into (and corrupt) the bookends.
         if value in RESERVED_AGENT_NAMES:
             raise ValueError("model name is reserved for a synthetic baseline")
+        if not value.strip():
+            raise ValueError("model must not be blank")
+        return value
+
+    @field_validator("temperature")
+    @classmethod
+    def require_finite_temperature(cls, value: float) -> float:
+        # NaN / Infinity cannot be persisted faithfully (JSON) and can never be
+        # verified later: refuse at creation instead of creating a doomed job.
+        if not math.isfinite(value):
+            raise ValueError("temperature must be a finite number")
         return value
 
 

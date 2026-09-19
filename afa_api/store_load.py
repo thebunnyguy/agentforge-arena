@@ -66,7 +66,10 @@ def version_sort_key(version: str) -> tuple:
     before them. Only used to order the history list, never to decide currency.
     """
     parts = version.split(".")
-    if all(part.isdigit() for part in parts):
+    # ASCII digits only and bounded length: str.isdigit() is also true for
+    # superscripts/other scripts (int() then raises) and int() refuses huge digit
+    # strings, and a crafted version string must never take a projection down.
+    if all(part.isascii() and part.isdigit() and len(part) <= 18 for part in parts):
         return (1, tuple(int(part) for part in parts), version)
     return (0, (), version)
 
@@ -288,7 +291,11 @@ def load_stores(
                     if reserved or prov.evidence_class not in in_scope_classes:
                         cell_ex = excluded_cells.setdefault(
                             (agent, record.task_id),
-                            {"synthetic_runs": 0, "provenance_conflict_runs": 0},
+                            {
+                                "synthetic_runs": 0,
+                                "provenance_conflict_runs": 0,
+                                "out_of_scope_runs": 0,
+                            },
                         )
                         if prov.evidence_class == evidence.CLASS_SYNTHETIC:
                             excluded_synthetic_runs += 1
@@ -300,6 +307,7 @@ def load_stores(
                         else:
                             # e.g. legacy runs under the real / synthetic scope
                             excluded_out_of_scope_runs += 1
+                            cell_ex["out_of_scope_runs"] += 1
                         continue
                     is_current = (
                         current_versions.get(record.task_id) == record.task_version

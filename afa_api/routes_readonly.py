@@ -25,9 +25,10 @@ opens a short-lived read-only connection for raw columns the report layer omits.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Request
+from fastapi import Path as PathParam
 from fastapi.responses import JSONResponse
 
 from . import db, evidence, serialize
@@ -60,11 +61,10 @@ def _project(request: Request, builder: Callable[..., Any]) -> Any:
 
 @router.get("/healthz")
 def healthz(request: Request) -> dict:
-    recovery_error = getattr(request.app.state, "recovery_error", None)
     try:
         with open_projection(request):
             body = {
-                "status": "degraded" if recovery_error else "ok",
+                "status": "ok",
                 "stores_loaded": True,
                 "load_error": None,
                 "db_path": str(db_path_for(request)),
@@ -76,7 +76,9 @@ def healthz(request: Request) -> dict:
             "load_error": str(exc),
             "db_path": str(db_path_for(request)),
         }
+    recovery_error = getattr(request.app.state, "recovery_error", None)
     if recovery_error:
+        body["status"] = "degraded"
         body["recovery_error"] = recovery_error
     return body
 
@@ -123,7 +125,8 @@ async def cell(
 
 @router.get("/run/{agent}/{task_id}/{idx}")
 async def run(
-    request: Request, agent: str, task_id: str, idx: int, version: str | None = None
+    request: Request, agent: str, task_id: str, idx: Annotated[int, PathParam(ge=0, le=9223372036854775807)],
+    version: str | None = None
 ):
     result = _project(
         request,
@@ -137,7 +140,7 @@ async def run(
 
 
 @router.get("/runs/{run_id}")
-async def run_by_id(request: Request, run_id: int):
+async def run_by_id(request: Request, run_id: Annotated[int, PathParam(ge=0, le=9223372036854775807)]):
     """Exact native raw identity; does not require global aggregate pooling."""
     ro = db.connect_readonly(db_path_for(request))
     try:

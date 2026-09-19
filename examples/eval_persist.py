@@ -28,11 +28,29 @@ import afa_runner as afa  # noqa: E402
 from afa_kernel.types import RunStatus  # noqa: E402
 
 
+def benchmark_runs(store, *, task_id: str, agent: str):
+    """The agent's runs that count as benchmark evidence: real or legacy
+    provenance. Mock (synthetic) and provenance-conflicting runs stored under the
+    same model name are ignored, so they can never make a resume skip real work or
+    inflate the final summary."""
+    from afa_api import evidence  # local: keeps the script importable standalone
+
+    provenance = evidence.read_provenance(store.connection)
+    allowed = evidence.SCOPES["benchmark"]
+    return [
+        record
+        for record in store.load_runs(task_id=task_id, agent=agent)
+        if provenance.get(record.run_id, evidence.UNATTESTED_PROVENANCE).evidence_class
+        in allowed
+    ]
+
+
 def completed_indices(store, *, task_id: str, task_version: str, agent: str) -> set[int]:
-    """Resume only runs from the exact immutable task version being evaluated."""
+    """Resume only benchmark-evidence runs from the exact immutable task version
+    being evaluated."""
     return {
         record.idx
-        for record in store.load_runs(task_id=task_id, agent=agent)
+        for record in benchmark_runs(store, task_id=task_id, agent=agent)
         if record.task_version == task_version
     }
 
@@ -103,7 +121,7 @@ def main() -> None:
     # Final per-model summary from what's now on disk.
     c = nv = 0
     for t in task_ids:
-        for r in store.load_runs(task_id=t, agent=model):
+        for r in benchmark_runs(store, task_id=t, agent=model):
             if r.task_version != tasks[t].version:
                 continue
             if r.status is RunStatus.INFRA_FAILURE:

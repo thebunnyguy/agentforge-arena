@@ -499,6 +499,7 @@ def dispatch_job(db_path, job_id: str, *, agent_factory: AgentFactory | None = N
     """Dispatch through the same token-preserving path used by startup recovery."""
     def _work() -> None:
         conn = db.connect(db_path)
+        token = None
         try:
             # Revalidate the control-plane schema at the actual dispatch
             # boundary; startup state alone must not authorize a later write.
@@ -506,6 +507,18 @@ def dispatch_job(db_path, job_id: str, *, agent_factory: AgentFactory | None = N
             token = jobs.claim_job_token(conn, job_id)
             if token is not None:
                 run_job(conn, job_id, agent_factory=agent_factory, owner_token=token)
+        except Exception as exc:  # noqa: BLE001 - last-resort safety net
+            # A dispatch thread must never die silently and leave an evaluation
+            # 'running' behind a live-looking owner: fail it (fenced by our token).
+            if token is not None:
+                try:
+                    jobs.mark_terminal(
+                        conn, job_id, "failed",
+                        error_message=f"dispatch failed: {type(exc).__name__}",
+                        owner_token=token,
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
         finally:
             conn.close()
 
@@ -521,7 +534,12 @@ def serve(poll_interval: float = 2.0, db_path=None) -> None:
     conn = db.connect(db_path)
     try:
         db.migrate(conn)
-        reclaimed = jobs.reclaim_stale_running(conn, recover_unlocked=True)
+        try:
+            reclaimed = jobs.reclaim_stale_running(conn, recover_unlocked=True)
+        except jobs.RecoveryIncomplete as exc:
+            # keep serving: the requeued jobs are picked up by the polling loop
+            reclaimed = exc.recovered
+            print(f"[afa-worker] recovery incomplete: {exc}", flush=True)
         if reclaimed:
             print(f"[afa-worker] reclaimed {len(reclaimed)} stale running job(s): {reclaimed}", flush=True)
         print(f"[afa-worker] polling {db_path} every {poll_interval}s", flush=True)

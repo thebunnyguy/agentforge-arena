@@ -386,32 +386,39 @@ class SqliteRunStore:
                     f"run {row['id']} ({row['agent']}/{row['task_id']}) has an "
                     f"unrecognised status {row['status']!r}"
                 ) from None
-            score = RunScore(
-                status=status,
-                gate_product=int(row["gate_product"]),
-                t_hidden=float(row["t_hidden"]),
-                q=float(row["q"]),
-                q_components={},
-                final_score=float(row["final_score"]),
-                functional_pass=bool(row["functional_pass"]),
-                voided=bool(row["voided"]),
-            )
-            records.append(
-                RunRecord(
-                    task_id=row["task_id"],
-                    task_version=row["task_version"],
-                    agent=row["agent"],
-                    idx=int(row["idx"]),
+            try:
+                score = RunScore(
                     status=status,
-                    score=score,
-                    files_changed=int(row["files_changed"]),
-                    lines_added=int(row["lines_added"]),
-                    lines_removed=int(row["lines_removed"]),
-                    transcript_hash=row["transcript_hash"],
-                    duration_ms=int(row["duration_ms"]),
-                    run_id=int(row["id"]),
+                    gate_product=int(row["gate_product"]),
+                    t_hidden=float(row["t_hidden"]),
+                    q=float(row["q"]),
+                    q_components={},
+                    final_score=float(row["final_score"]),
+                    functional_pass=bool(row["functional_pass"]),
+                    voided=bool(row["voided"]),
                 )
-            )
+                records.append(
+                    RunRecord(
+                        task_id=row["task_id"],
+                        task_version=row["task_version"],
+                        agent=row["agent"],
+                        idx=int(row["idx"]),
+                        status=status,
+                        score=score,
+                        files_changed=int(row["files_changed"]),
+                        lines_added=int(row["lines_added"]),
+                        lines_removed=int(row["lines_removed"]),
+                        transcript_hash=row["transcript_hash"],
+                        duration_ms=int(row["duration_ms"]),
+                        run_id=int(row["id"]),
+                    )
+                )
+            except (TypeError, ValueError, OverflowError):
+                # Fail closed, but name the row so it can be found and repaired.
+                raise ValueError(
+                    f"run {row['id']} ({row['agent']}/{row['task_id']}) has an "
+                    "unreadable score or artifact column"
+                ) from None
         return records
 
     def agents(self) -> list[str]:
