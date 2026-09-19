@@ -149,7 +149,7 @@ test("existing evidence navigates through patch, tests, legacy, and synthetic re
   expect(consoleErrors).toEqual([]);
 });
 
-test("mock evaluation launches, streams, retries with reuse, cancels, and exposes results", async ({
+test("mock evaluation launches, streams, retries FRESH (no silent reuse), cancels, and exposes results", async ({
   page,
 }) => {
   const firstId = await launchMock(page, 1);
@@ -165,11 +165,11 @@ test("mock evaluation launches, streams, retries with reuse, cancels, and expose
   await page.getByRole("button", { name: /Retry as new/ }).click();
   await page.waitForURL(new RegExp(`/jobs/(?!${firstId})[^/]+$`));
   await waitForTerminal(page);
-  await expect(
-    page.getByText("existing evidence reused", { exact: false }),
-  ).toBeVisible();
+  // "Retry as new" creates an independent FRESH evaluation (Phase-0 semantics):
+  // it executes again and never silently reuses the earlier run's evidence.
+  await expect(page.getByText("1 passed")).toBeVisible();
   await expect(page.locator(".task-run-grid .run-marker.reused")).toHaveCount(
-    1,
+    0,
   );
   await page.getByRole("link", { name: /View results/ }).click();
   await expect(

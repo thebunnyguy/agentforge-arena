@@ -13,14 +13,16 @@ for (const directory of ["afa_api", "kernel", "runner", "examples", "tasks"]) {
 }
 mkdirSync(join(temp, "reports"), { recursive: true });
 mkdirSync(join(temp, "web"), { recursive: true });
-cpSync(join(repo, "reports", "runs.sqlite"), join(temp, "reports", "runs.sqlite"));
+// The runtime refuses ROOT/reports/runs.sqlite as a writable DB (immutable evidence);
+// the app works on a differently named copy of it.
+cpSync(join(repo, "reports", "runs.sqlite"), join(temp, "reports", "app.sqlite"));
 cpSync(join(repo, "web", "dist"), join(temp, "web", "dist"), { recursive: true });
 
 const child = spawn("python3", ["-m", "uvicorn", "afa_api.main:app", "--host", "127.0.0.1", "--port", String(port)], {
   cwd: temp,
   env: {
     ...process.env,
-    AFA_DB_PATH: join(temp, "reports", "runs.sqlite"),
+    AFA_DB_PATH: join(temp, "reports", "app.sqlite"),
     AFA_SERVE_WEB: "1",
     AFA_WEB_DIST: join(temp, "web", "dist"),
     PYTHONPATH: [temp, join(temp, "kernel"), join(temp, "runner")].join(":"),
