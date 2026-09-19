@@ -1,0 +1,22 @@
+# Integrated FULL audit (2ee57c8) vs baselines — output of compare_audits.py
+
+$ python3 compare_audits.py <ORACLE-only audit @ cee9354, 24 tasks> <integrated audit @ 2ee57c8>
+A=audit_oracle_only  B=final_audit
+tasks compared: 24  (only in one side: none)
+status counts A: {'provisional': 7, 'healthy': 15, 'needs_review': 2}
+status counts B: {'provisional': 7, 'healthy': 15, 'needs_review': 2}
+RESULT: IDENTICAL on status, every check result, every control verdict, mutation accounting, findings and provenance hashes for all 24 tasks
+
+$ python3 compare_audits.py <frozen committed integrity/pack-audit/full-tasks, 20 tasks> <integrated audit @ 2ee57c8>
+A=frozen_cmp  B=final_audit
+tasks compared: 20  (only in one side: ['async-batched', 'escape-html', 'implement-lru-cache', 'two-sum-indices'])
+status counts A: {'provisional': 5, 'healthy': 13, 'needs_review': 2}
+status counts B: {'provisional': 5, 'healthy': 13, 'needs_review': 2}
+RESULT: IDENTICAL on status, every check result, every control verdict, mutation accounting, findings and provenance hashes for all 20 tasks
+
+$ python3 compare_audits.py <ORACLE-only audit> <integrated audit @ 4b7d712 (post-ATLAS-merge, pre digest-fix)>
+A=audit_oracle_only  B=audit_integrated
+tasks compared: 24  (only in one side: none)
+status counts A: {'provisional': 7, 'healthy': 15, 'needs_review': 2}
+status counts B: {'provisional': 7, 'healthy': 15, 'needs_review': 2}
+RESULT: IDENTICAL on status, every check result, every control verdict, mutation accounting, findings and provenance hashes for all 24 tasks

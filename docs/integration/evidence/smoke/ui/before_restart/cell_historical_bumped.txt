@@ -1,0 +1,142 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview/Agents/qwen3.5:9b/Tasks/sanitize-filename/Cell
+New evaluation
+Local API ready
+CELL EVIDENCE
+qwen3.5:9b × sanitize-filename
+
+A complete view of this agent/task cell · task version 1.0.2.
+
+Agent profile
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+CELL RECORDS
+records present
+TASK VERSIONS
+1.0.1
+RUNS
+5
+PASS RATE
+40.0%
+Wilson 12%–77%
+VALID EVIDENCE
+2/5
+functional passes / valid runs
+STABILITY
+0.000
+server-returned diagnostic
+RELIABILITY
+0.800
+timeout 20%
+INFRA VOID RATE
+0.0%
+voided attempts / all attempts
+What this cell supports
+
+The interval and sample size qualify the pass-rate conclusion.
+
+0
+50
+100
+40.0%
+[12%–77%]
+MEAN S
+0.580
+MEDIAN S
+0.900
+MIN S
+0.000
+worst observed run
+MAX S
+1.000
+diagnostic only · cherry-pick hazard
+STD S
+0.531
+CONTINUOUS LOWER BOUND
+0.074
+TIMEOUT RATE
+20.0%
+INFRA VOID RATE
+0.0%
+RELIABILITY
+0.800
+
+Provisional cells have fewer than five valid runs. Deterministic cells show zero observed variance; bimodal cells make a mean less representative. pass@k is an in-sample retry diagnostic.
+
+Complete aggregate fields
+FIELD	SERVER VALUE
+n_valid	5
+n_pass	2
+pass_rate	0.400
+wilson_low	0.118
+wilson_high	0.769
+mean_s	0.580
+median_s	0.900
+min_s	0.000
+max_s	1.000
+std_s	0.531
+stability	0.000
+conservative_continuous	0.074
+timeout_rate	20.0%
+infra_void_rate	0.0%
+reliability	0.800
+pass_at_k	@1 0.400 · @2 0.700 · @3 0.900 · @5 1.000
+deterministic	false
+bimodal	false
+provisional	false
+pass@k · in-sample diagnostic
+k = 1
+40.0%
+k = 2
+70.0%
+k = 3
+90.0%
+k = 5
+100.0%
+Individual runs · 5
+
+Voided infrastructure failures stay visible and are excluded from valid n; missing artifacts never appear as success.
+
+Advanced runs explorer
+RUN	STATUS	G	T_HIDDEN	Q	S	X	
+#0	
+TIMEOUT	G = 0	0.300	1.000	0.000	
+FAIL	Forensics
+
+#1	
+VALID	G = 0	0.300	1.000	0.000	
+FAIL	Forensics
+
+#2	
+VALID	G = 1	1.000	1.000	1.000	
+PASS	Forensics
+
+#3	
+VALID	G = 1	1.000	1.000	1.000	
+PASS	Forensics
+
+#4	
+VALID	G = 1	0.900	1.000	0.900	
+FAIL	Forensics
+All values above are returned by the frozen kernel. Max S and pass@k are diagnostics, not ranking inputs; small samples and bimodal results require context.
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

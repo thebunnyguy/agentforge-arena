@@ -1,0 +1,28 @@
+HEAD=1c15d0cfa9dfe66c77fa515c17abe682dd10ac5b
+SHA_BEFORE=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=01_evaluation_identity rc=0 secs=16 :: 14 passed, 1 warning in 15.16s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=02_jobs_api rc=0 secs=33 :: 24 passed, 1 warning in 31.86s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=03_reports rc=0 secs=18 :: 12 passed, 1 warning in 16.50s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=04_live_projection rc=0 secs=3 :: 8 passed, 1 warning in 2.42s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=05_store_persistence rc=0 secs=1 :: 15 passed in 0.23s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=06_providers rc=0 secs=0 :: 18 passed in 0.28s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=07_boundaries_a2 rc=0 secs=8 :: 14 passed, 1 warning in 7.71s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=08_boundaries_a3 rc=0 secs=37 :: 34 passed, 1 warning in 36.12s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=09_canary rc=0 secs=9 :: 1 passed, 1 warning in 9.18s
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=10_integrity_suite rc=0 secs=155 :: 61 passed, 3 warnings in 154.02s (0:02:34)
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+GROUP=11_FULL_SUITE rc=1 secs=500 :: 2 failed, 552 passed, 4 warnings in 498.96s (0:08:18)
+  sha_after_group=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+SHA_AFTER=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+PYC_UNDER_TASKS=       0
+TRACKED_CHANGES:
+DONE

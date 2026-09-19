@@ -1,0 +1,96 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview
+New evaluation
+Local API ready
+AGENTFORGE ARENA
+Run agents.
+Trust the evidence.
+
+A local workstation for evaluating coding agents, observing behavior, and investigating every failure without hiding uncertainty.
+
+New evaluation
+Open leaderboard
+WORKSPACE STATUS
+Evidence database loaded
+Mock configured · verify before launch
+24 benchmark tasks
+Trusted-local execution
+Trusted-local benchmark. Trusted local single-user tool; no sandbox-isolation guarantees.
+Recent evaluations
+
+The latest control-plane history. Open one to monitor or inspect its evidence.
+
+View all
+smoke-unseen-060701
+Succeeded
+Mock · 3 tasks × 2 repeats · Sep 19, 6:07 AM → Sep 19, 6:07 AM
+6 pass · 0 fail · 0 void
+6/6
+8.0 s
+Monitor
+Results
+Retry
+Benchmark snapshot
+
+Kernel order, pooled across tasks.
+
+Full ranking
+1
+smoke-unseen-060701
+6 valid runs · 100.0%
+[61%–100%]
+2
+qwen2.5-coder:7b
+120 valid runs · 55.8%
+[47%–64%]
+3
+qwen3.5:9b
+120 valid runs · 33.3%
+[26%–42%]
+4–5
+deepseek-coder:6.7b
+120 valid runs · 23.3%
+[17%–32%]
+
+Intervals qualify every point estimate; rank ranges stay visible when evidence overlaps.
+
+Synthetic reference baselines remain available as clearly labelled bookend cells, not competing model entries.
+
+Evidence health
+
+Counts from the API startup snapshot; patch and test-result coverage are independent.
+
+PERSISTED RUNS
+726
+AGENTS
+7
+TASKS
+24
+PATCH COVERAGE
+646/726
+TEST-RESULT COVERAGE
+645/726
+TEST ROWS
+8111
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

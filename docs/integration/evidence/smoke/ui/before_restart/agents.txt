@@ -1,0 +1,86 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview/Agents
+New evaluation
+Local API ready
+ANALYZE
+Agents
+
+Model identities in the evidence store. Open a profile to see where each agent succeeds, fails, or remains uncertain.
+
+Trusted-local benchmark. Trusted local single-user tool; no sandbox-isolation guarantees.
+Agent roster
+
+7 real model identities from the API.
+
+AGENT	BENCHMARK POSITION	PASS RATE	VALID N	UNCERTAINTY	
+smoke-unseen-060701
+model evidence
+	1	100.0%	6	
+100.0%
+[61%–100%]
+	
+Profile
+qwen2.5-coder:7b
+model evidence
+	2	55.8%	120	
+55.8%
+[47%–64%]
+	
+Profile
+qwen3.5:9b
+model evidence
+	3	33.3%	120	
+33.3%
+[26%–42%]
+	
+Profile
+deepseek-coder:6.7b
+model evidence
+	4–5	23.3%	120	
+23.3%
+[17%–32%]
+	
+Profile
+llama3.2:latest
+model evidence
+	4–6	18.3%	120	
+18.3%
+[12%–26%]
+	
+Profile
+qwen2.5-coder:3b
+model evidence
+	5–6	15.0%	120	
+15.0%
+[10%–22%]
+	
+Profile
+gemma2:2b
+model evidence
+	7	3.3%	120	
+3.3%
+[1%–8%]
+	
+Profile
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

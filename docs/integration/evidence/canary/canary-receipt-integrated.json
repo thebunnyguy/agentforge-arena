@@ -1,0 +1,81 @@
+{
+  "evaluations": {
+    "A": "ccae416bad0e4e6abb87ab870cc0bb74",
+    "B": "f8edd78f43d84670b780630ac36b9fff",
+    "C": "6b4ebb60f72f4f16bef58a0bc42e58b2",
+    "D": "5901cae7cc6949a1b46a332ae594cd56"
+  },
+  "historical_after": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced",
+  "historical_before": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced",
+  "intentional_thread_errors": 1,
+  "interrupted_attempts": [
+    {
+      "idx": 0,
+      "seed": 1000
+    },
+    {
+      "idx": 1,
+      "seed": 1001
+    }
+  ],
+  "raw_runs": {
+    "A": [
+      1221,
+      1222
+    ],
+    "B": [
+      1223,
+      1224
+    ],
+    "C": [
+      1221,
+      1222
+    ],
+    "D": [
+      1225,
+      1226
+    ],
+    "D_rows": [
+      {
+        "id": 1225,
+        "idx": 0,
+        "job_id": "5901cae7cc6949a1b46a332ae594cd56",
+        "task_id": "fix-binary-search"
+      },
+      {
+        "id": 1226,
+        "idx": 1,
+        "job_id": "5901cae7cc6949a1b46a332ae594cd56",
+        "task_id": "fix-binary-search"
+      }
+    ]
+  },
+  "recovery_attempts": [],
+  "restart_native_matches": {
+    "1221": true,
+    "1222": true,
+    "1223": true,
+    "1224": true,
+    "1225": true,
+    "1226": true
+  },
+  "restart_report_matches": {
+    "5901cae7cc6949a1b46a332ae594cd56": true,
+    "6b4ebb60f72f4f16bef58a0bc42e58b2": true,
+    "ccae416bad0e4e6abb87ab870cc0bb74": true,
+    "f8edd78f43d84670b780630ac36b9fff": true
+  },
+  "restart_result_matches": {
+    "5901cae7cc6949a1b46a332ae594cd56": true,
+    "6b4ebb60f72f4f16bef58a0bc42e58b2": true,
+    "ccae416bad0e4e6abb87ab870cc0bb74": true,
+    "f8edd78f43d84670b780630ac36b9fff": true
+  },
+  "resumed_attempts": [
+    {
+      "idx": 1,
+      "seed": 1001
+    }
+  ],
+  "unexpected_thread_errors": 0
+}

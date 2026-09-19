@@ -1,0 +1,16 @@
+.............................................................            [100%]
+=============================== warnings summary ===============================
+runner/afa_runner/task.py:35
+  /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final-tests/runner/afa_runner/task.py:35: PytestCollectionWarning: cannot collect test class 'TestSuiteSpec' because it has a __init__ constructor (from: integrity/tests/test_controls.py)
+    @dataclass(frozen=True)
+
+runner/afa_runner/task.py:35
+  /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final-tests/runner/afa_runner/task.py:35: PytestCollectionWarning: cannot collect test class 'TestSuiteSpec' because it has a __init__ constructor (from: integrity/tests/test_hidden_import_closure.py)
+    @dataclass(frozen=True)
+
+runner/afa_runner/task.py:35
+  /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final-tests/runner/afa_runner/task.py:35: PytestCollectionWarning: cannot collect test class 'TestSuiteSpec' because it has a __init__ constructor (from: integrity/tests/test_protected_paths.py)
+    @dataclass(frozen=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+61 passed, 3 warnings in 184.72s (0:03:04)

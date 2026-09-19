@@ -1,0 +1,31 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+Loading evidence store…
+Overview/Agents/qwen3.5:9b/Tasks/sanitize-filename/Cell
+New evaluation
+Connecting
+Could not load this view
+
+refusing to pool multiple task versions: qwen3.5:9b/sanitize-filename: 1.0.1,1.0.2
+
+Try again
+Evidence window: —
+Patch capture: —
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

@@ -1,0 +1,74 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview/Reports
+New evaluation
+Local API ready
+TOOLS
+Reports
+
+Regenerate a server-owned snapshot or export the currently supported JSON projection.
+
+Trusted-local benchmark. Trusted local single-user tool; no sandbox-isolation guarantees.
+PERSISTED RUNS
+726
+report source
+AGENTS
+7
+real model identities
+TASKS
+24
+task pack
+LATEST EVIDENCE
+Sep 19, 6:07 AM
+database timestamp
+Report snapshot
+
+The report is generated from the current database and keeps mixed-version refusal behavior.
+
+earliest run
+Jun 18, 11:41 AM
+latest run
+Sep 19, 6:07 AM
+patch capture
+646/726
+test-result coverage
+645/726
+test-result rows
+8111
+
+This is a point-in-time artifact. The app view and the generated HTML should be treated as projections of the same local evidence source, not as new benchmark truth. Report generation time is not provided by the API.
+
+Regenerate
+
+Write the existing leaderboard HTML projection through the backend report flow.
+
+Regenerate report
+Export
+
+Only formats currently exposed by the API are shown here.
+
+Download JSON snapshot
+
+CSV and HTML download actions are not shown because the current API exposes JSON export only. Report regeneration remains available separately.
+
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

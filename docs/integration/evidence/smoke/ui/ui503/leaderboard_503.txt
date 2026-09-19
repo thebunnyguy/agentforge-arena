@@ -1,0 +1,62 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+Loading evidence store…
+Overview/Leaderboard
+New evaluation
+Connecting
+ANALYZE
+Leaderboard
+
+A serious benchmark surface: server-ordered ranks, pass rates, and the uncertainty that qualifies them.
+
+Advanced runs
+Read methodology
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+Scope
+
+Each scope is ranked by the benchmark kernel, with its uncertainty preserved.
+
+ Task scope
+All tasks · pooled
+All agents · pooled across tasks
+
+Rank ranges are preserved from the kernel. Overlapping intervals are evidence of limited separation, not a UI problem.
+
+Could not load this view
+
+refusing to pool multiple task versions: qwen3.5:9b/sanitize-filename: 1.0.1,1.0.2
+
+Try again
+The rank column is the kernel’s Wilson lower-bound ranking. The interval bar is not a progress bar: it shows the plausible range around the observed pass rate. Provisional rows remain visibly unranked.
+Domain capability matrix
+
+Server-returned domain profiles. Suppressed cells remain suppressed; they are not low scores.
+
+Agent metadata is still loading.
+
+Reference baselines
+
+Synthetic oracle/noop rows are benchmark bookends, not real competitors.
+
+No synthetic baselines reported by the API.
+
+Evidence window: —
+Patch capture: —
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

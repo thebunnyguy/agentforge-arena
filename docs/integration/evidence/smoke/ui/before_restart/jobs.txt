@@ -1,0 +1,54 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview
+New evaluation
+Local API ready
+EVALUATE
+Evaluations
+
+A history of local experiments. Running, canceled, failed, and reused work stays visible instead of disappearing into logs.
+
+New evaluation
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+Evaluation history
+
+1 shown · newest first from the API
+
+Refresh
+ Status
+All statuses
+Queued
+Running
+Succeeded
+Failed
+Canceled
+smoke-unseen-060701
+Succeeded
+Mock · 3 tasks × 2 repeats · Sep 19, 6:07 AM → Sep 19, 6:07 AM
+6 pass · 0 fail · 0 void
+6/6
+8.0 s
+Monitor
+Results
+Retry
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

@@ -1,0 +1,84 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+732 persisted runs · 24 tasks
+Overview/Evaluations/a41a102aedeb4405bbcce395440fe4ed/Results
+New evaluation
+Local API ready
+EVALUATION RESULTS
+smoke-unseen-060701
+
+3 tasks × 2 repeats · evaluation a41a102aed
+
+Monitor
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+STATUS
+Succeeded
+control-plane state
+COMPLETED
+6/6
+job counters
+PASSED
+0
+fresh functional passes
+VOIDED / REUSED
+0 / 6
+voided excluded · reused retained
+Results handoff
+
+The task/repeat tape below is scoped to this evaluation. Global cell aggregates are separate API projections and may require an API reload after a newly completed job.
+
+Open agent profile
+Open leaderboard
+Task and repeat outcomes
+
+Only persisted or reused evidence gets a forensic run link. Pending, running, unknown, and task-level errors remain unlinked.
+
+sanitize-filename
+↺
+↺
+toposort
+↺
+↺
+validate-redirect-url
+↺
+↺
+Global task aggregates
+
+These are global task cells shown separately from this evaluation.
+
+TASK	GLOBAL PASS RATE	WILSON INTERVAL	VALID N	
+sanitize-filename	100.0%	
+100.0%
+[51%–100%]
+	4	Open global cell
+
+toposort	100.0%	
+100.0%
+[51%–100%]
+	4	Open global cell
+
+validate-redirect-url	100.0%	
+100.0%
+[51%–100%]
+	4	Open global cell
+Job-scoped run URLs resolve through the stored model/task/repeat identity. They do not create a separate database namespace; reused runs are labelled as reused evidence.
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:10 AM
+Patch capture: 652/732
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

@@ -1,0 +1,106 @@
+HEAD=2ee57c845420c541ed879999fbd394e8bd16b57d
+SHA_BEFORE=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+# AgentForge Benchmark Integrity — Pack Audit
+
+**Mode**: `full`  
+**Engine version**: `0.1.0` (schema `1.0.0`)  
+**Timestamp**: 2026-09-19T00:43:04.745025+00:00  
+**Duration**: 772797 ms  
+**Tasks audited**: 24
+
+## Status counts
+
+| Status | Count |
+|---|---|
+| HEALTHY | 15 |
+| NEEDS_REVIEW | 2 |
+| PROVISIONAL | 7 |
+
+## Per-task results
+
+| Task | Version | Status | Reason |
+|---|---|---|---|
+| `async-batched` | 1.0.2 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `async-first-success` | 1.0.2 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `async-gather-bounded` | 1.0.2 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `async-retry` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `async-timeout` | 1.0.1 | HEALTHY | All checks passed with no outstanding findings. |
+| `escape-html` | 1.0.1 | HEALTHY | All checks passed with no outstanding findings. |
+| `expression-evaluator` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `fix-binary-search` | 1.0.0 | HEALTHY | All checks passed with no outstanding findings. |
+| `fix-list-dedup` | 1.0.2 | NEEDS_REVIEW | mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by th... |
+| `fix-path-traversal` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `fix-roman-numerals` | 1.0.0 | HEALTHY | All checks passed with no outstanding findings. |
+| `grid-paths` | 1.0.1 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `implement-lru-cache` | 1.0.1 | HEALTHY | All checks passed with no outstanding findings. |
+| `mask-secrets` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `merge-intervals` | 1.0.2 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `paginator` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `query-builder` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `refactor-order-validation` | 1.0.3 | NEEDS_REVIEW | hidden_import_closure.gate7: The hidden/regression suites import 2 distinct reachable local files: ['orderkit/__init__.py', 'orderkit/pro... |
+| `result-type` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `sanitize-filename` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `top-k-frequent` | 1.0.3 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `toposort` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+| `two-sum-indices` | 1.0.1 | PROVISIONAL | controls.declared_controls: No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integri... |
+| `validate-redirect-url` | 1.0.2 | HEALTHY | All checks passed with no outstanding findings. |
+
+## Common findings across the pack
+
+- **[INFO] A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.** (`protected_paths.pytest_shadow_package_nested`)
+  Injecting 'listkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path — but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.
+
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/full-summary.json  (941915 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/full-summary.md  (4400 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-batched.json  (25707 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-first-success.json  (29959 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-gather-bounded.json  (28341 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-retry.json  (30118 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-timeout.json  (25437 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/escape-html.json  (27137 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/expression-evaluator.json  (86986 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-binary-search.json  (34014 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-list-dedup.json  (16669 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-path-traversal.json  (33038 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-roman-numerals.json  (38687 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/grid-paths.json  (29821 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/implement-lru-cache.json  (34468 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/mask-secrets.json  (29330 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/merge-intervals.json  (26830 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/paginator.json  (43291 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/query-builder.json  (38446 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/refactor-order-validation.json  (52466 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/result-type.json  (38996 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/sanitize-filename.json  (43624 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/top-k-frequent.json  (28605 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/toposort.json  (43632 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/two-sum-indices.json  (26030 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/validate-redirect-url.json  (50466 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-batched.md  (5847 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-first-success.md  (5860 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-gather-bounded.md  (5865 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-retry.md  (6482 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/async-timeout.md  (6467 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/escape-html.md  (6806 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/expression-evaluator.md  (6608 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-binary-search.md  (6622 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-list-dedup.md  (5974 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-path-traversal.md  (6600 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/fix-roman-numerals.md  (6130 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/grid-paths.md  (5847 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/implement-lru-cache.md  (6701 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/mask-secrets.md  (6609 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/merge-intervals.md  (5861 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/paginator.md  (6474 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/query-builder.md  (6463 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/refactor-order-validation.md  (6119 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/result-type.md  (6699 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/sanitize-filename.md  (6474 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/top-k-frequent.md  (5845 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/toposort.md  (6302 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/two-sum-indices.md  (5851 bytes)
+wrote /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/final_audit/tasks/validate-redirect-url.md  (6576 bytes)
+exit=1
+SHA_AFTER=42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced
+PYC_UNDER_TASKS=       0
+AUDIT_DONE

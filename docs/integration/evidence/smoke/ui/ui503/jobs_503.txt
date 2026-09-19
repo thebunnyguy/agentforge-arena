@@ -1,0 +1,81 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+Loading evidence store…
+Overview
+New evaluation
+Connecting
+EVALUATE
+Evaluations
+
+A history of local experiments. Running, canceled, failed, and reused work stays visible instead of disappearing into logs.
+
+New evaluation
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+Evaluation history
+
+4 shown · newest first from the API
+
+Refresh
+ Status
+All statuses
+Queued
+Running
+Succeeded
+Failed
+Canceled
+qwen3.5:9b
+Succeeded
+Mock · 1 task × 1 repeat · Sep 19, 6:11 AM → Sep 19, 6:11 AM
+1 pass · 0 fail · 0 void
+1/1
+2.0 s
+Monitor
+Results
+Retry
+smoke-unseen-060701
+Succeeded
+Mock · 3 tasks × 2 repeats · Sep 19, 6:10 AM → Sep 19, 6:10 AM
+0 pass · 0 fail · 0 void · 6 reused
+6/6
+0 ms
+Monitor
+Results
+Retry
+smoke-unseen-060701
+Succeeded
+Mock · 3 tasks × 2 repeats · Sep 19, 6:10 AM → Sep 19, 6:10 AM
+6 pass · 0 fail · 0 void
+6/6
+8.0 s
+Monitor
+Results
+Retry
+smoke-unseen-060701
+Succeeded
+Mock · 3 tasks × 2 repeats · Sep 19, 6:07 AM → Sep 19, 6:07 AM
+6 pass · 0 fail · 0 void
+6/6
+8.0 s
+Monitor
+Results
+Retry
+Evidence window: —
+Patch capture: —
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

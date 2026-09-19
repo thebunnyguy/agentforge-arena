@@ -1,0 +1,106 @@
+[
+  {
+    "name": "overview",
+    "path": "/",
+    "status": "ok",
+    "chars": 1787,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "leaderboard",
+    "path": "/leaderboard",
+    "status": "ok",
+    "chars": 2724,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "agents",
+    "path": "/agents",
+    "status": "ok",
+    "chars": 1251,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "tasks",
+    "path": "/tasks",
+    "status": "ok",
+    "chars": 2642,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "task_sanitize",
+    "path": "/task/sanitize-filename",
+    "status": "ok",
+    "chars": 1960,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "cell_new_model",
+    "path": "/cell/smoke-unseen-060701/sanitize-filename",
+    "status": "ok",
+    "chars": 2519,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "cell_historical_bumped",
+    "path": "/cell/qwen3.5%3A9b/sanitize-filename",
+    "status": "ok",
+    "chars": 2663,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "cell_historical_unbumped",
+    "path": "/cell/qwen3.5%3A9b/fix-binary-search",
+    "status": "ok",
+    "chars": 2665,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "jobs",
+    "path": "/jobs",
+    "status": "ok",
+    "chars": 1088,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "job_detail",
+    "path": "/jobs/2a9413656539405c854529bbcba230e2",
+    "status": "ok",
+    "chars": 1648,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "job_results",
+    "path": "/jobs/2a9413656539405c854529bbcba230e2/results",
+    "status": "ok",
+    "chars": 1882,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "run_from_job",
+    "path": "/jobs/2a9413656539405c854529bbcba230e2/runs/sanitize-filename/0",
+    "status": "ok",
+    "chars": 3234,
+    "consoleErrors": [],
+    "badResponses": []
+  },
+  {
+    "name": "reports",
+    "path": "/reports",
+    "status": "ok",
+    "chars": 1551,
+    "consoleErrors": [],
+    "badResponses": []
+  }
+]

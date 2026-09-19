@@ -1,0 +1,96 @@
+........................................................................ [ 12%]
+........................................................................ [ 25%]
+........................................................................ [ 38%]
+.........................F.........F.................................... [ 51%]
+........................................................................ [ 64%]
+........................................................................ [ 77%]
+........................................................................ [ 90%]
+..................................................                       [100%]
+=================================== FAILURES ===================================
+____________________ test_reference_overlay_scores_perfect _____________________
+
+tmp_path = PosixPath('/private/var/folders/x6/kcf4xgvx5md_c7f713m743th0000gn/T/pytest-of-manuk/pytest-222/test_reference_overlay_scores_0')
+
+    def test_reference_overlay_scores_perfect(tmp_path):
+        task = load_task(TASK_DIR)
+        sandbox = LocalSandbox()
+    
+        diff = _build_diff(task, _apply_reference(task), tmp_path)
+        report = grade(task, diff, sandbox)
+    
+        # Every suite passes in the clean room.
+        assert report.hidden.all_passed is True
+        assert report.hidden.errored is False
+        assert report.regression.all_passed is True
+    
+        gates = report.run_input.gates
+        assert gates.setup_ok is True
+        assert gates.diff_exists is True
+        assert gates.scope_ok is True
+        assert gates.regression_pass is True
+        assert gates.no_timeout is True
+        assert gates.product() == 1
+    
+        # Hidden results carried into the RunInput must be the actual graded tests.
+>       assert len(report.run_input.hidden) == 6
+E       AssertionError: assert 8 == 6
+E        +  where 8 = len((TestResult(name='test_preserves_first_occurrence_order_ints', passed=True, weight=1.5), TestResult(name='test_preserv... passed=True, weight=0.5), TestResult(name='test_element_appearing_three_or_more_times', passed=True, weight=0.5), ...))
+E        +    where (TestResult(name='test_preserves_first_occurrence_order_ints', passed=True, weight=1.5), TestResult(name='test_preserv... passed=True, weight=0.5), TestResult(name='test_element_appearing_three_or_more_times', passed=True, weight=0.5), ...) = RunInput(status=<RunStatus.VALID: 'valid'>, gates=Gates(setup_ok=True, diff_exists=True, scope_ok=True, regression_pas...w_errors=None, typecheck_ok=None, static_new_findings=None, security_new=None, lines_added=None, reference_lines=None)).hidden
+E        +      where RunInput(status=<RunStatus.VALID: 'valid'>, gates=Gates(setup_ok=True, diff_exists=True, scope_ok=True, regression_pas...w_errors=None, typecheck_ok=None, static_new_findings=None, security_new=None, lines_added=None, reference_lines=None)) = GradeReport(run_input=RunInput(status=<RunStatus.VALID: 'valid'>, gates=Gates(setup_ok=True, diff_exists=True, scope_o...ut=False, notes='regression: 2 tests, all_passed=True, errored=False; hidden: 8 tests, all_passed=True, errored=False').run_input
+
+runner/tests/test_grader.py:268: AssertionError
+__________________ test_grade_ignores_stale_snapshot_bytecode __________________
+
+tmp_path = PosixPath('/private/var/folders/x6/kcf4xgvx5md_c7f713m743th0000gn/T/pytest-of-manuk/pytest-222/test_grade_ignores_stale_snaps0')
+
+    def test_grade_ignores_stale_snapshot_bytecode(tmp_path):
+        """Compile the buggy snapshot dedup.py to a real timestamp-based .pyc inside
+        the snapshot's __pycache__, then grade the correct reference diff. grade()
+        strips bytecode and runs pytest with -B, so the CORRECT applied source must
+        be executed -> all hidden pass -> S=1.0, regardless of the stale .pyc."""
+        import py_compile
+    
+        task = load_task(TASK_DIR)
+        sandbox = LocalSandbox()
+    
+        pycache = task.snapshot_dir / "listkit" / "__pycache__"
+        pyc = py_compile.compile(
+            str(task.snapshot_dir / "listkit" / "dedup.py"), optimize=-1
+        )
+        try:
+            assert Path(pyc).is_file()  # a stale buggy .pyc now sits in the snapshot
+    
+            diff = _build_diff(task, _apply_reference(task), tmp_path)
+            report = grade(task, diff, sandbox)
+    
+            assert report.hidden.all_passed is True
+            assert report.hidden.errored is False
+>           assert len(report.run_input.hidden) == 6
+E           AssertionError: assert 8 == 6
+E            +  where 8 = len((TestResult(name='test_preserves_first_occurrence_order_ints', passed=True, weight=1.5), TestResult(name='test_preserv... passed=True, weight=0.5), TestResult(name='test_element_appearing_three_or_more_times', passed=True, weight=0.5), ...))
+E            +    where (TestResult(name='test_preserves_first_occurrence_order_ints', passed=True, weight=1.5), TestResult(name='test_preserv... passed=True, weight=0.5), TestResult(name='test_element_appearing_three_or_more_times', passed=True, weight=0.5), ...) = RunInput(status=<RunStatus.VALID: 'valid'>, gates=Gates(setup_ok=True, diff_exists=True, scope_ok=True, regression_pas...w_errors=None, typecheck_ok=None, static_new_findings=None, security_new=None, lines_added=None, reference_lines=None)).hidden
+E            +      where RunInput(status=<RunStatus.VALID: 'valid'>, gates=Gates(setup_ok=True, diff_exists=True, scope_ok=True, regression_pas...w_errors=None, typecheck_ok=None, static_new_findings=None, security_new=None, lines_added=None, reference_lines=None)) = GradeReport(run_input=RunInput(status=<RunStatus.VALID: 'valid'>, gates=Gates(setup_ok=True, diff_exists=True, scope_o...ut=False, notes='regression: 2 tests, all_passed=True, errored=False; hidden: 8 tests, all_passed=True, errored=False').run_input
+
+runner/tests/test_grader.py:489: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+runner/afa_runner/task.py:35
+  /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/integ-clean/runner/afa_runner/task.py:35: PytestCollectionWarning: cannot collect test class 'TestSuiteSpec' because it has a __init__ constructor (from: integrity/tests/test_controls.py)
+    @dataclass(frozen=True)
+
+runner/afa_runner/task.py:35
+  /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/integ-clean/runner/afa_runner/task.py:35: PytestCollectionWarning: cannot collect test class 'TestSuiteSpec' because it has a __init__ constructor (from: integrity/tests/test_hidden_import_closure.py)
+    @dataclass(frozen=True)
+
+runner/afa_runner/task.py:35
+  /private/tmp/claude-501/-Users-manuk-Downloads-projects-agentforge-arena/a4b308d1-f6d9-4aaf-a1ce-ef53d97bb3aa/scratchpad/integ-clean/runner/afa_runner/task.py:35: PytestCollectionWarning: cannot collect test class 'TestSuiteSpec' because it has a __init__ constructor (from: integrity/tests/test_protected_paths.py)
+    @dataclass(frozen=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED runner/tests/test_grader.py::test_reference_overlay_scores_perfect - A...
+FAILED runner/tests/test_grader.py::test_grade_ignores_stale_snapshot_bytecode
+2 failed, 552 passed, 4 warnings in 498.96s (0:08:18)

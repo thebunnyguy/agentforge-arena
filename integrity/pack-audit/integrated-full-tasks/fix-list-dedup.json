@@ -1,0 +1,375 @@
+{
+  "schema_version": "1.0.0",
+  "engine_version": "0.1.0",
+  "task_id": "fix-list-dedup",
+  "task_version": "1.0.2",
+  "mode": "full",
+  "status": "needs_review",
+  "reason": "mutation.generic_ast_mutants: No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
+  "created_at": "2026-09-19T00:43:04.749375+00:00",
+  "checks": [
+    {
+      "check_id": "reference.solution_validation",
+      "category": "reference",
+      "status": "pass",
+      "severity": "info",
+      "description": "Reference solution scores (1.0, True) identically across 5 repeated grades.",
+      "evidence": {
+        "repeats": [
+          {
+            "attempt": 0,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
+          },
+          {
+            "attempt": 1,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
+          },
+          {
+            "attempt": 2,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
+          },
+          {
+            "attempt": 3,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
+          },
+          {
+            "attempt": 4,
+            "final_score": 1.0,
+            "functional_pass": true,
+            "gate_product": 1,
+            "t_hidden": 1.0,
+            "n_hidden": 8,
+            "hidden_all_passed": true,
+            "regression_all_passed": true,
+            "fingerprint": "sha256:e94e0a8084c13068fa0221e985908e1997fb1ba9dd175e9e6328540551993633"
+          }
+        ],
+        "n_repeats": 5,
+        "deterministic": true,
+        "files_changed": 1,
+        "lines_added": 9,
+        "lines_removed": 5
+      },
+      "duration_ms": 8051
+    },
+    {
+      "check_id": "noop.unmodified_baseline",
+      "category": "negative_control",
+      "status": "pass",
+      "severity": "info",
+      "description": "The unmodified snapshot passes regression, fails the hidden suite (T_hidden=0.167), and scores 0.0 / functional_pass=False, as required.",
+      "evidence": {
+        "final_score": 0.0,
+        "functional_pass": false,
+        "t_hidden": 0.16666666666666666,
+        "regression_all_passed": true,
+        "regression_errored": false,
+        "hidden_all_passed": false,
+        "hidden_errored": false,
+        "n_hidden": 8,
+        "diff_exists_gate": false
+      },
+      "duration_ms": 1577
+    },
+    {
+      "check_id": "hidden_import_closure.gate7",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "At most one distinct local file (['listkit/__init__.py']) is reachable by a diff without failing the scope gate and imported by the hidden/regression suites \u2014 unambiguously the code under test, not a separate oracle-helper module.",
+      "evidence": {
+        "mode": "allow_list",
+        "editable_paths": [
+          "listkit/**"
+        ],
+        "resolved_local_imports": {
+          "listkit": "listkit/__init__.py"
+        },
+        "reachable_local_imports": {
+          "listkit": "listkit/__init__.py"
+        },
+        "distinct_reachable_files": [
+          "listkit/__init__.py"
+        ],
+        "dynamic_or_star_import_seen": false,
+        "unresolved_relative_imports": [],
+        "unreadable_suite_files": []
+      },
+      "duration_ms": 1
+    },
+    {
+      "check_id": "protected_paths.tampering_probes",
+      "category": "isolation",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 12 protected-path/allow-list probes correctly flagged a scope violation. A `_pytest/` package nested inside the editable subtree is also not flagged, but empirical testing confirms it is NOT exploitable under this task's current editable_paths allow-list \u2014 see findings.",
+      "evidence": {
+        "checked": [
+          "glob:tests_visible/**->tests_visible/__afa_probe__.py",
+          "glob:**/test_*.py->test_afa_probe.py",
+          "always_protected:listkit/conftest.py",
+          "always_protected:listkit/sitecustomize.py",
+          "always_protected:listkit/usercustomize.py",
+          "always_protected:listkit/pytest.ini",
+          "always_protected:listkit/tox.ini",
+          "always_protected:listkit/setup.cfg",
+          "always_protected:listkit/pyproject.toml",
+          "always_protected:listkit/pytest.py",
+          "always_protected_suffix:listkit/afa_probe.pth",
+          "allowlist_outside:__afa_probe_outside_allowlist__.py",
+          "pytest_shadow_dir:listkit/_pytest/__init__.py"
+        ],
+        "skipped_globs": [],
+        "failures": [],
+        "pytest_shadow_package_gap_confirmed": true,
+        "pytest_shadow_package_exploitable_today": false
+      },
+      "duration_ms": 137
+    },
+    {
+      "check_id": "controls.declared_controls",
+      "category": "controls",
+      "status": "skipped",
+      "severity": "medium",
+      "description": "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/). The engine has no task-specific evidence beyond the reference/no-op checks.",
+      "evidence": {
+        "n_controls": 0
+      },
+      "duration_ms": 0
+    },
+    {
+      "check_id": "mutation.generic_ast_mutants",
+      "category": "mutation",
+      "status": "warning",
+      "severity": "medium",
+      "description": "No relevant mutants were generated (all candidates were unsupported, declared-equivalent, intercepted by the regression/scope gate before reaching the hidden suite, or no editable file had any mutable construct). Mutation adequacy could not be assessed this run.",
+      "evidence": {
+        "mutants_generated": 6,
+        "mutants_unsupported": 0,
+        "mutants_declared_equivalent": 0,
+        "mutants_intercepted_by_regression_or_scope": 6,
+        "mutants_relevant": 0,
+        "killed_total": 0,
+        "killed_by_hidden_test": 0,
+        "killed_by_timeout_or_error": 0,
+        "survived_count": 0,
+        "survived": [],
+        "kill_rate": null,
+        "notes": []
+      },
+      "duration_ms": 11224
+    },
+    {
+      "check_id": "determinism.repeated_grading",
+      "category": "determinism",
+      "status": "pass",
+      "severity": "info",
+      "description": "All 1 sampled artifact(s) graded identically across their repeats.",
+      "evidence": {
+        "samples": [
+          {
+            "label": "noop",
+            "n_repeats": 3,
+            "deterministic": true,
+            "n_distinct_outcomes": 1,
+            "outcomes": [
+              {
+                "attempt": 0,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:da764868ffadd98d42038ad195e78edce45b7271220ba77a895252ad5d449f9c"
+              },
+              {
+                "attempt": 1,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:da764868ffadd98d42038ad195e78edce45b7271220ba77a895252ad5d449f9c"
+              },
+              {
+                "attempt": 2,
+                "final_score": 0.0,
+                "functional_pass": false,
+                "fingerprint": "sha256:da764868ffadd98d42038ad195e78edce45b7271220ba77a895252ad5d449f9c"
+              }
+            ]
+          }
+        ]
+      },
+      "duration_ms": 4601
+    },
+    {
+      "check_id": "isolation.hidden_test_readability",
+      "category": "isolation_limitation",
+      "status": "unverifiable",
+      "severity": "high",
+      "description": "CONFIRMED: code under grading can read the hidden test source during the hidden-suite run (the probe successfully detected and read the hidden test file from its own cwd). This is a known, deliberate limitation of the current trusted-local LocalSandbox threat model, not a defect in this task specifically \u2014 real untrusted-agent isolation (e.g. a network-disabled, filesystem-scoped DockerSandbox) is out of scope for this engine (mission \u00a714/\u00a725) and is tracked as a repo-wide 'deliberately still open' item.",
+      "evidence": {
+        "probe_package_init": "listkit/__init__.py",
+        "hidden_test_filenames_probed": [
+          "test_hidden.py"
+        ],
+        "marker_observed_in_hidden_suite_notes": true,
+        "marker_observed_in_regression_suite_notes": false,
+        "regression_all_passed": true,
+        "static_evidence": "afa_runner/afa_runner/grader.py materializes the hidden suite into the cleanroom root via _materialize_grading_suite BEFORE running it (grade(), step 4b), in the same directory the submission's own code executes from."
+      },
+      "duration_ms": 2677
+    }
+  ],
+  "mutations": [
+    {
+      "mutation_id": "listkit/dedup.py:7:4:delete_state_update",
+      "file": "listkit/dedup.py",
+      "lineno": 7,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: seen = set() (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:7730a394bebc476e5652096a322c2bf09b2f601ca6936b930c22ed29eba835d4",
+      "notes": ""
+    },
+    {
+      "mutation_id": "listkit/dedup.py:8:4:delete_state_update",
+      "file": "listkit/dedup.py",
+      "lineno": 8,
+      "col_offset": 4,
+      "family": "delete_state_update",
+      "description": "delete_state_update: out = [] (assignment/state-update statement deleted (replaced with pass))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:aff9a846cbf3ad45112131303e16cc05220564c97d62472b5ff7287738bb12a5",
+      "notes": ""
+    },
+    {
+      "mutation_id": "listkit/dedup.py:10:8:remove_branch_force_false",
+      "file": "listkit/dedup.py",
+      "lineno": 10,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_false: if x not in seen:\n            seen.add(x)\n            out.append(x) (if-condition forced to False (branch never taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:838c0113fdd93efc5cff9088ab1d8b2346e8113957fae25b2b018377c3cb794f",
+      "notes": ""
+    },
+    {
+      "mutation_id": "listkit/dedup.py:10:8:remove_branch_force_true",
+      "file": "listkit/dedup.py",
+      "lineno": 10,
+      "col_offset": 8,
+      "family": "remove_branch",
+      "description": "remove_branch_force_true: if x not in seen:\n            seen.add(x)\n            out.append(x) (if-condition forced to True (branch always taken))",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:d54f652fdda8a80d1522135b35a3b56509921e8c45f9e651199bef9d168ff32e",
+      "notes": ""
+    },
+    {
+      "mutation_id": "listkit/dedup.py:10:11:invert_comparison",
+      "file": "listkit/dedup.py",
+      "lineno": 10,
+      "col_offset": 11,
+      "family": "invert_comparison",
+      "description": "invert_comparison: x not in seen (NotIn -> In)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:b9a5c4d01ba03b7c42abc77bba76247ef51cfa63cfd974c9beda910700788414",
+      "notes": ""
+    },
+    {
+      "mutation_id": "listkit/dedup.py:13:4:return_constant",
+      "file": "listkit/dedup.py",
+      "lineno": 13,
+      "col_offset": 4,
+      "family": "return_constant",
+      "description": "return_constant: return out (return <expr> -> return None)",
+      "verdict": "rejected_by_regression_gate",
+      "final_score": 0.0,
+      "functional_pass": false,
+      "killed_by_tests": [],
+      "declared_equivalent": false,
+      "diff_hash": "sha256:436a5632ffd832afe042eccbc92cd330f719ab5896482c164a8d22cbd045ab0f",
+      "notes": ""
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "finding_id": "protected_paths.pytest_shadow_package_nested",
+      "category": "isolation",
+      "severity": "info",
+      "summary": "A `_pytest/` package nested inside this task's editable subtree is not flagged as a protected-path violation, but empirical testing confirms this is NOT currently exploitable.",
+      "detail": "Injecting 'listkit/_pytest/__init__.py' (nested inside the editable package, not at the snapshot root) was NOT flagged as touching a protected path \u2014 but `python -m pytest` never adds the editable package directory itself to sys.path, so this nested `_pytest/` is only importable as `<package>._pytest`, never as the bare top-level `_pytest` the real pytest package needs; a controlled test confirms `import _pytest` still resolves to the real site-packages module. Recorded as a structural gap (no basename/suffix rule catches a directory named `_pytest`) that would only matter if this task ever lost its editable_paths allow-list, not as a live weakness today. See docs/agents/ORACLE.md.",
+      "evidence": {
+        "probe_path": "listkit/_pytest/__init__.py",
+        "touched_protected": false,
+        "exploitable_today": false
+      }
+    }
+  ],
+  "limitations": [
+    "Grading executes submitted/mutated code via LocalSandbox, which provides per-run workspace isolation and timeouts but NOT untrusted-agent security isolation (runner/afa_runner/sandbox.py's own module docstring). Every check in this report assumes the code being graded is trying to game the SCORE, not attack the HOST \u2014 see isolation.hidden_test_readability for a concrete, always-present consequence of that assumption.",
+    "No known-bad solutions, semantic mutants, or alternative solutions declared for this task (tasks/<id>/integrity/controls/) \u2014 absence of evidence here, not evidence of absence.",
+    "Hidden-test readability during grading could not be ruled out (see the isolation.hidden_test_readability check) \u2014 this finding is deliberately excluded from the status precedence (afa_integrity.health) because it is a constant, documented property of the current LocalSandbox threat model, not something this specific task can fix.",
+    "Mutation equivalence is undecidable in general; a surviving mutant is reported as-is unless explicitly declared equivalent in tasks/<id>/integrity/integrity.json. A mutation kill rate is never treated as a correctness probability (mission \u00a716)."
+  ],
+  "provenance": {
+    "task_id": "fix-list-dedup",
+    "task_version": "1.0.2",
+    "task_json_hash": "sha256:c5b8344467d5ef86bd6da5d505ce96e407502cff4827fcd3ab13aa2a63850a49",
+    "snapshot_hash": "sha256:bc096636c1ab273604c142e71f78abb349a3a564d4ad30df425b54d7bde37efa",
+    "reference_hash": "sha256:4e1907024a54fdd10ed7dbd65e9e03def5ad7afcfc75781c626382479aa8e617",
+    "grading_hash": "sha256:55b532ba25b7036204296912f6bc46d350271d617dcded9a4f32f186853854c7",
+    "controls_hash": null,
+    "engine_version": "0.1.0",
+    "afa_kernel_version": "0.1.0",
+    "afa_runner_version": "0.2.0",
+    "python_version": "3.13.2",
+    "platform": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "duration_ms": 28302
+}

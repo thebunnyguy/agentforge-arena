@@ -1,0 +1,98 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview/Evaluations/2a9413656539405c854529bbcba230e2
+New evaluation
+Local API ready
+EVALUATION MONITOR
+smoke-unseen-060701
+
+Mock · 3 tasks × 2 repeats · created Sep 19, 6:07 AM
+
+Retry as new evaluation
+View results
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+Evidence tape closed
+Evaluation complete
+6 / 6 runs · 6 passed · 0 failed · 0 voided
+100%
+Succeeded
+PASSED
+6
+functional pass
+FAILED
+0
+valid failures
+VOIDED
+0
+infra · excluded from n
+REUSED
+0
+existing evidence reused
+Task progress
+
+Each marker is one task/repeat unit. Reused work is not counted as a fresh pass.
+
+sanitize-filename
+✓
+✓
+toposort
+✓
+✓
+validate-redirect-url
+✓
+✓
+✓
+pass
+×
+fail
+◇
+voided
+●
+running
+?
+recorded · unknown
+–
+not run
+?
+not recorded
+↺
+reused
+Current run
+
+Worker event granularity is intentionally shown as coarse.
+
+No run is active
+The raw evidence tape below remains available for inspection.
+Evaluation record
+evaluation ID
+2a9413656539405c854529bbcba230e2
+created
+Sep 19, 6:07 AM
+started
+Sep 19, 6:07 AM
+finished
+Sep 19, 6:07 AM
+duration
+8.0 s
+ Advanced event evidence · 38 events · last sequence 38
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

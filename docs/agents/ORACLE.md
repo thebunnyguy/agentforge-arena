@@ -799,3 +799,12 @@ Re-evaluation is still required to make any *current* claim (the grading
 instrument changed), but this is an honest, evidence-checked distinction
 between "the gap is real" and "we know a specific stored score is wrong" —
 not an assumption in either direction.
+
+
+## Integration erratum (2026-09-19): a stale test pin on the frozen ORACLE branch
+
+While integrating ORACLE with ATLAS (see `docs/integration/PHASE0_INTEGRATION_REPORT.md`) the **complete repository suite** was run for the first time since the mission-2 remediation, and it showed two failures that pre-date the merge: `runner/tests/test_grader.py::test_reference_overlay_scores_perfect` and `::test_grade_ignores_stale_snapshot_bytecode` pinned `len(report.run_input.hidden) == 6` for `fix-list-dedup`. Remediation commit `e2e4513` legitimately added two hidden tests to that task (6 -> 8) but did not update the pin, so the frozen `oracle@d0efbc4` fails the full suite. The integrity suite and the pack audits were green; the mission-2 verification did not re-run `runner/tests` after the hidden-suite change.
+
+Attribution was checked, not assumed: the two tests fail on the ORACLE-only tree and pass on the frozen ATLAS branch, so this is an ORACLE-side defect, not an integration effect. The integration branch fixes it (`1142d39`) by asserting that the graded test **names** equal the test functions the hidden suite defines (read from its source) instead of pinning a count; that is stricter than the count and stays valid the next time the oracle is hardened.
+
+Lesson: after any hidden-suite change, run the whole repository suite, not only the integrity suite.

@@ -1,0 +1,128 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview/Tasks
+New evaluation
+Local API ready
+ANALYZE
+Tasks
+
+The benchmark pack is the experimental surface. Versions and domains stay visible so comparisons have context.
+
+Trusted-local benchmark. Trusted local single-user tool; no sandbox-isolation guarantees.
+Task pack
+
+24 of 24 tasks shown.
+
+All domains
+api-design
+async-concurrency
+backend
+performance
+security
+TASK	ACTIVITY	DIFFICULTY	SCALE	DOMAINS	VERSION	
+escape-html	debugging-bugfix	2	S	
+security · 1
+backend · 0.5
+	1.0.1	Open
+fix-binary-search	debugging-bugfix	2	XS	
+backend · 1
+	1.0.0	Open
+fix-list-dedup	debugging-bugfix	2	XS	
+backend · 1
+	1.0.2	Open
+async-retry	feature-implementation	3	S	
+async-concurrency · 1
+backend · 0.5
+	1.0.2	Open
+async-timeout	feature-implementation	3	S	
+async-concurrency · 1
+	1.0.1	Open
+fix-roman-numerals	debugging-bugfix	3	S	
+backend · 1
+	1.0.0	Open
+implement-lru-cache	feature-implementation	3	S	
+backend · 1
+api-design · 0.5
+	1.0.1	Open
+mask-secrets	feature-implementation	3	S	
+security · 1
+	1.0.2	Open
+merge-intervals	feature-implementation	3	S	
+backend · 1
+performance · 0.5
+	1.0.2	Open
+paginator	feature-implementation	3	S	
+api-design · 1
+	1.0.2	Open
+result-type	feature-implementation	3	S	
+api-design · 1
+backend · 0.5
+	1.0.2	Open
+sanitize-filename	debugging-bugfix	3	S	
+security · 1
+backend · 0.5
+	1.0.2	Open
+async-batched	feature-implementation	4	M	
+async-concurrency · 1
+performance · 0.5
+	1.0.2	Open
+async-first-success	feature-implementation	4	M	
+async-concurrency · 1
+	1.0.2	Open
+async-gather-bounded	feature-implementation	4	M	
+async-concurrency · 1
+backend · 0.5
+	1.0.2	Open
+fix-path-traversal	debugging-bugfix	4	S	
+security · 1
+backend · 0.5
+	1.0.2	Open
+grid-paths	feature-implementation	4	M	
+performance · 1
+	1.0.1	Open
+query-builder	feature-implementation	4	M	
+api-design · 1
+backend · 0.5
+	1.0.2	Open
+refactor-order-validation	refactoring	4	M	
+backend · 1
+api-design · 0.5
+	1.0.3	Open
+top-k-frequent	feature-implementation	4	M	
+performance · 1
+backend · 0.5
+	1.0.3	Open
+toposort	feature-implementation	4	M	
+backend · 1
+	1.0.2	Open
+two-sum-indices	feature-implementation	4	M	
+performance · 1
+backend · 0.5
+	1.0.1	Open
+validate-redirect-url	debugging-bugfix	4	S	
+security · 1
+	1.0.2	Open
+expression-evaluator	feature-implementation	5	M	
+backend · 1
+	1.0.2	Open
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation

@@ -1,0 +1,193 @@
+{
+ "categories": {
+  "runtime DB / canonical DB / projections": {
+   "src": "ATLAS",
+   "files": 5,
+   "add": 523,
+   "del": 198,
+   "examples": [
+    "afa_api/db.py",
+    "afa_api/main.py"
+   ]
+  },
+  "evaluation reporting / forensics / serialization": {
+   "src": "ATLAS",
+   "files": 4,
+   "add": 708,
+   "del": 164,
+   "examples": [
+    "afa_api/evaluation_report.py",
+    "afa_api/routes_readonly.py"
+   ]
+  },
+  "evaluation lifecycle + identity + recovery": {
+   "src": "ATLAS",
+   "files": 4,
+   "add": 1395,
+   "del": 406,
+   "examples": [
+    "afa_api/jobs.py",
+    "afa_api/routes_jobs.py"
+   ]
+  },
+  "ATLAS tests": {
+   "src": "ATLAS",
+   "files": 11,
+   "add": 4486,
+   "del": 22,
+   "examples": [
+    "afa_api/tests/test_jobs.py",
+    "runner/tests/test_agents_openai.py"
+   ]
+  },
+  "documentation": {
+   "src": "ORACLE",
+   "files": 3,
+   "add": 1078,
+   "del": 0,
+   "examples": [
+    "docs/AUDIT_EVIDENCE_POLICY.md",
+    "docs/BENCHMARK_INTEGRITY.md"
+   ]
+  },
+  "integration-specific: pre-integration baseline + evidence": {
+   "src": "INTEGRATION",
+   "files": 15,
+   "add": 1543,
+   "del": 0,
+   "examples": [
+    "docs/integration/ATLAS_PRE_INTEGRATION_BASELINE.md",
+    "docs/integration/atlas-baseline-evidence/subsystem-audits.md"
+   ]
+  },
+  "benchmark integrity engine: core + checks": {
+   "src": "ORACLE",
+   "files": 19,
+   "add": 2685,
+   "del": 0,
+   "examples": [
+    "integrity/afa_integrity/__init__.py",
+    "integrity/afa_integrity/__main__.py"
+   ]
+  },
+  "benchmark integrity engine: mutation testing": {
+   "src": "ORACLE",
+   "files": 3,
+   "add": 706,
+   "del": 0,
+   "examples": [
+    "integrity/afa_integrity/mutation/__init__.py",
+    "integrity/afa_integrity/mutation/engine.py"
+   ]
+  },
+  "benchmark integrity engine: tests + fixtures": {
+   "src": "ORACLE",
+   "files": 66,
+   "add": 1372,
+   "del": 0,
+   "examples": [
+    "integrity/fixtures/broken_oracle/grading/test_hidden.py",
+    "integrity/fixtures/broken_oracle/grading/test_regression.py"
+   ]
+  },
+  "audit evidence + remediation/version-impact manifests": {
+   "src": "ORACLE",
+   "files": 44,
+   "add": 39722,
+   "del": 0,
+   "examples": [
+    "integrity/pack-audit/full-summary.json",
+    "integrity/pack-audit/full-summary.md"
+   ]
+  },
+  "runner: public exports": {
+   "src": "ORACLE",
+   "files": 1,
+   "add": 9,
+   "del": 1,
+   "examples": [
+    "runner/afa_runner/__init__.py"
+   ]
+  },
+  "runner: providers": {
+   "src": "ATLAS",
+   "files": 1,
+   "add": 10,
+   "del": 0,
+   "examples": [
+    "runner/afa_runner/agents_ollama.py"
+   ]
+  },
+  "runner: pipeline (ATLAS run_id + ORACLE overlay_diff)": {
+   "src": "BOTH",
+   "files": 1,
+   "add": 26,
+   "del": 10,
+   "examples": [
+    "runner/afa_runner/pipeline.py"
+   ]
+  },
+  "runner: raw persistence": {
+   "src": "ATLAS",
+   "files": 1,
+   "add": 102,
+   "del": 33,
+   "examples": [
+    "runner/afa_runner/store.py"
+   ]
+  },
+  "integration-specific: stale-literal test fix": {
+   "src": "INTEGRATION(ORACLE defect)",
+   "files": 1,
+   "add": 16,
+   "del": 2,
+   "examples": [
+    "runner/tests/test_grader.py"
+   ]
+  },
+  "benchmark controls (known-bad / mutants / alternatives / equivalence)": {
+   "src": "ORACLE",
+   "files": 157,
+   "add": 3154,
+   "del": 0,
+   "examples": [
+    "tasks/async-batched/integrity/integrity.json",
+    "tasks/async-gather-bounded/integrity/integrity.json"
+   ]
+  },
+  "hidden + regression tests (remediated grading)": {
+   "src": "ORACLE",
+   "files": 19,
+   "add": 667,
+   "del": 15,
+   "examples": [
+    "tasks/async-first-success/grading/test_hidden.py",
+    "tasks/async-gather-bounded/grading/test_hidden.py"
+   ]
+  },
+  "task versions + contract clarifications (task.json)": {
+   "src": "ORACLE",
+   "files": 18,
+   "add": 35,
+   "del": 26,
+   "examples": [
+    "tasks/async-first-success/task.json",
+    "tasks/async-gather-bounded/task.json"
+   ]
+  },
+  "integration-specific: cross-system tests": {
+   "src": "INTEGRATION",
+   "files": 1,
+   "add": 646,
+   "del": 0,
+   "examples": [
+    "tests/test_integration_oracle_atlas.py"
+   ]
+  }
+ },
+ "unclassified": [
+  "examples/benchmark_audit.py",
+  "pyproject.toml",
+  "runner/afa_runner/diffing.py"
+ ]
+}

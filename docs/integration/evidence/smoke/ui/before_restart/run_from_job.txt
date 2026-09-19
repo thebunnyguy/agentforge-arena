@@ -1,0 +1,117 @@
+Skip to content
+A
+AgentForge Arena
+local evaluation workstation
+HOME
+Overview
+EVALUATE
+New evaluation
+Evaluations
+ANALYZE
+Leaderboard
+Agents
+Tasks
+TOOLS
+Reports
+Settings
+Methodology
+Trusted local
+726 persisted runs · 24 tasks
+Overview/Evaluations/2a9413656539405c854529bbcba230e2/sanitize-filename/Run #0
+New evaluation
+Local API ready
+RUN FORENSICS
+Run #0
+
+smoke-unseen-060701 · sanitize-filename · task version 1.0.2
+
+← Back to evaluation
+Trusted-local benchmark. Single-user local tool. Agent code runs with host privileges via LocalSandbox; there is no untrusted-agent isolation or security boundary. Numbers come from the frozen scoring kernel and are rendered as returned.
+FUNCTIONAL OUTCOME
+PASS
+Evidence state: 
+captured
+VALID
+1.000
+PASS
+G
+G = 1
+gate product
+T_HIDDEN
+1.000
+hidden test fraction
+Q
+1.000
+components unavailable
+S
+1.000
+final score
+Score reading
+
+Persisted score primitives and the evidence available for this run.
+
+S = G · T_hidden · (0.85 + 0.15 · Q) = 1.000
+G = 1. The stored gate product is available; per-gate booleans are not persisted in v0.1.
+Q components are unavailable in persisted v0.1 records; do not treat the absence as a failed quality check.
+Patch
+Tests
+Metadata
+Patch
+
+Unified diff capture is shown exactly when the API marks it available.
+
+unified diff
+captured artifact
+--- a/safename/name.py
++++ b/safename/name.py
+@@ -1,9 +1,9 @@
+ def safe_name(name):
+-    """Return ``name`` if it is a safe single-component filename.
++    """Return ``name`` if it is a safe single-component filename, else raise.
+ 
+     A safe filename is a single path component that cannot be used to escape a
+-    target directory or smuggle a null byte. ``safe_name`` must raise
+-    ``ValueError`` when ``name``:
++    target directory or smuggle a null byte. ``safe_name`` raises ``ValueError``
++    when ``name``:
+ 
+     * is empty,
+     * is exactly ``"."`` or ``".."``,
+@@ -11,9 +11,19 @@
+     * contains a null byte (``"\\x00"``), or
+     * contains any ``".."`` path component.
+ 
+-    Otherwise the original ``name`` is returned unchanged.
+-
+-    BUG: this implementation performs no validation and simply returns ``name``
+-    unchanged, so ``"../etc/passwd"`` and other unsafe names slip through.
++    Otherwise the original ``name`` is returned unchanged. The checks use pure
++    string logic only (no real filesystem access).
+     """
++    if not name:
++        raise ValueError("filename must not be empty")
++    if "\x00" in name:
++        raise ValueError("filename must not contain a null byte")
++    if "/" in name or "\\" in name:
++        raise ValueError("filename must not contain a path separator: %r" % (name,))
++    if name in (".", ".."):
++        raise ValueError("filename must not be a relative directory ref: %r" % (name,))
++    # Reject any ".." component split on either separator.
++    components = name.replace("\\", "/").split("/")
++    if ".." in components:
++        raise ValueError("filename must not contain a '..' component: %r" % (name,))
+     return name
+
+
+FILES CHANGED
+1
+LINES ADDED
+17
+LINES REMOVED
+7
+PROTECTED PATHS
+not touched
+Evidence window: Jun 18, 11:41 AM → Sep 19, 6:07 AM
+Patch capture: 646/726
+API http://127.0.0.1:8765
+Trusted local · no untrusted-agent isolation
