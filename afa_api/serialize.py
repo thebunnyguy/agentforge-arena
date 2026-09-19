@@ -195,6 +195,7 @@ def _excluded_dict(stores: LoadedStores) -> dict[str, Any]:
         "synthetic_runs": stores.excluded.get("synthetic_runs", 0),
         "synthetic_models": list(stores.excluded.get("synthetic_models", [])),
         "provenance_conflict_runs": stores.excluded.get("provenance_conflict_runs", 0),
+        "unaccounted_runs": stores.excluded.get("unaccounted_runs", 0),
     }
 
 
@@ -370,6 +371,9 @@ def _cell_run_dict(r: LoadedRun) -> dict[str, Any]:
         "score": _run_score_dict(rec.score),
         "backend_kind": r.provenance.backend_kind,
         "evidence_class": r.provenance.evidence_class,
+        # which evaluation produced it (None for legacy rows): independent
+        # evaluations of one model pool into a cell, so make them separable
+        "job_id": r.provenance.job_id,
     }
 
 
@@ -478,7 +482,17 @@ def _runs_has_job_id(ro: sqlite3.Connection) -> bool:
     )
 
 
-def _run_raw_sql(*, by_id: bool, has_job_id: bool) -> str:
+def _run_scores_has_formula(ro: sqlite3.Connection) -> bool:
+    return any(
+        row["name"] == "formula_version"
+        for row in ro.execute("PRAGMA table_info(run_scores)").fetchall()
+    )
+
+
+def _run_raw_sql(*, by_id: bool, has_job_id: bool, has_formula: bool = True) -> str:
+    formula = (
+        f"AND s.formula_version = '{evidence.SCORE_FORMULA_VERSION}' " if has_formula else ""
+    )
     job_column = "r.job_id" if has_job_id else "NULL AS job_id"
     where = (
         "WHERE r.id = ?"
@@ -492,7 +506,7 @@ def _run_raw_sql(*, by_id: bool, has_job_id: bool) -> str:
         "d.files_changed, d.lines_added, d.lines_removed, d.touched_protected, d.patch_text, "
         f"{job_column} "
         "FROM runs r "
-        "JOIN run_scores s ON s.run_id = r.id "
+        f"JOIN run_scores s ON s.run_id = r.id {formula}"
         "JOIN diffs d ON d.run_id = r.id "
         f"{where} "
         "ORDER BY r.id"
@@ -554,7 +568,10 @@ def build_run(
     current_version = stores.current_versions.get(task_id)
     selected = version if version is not None else current_version
     all_rows = ro.execute(
-        _run_raw_sql(by_id=False, has_job_id=_runs_has_job_id(ro)),
+        _run_raw_sql(
+            by_id=False, has_job_id=_runs_has_job_id(ro),
+            has_formula=_run_scores_has_formula(ro),
+        ),
         (agent, task_id, idx),
     ).fetchall()
     provenance = evidence.read_provenance(ro, [row["id"] for row in all_rows])
@@ -681,7 +698,10 @@ def _current_version_of(task_id: str) -> str | None:
 def build_run_by_id(ro: sqlite3.Connection, run_id: int) -> dict[str, Any]:
     """Exact immutable forensic lookup, independent of aggregate projection."""
     row = ro.execute(
-        _run_raw_sql(by_id=True, has_job_id=_runs_has_job_id(ro)),
+        _run_raw_sql(
+            by_id=True, has_job_id=_runs_has_job_id(ro),
+            has_formula=_run_scores_has_formula(ro),
+        ),
         (run_id,),
     ).fetchone()
     if row is None:

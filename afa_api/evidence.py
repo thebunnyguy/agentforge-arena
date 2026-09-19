@@ -8,12 +8,17 @@ mistaken for genuine model evidence:
   synthetic  recorded provider is mock (dev / test / canary evidence)
   legacy     provider unknown (rows written before provenance existed; the 720
              committed historical rows). NOT assumed to be any provider.
-  conflict   the run's own provider disagrees with its evaluation snapshot's
-             provider (or is not a known kind): an integrity error, never
-             resolved silently
+  conflict   provenance cannot be ESTABLISHED consistently: the run's own provider
+             disagrees with its evaluation's, is not a known kind, an app-created
+             run (it has a job_id) has no attestable provider at all, or it was
+             persisted under a name reserved for a synthetic baseline. An
+             integrity problem, never resolved silently and never benchmark
+             evidence.
 
 Resolution order for one run: its own ``runs.backend_kind``; else, if it belongs
-to an evaluation, that evaluation snapshot's ``backend.kind``; else ``legacy``.
+to an evaluation, that evaluation's recorded provider (its snapshot, or for
+evaluations created before snapshots existed its ``params_json``); else, for a
+run with NO evaluation at all, ``legacy``.
 
 An *evidence scope* names the classes that may enter an aggregate. The default
 ``benchmark`` scope excludes synthetic and conflicting evidence.
@@ -26,6 +31,17 @@ import sqlite3
 from dataclasses import dataclass
 
 BACKEND_KINDS = ("mock", "ollama", "openai_compat")
+
+# Names owned by the two synthetic reference baselines (mirrors
+# report_combined.ORACLE / NOOP; guarded by a test). A persisted run under one of
+# these names would blend into a bookend, so it is never real evidence.
+RESERVED_AGENT_NAMES = frozenset(
+    {"oracle (synthetic baseline)", "noop (synthetic baseline)"}
+)
+
+# Score formula every projection aggregates (mirrors runner.store.SCORE_FORMULA_VERSION;
+# run_scores rows of any other formula are ignored, never double-counted).
+SCORE_FORMULA_VERSION = "v0.1"
 
 CLASS_REAL = "real"
 CLASS_SYNTHETIC = "synthetic"
@@ -74,28 +90,46 @@ UNKNOWN_PROVENANCE = RunProvenance(
     evidence_class=CLASS_LEGACY,
 )
 
+# A run id the provenance map does not contain cannot be attested: it is never
+# assumed to be legacy (benchmark) evidence.
+UNATTESTED_PROVENANCE = RunProvenance(
+    run_id=-1, job_id=None, backend_kind=None, provider_source="none",
+    evidence_class=CLASS_CONFLICT,
+)
+
 
 def classify(
     run_id: int,
     job_id: str | None,
     run_backend: str | None,
     snapshot_backend: str | None,
+    params_backend: str | None = None,
 ) -> RunProvenance:
-    """Classify one run from its own provider value and its evaluation's."""
-    if run_backend is not None and run_backend not in BACKEND_KINDS:
+    """Classify one run from its own provider value and its evaluation's.
+
+    ``snapshot_backend`` / ``params_backend`` are the evaluation's recorded
+    provider (snapshot preferred; params_json for evaluations that predate
+    snapshots). Unknown kind strings are integrity conflicts, never exceptions.
+    """
+    if run_backend is not None and run_backend not in _CLASS_BY_KIND:
         return RunProvenance(run_id, job_id, None, "run", CLASS_CONFLICT)
-    if run_backend is not None and snapshot_backend is not None:
-        if run_backend != snapshot_backend:
-            return RunProvenance(run_id, job_id, run_backend, "run", CLASS_CONFLICT)
+    job_kind = snapshot_backend if snapshot_backend in _CLASS_BY_KIND else (
+        params_backend if params_backend in _CLASS_BY_KIND else None
+    )
+    if run_backend is not None and job_kind is not None and run_backend != job_kind:
+        return RunProvenance(run_id, job_id, run_backend, "run", CLASS_CONFLICT)
     if run_backend is not None:
         return RunProvenance(
             run_id, job_id, run_backend, "run", _CLASS_BY_KIND[run_backend]
         )
-    if snapshot_backend is not None:
+    if job_kind is not None:
         return RunProvenance(
-            run_id, job_id, snapshot_backend, "evaluation",
-            _CLASS_BY_KIND[snapshot_backend],
+            run_id, job_id, job_kind, "evaluation", _CLASS_BY_KIND[job_kind]
         )
+    if job_id is not None:
+        # An app-created run whose provider cannot be established at all (job row
+        # gone, corrupt snapshot, unknown kind): unattested, not legacy.
+        return RunProvenance(run_id, job_id, None, "none", CLASS_CONFLICT)
     return RunProvenance(run_id, job_id, None, "none", CLASS_LEGACY)
 
 
@@ -117,6 +151,21 @@ def snapshot_backend_kind(snapshot_json: str | None) -> str | None:
     if not isinstance(snapshot, dict):
         return None
     backend = snapshot.get("backend")
+    kind = backend.get("kind") if isinstance(backend, dict) else None
+    return kind if kind in BACKEND_KINDS else None
+
+
+def params_backend_kind(params_json: str | None) -> str | None:
+    """The backend kind an evaluation's persisted params recorded, or None."""
+    if not params_json:
+        return None
+    try:
+        params = json.loads(params_json)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(params, dict):
+        return None
+    backend = params.get("backend")
     kind = backend.get("kind") if isinstance(backend, dict) else None
     return kind if kind in BACKEND_KINDS else None
 
@@ -144,11 +193,18 @@ def read_provenance(
     rows = raw.execute(sql, params).fetchall()
 
     snapshot_kinds: dict[str, str | None] = {}
+    params_kinds: dict[str, str | None] = {}
     job_ids = {row["job_id"] for row in rows if row["job_id"] is not None}
-    if job_ids and {"id", "snapshot_json"} <= _columns(raw, "evaluation_jobs"):
-        for job in raw.execute("SELECT id, snapshot_json FROM evaluation_jobs"):
-            if job["id"] in job_ids:
-                snapshot_kinds[job["id"]] = snapshot_backend_kind(job["snapshot_json"])
+    job_cols = _columns(raw, "evaluation_jobs")
+    if job_ids and "id" in job_cols:
+        wanted = [c for c in ("snapshot_json", "params_json") if c in job_cols]
+        if wanted:
+            for job in raw.execute(f"SELECT id, {', '.join(wanted)} FROM evaluation_jobs"):
+                if job["id"] in job_ids:
+                    if "snapshot_json" in wanted:
+                        snapshot_kinds[job["id"]] = snapshot_backend_kind(job["snapshot_json"])
+                    if "params_json" in wanted:
+                        params_kinds[job["id"]] = params_backend_kind(job["params_json"])
 
     return {
         int(row["id"]): classify(
@@ -156,6 +212,7 @@ def read_provenance(
             row["job_id"],
             row["backend_kind"],
             snapshot_kinds.get(row["job_id"]),
+            params_kinds.get(row["job_id"]),
         )
         for row in rows
     }

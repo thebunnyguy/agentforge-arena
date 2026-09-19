@@ -150,11 +150,9 @@ def build_report(
         excluded_runs = 0
         try:
             disk = afa.SqliteRunStore.open_readonly(selected_db)
-            raw = app_db.connect_readonly(selected_db)
-            try:
-                provenance = evidence.read_provenance(raw)
-            finally:
-                raw.close()
+            # one read snapshot for provenance and runs (see afa_api.store_load)
+            disk.begin_read_snapshot()
+            provenance = evidence.read_provenance(disk.connection)
             observability = disk.summary()
             models: list[str] = []
             for agent in disk.agents():
@@ -162,7 +160,8 @@ def build_report(
                 scoped = [
                     record
                     for record in everything
-                    if provenance.get(record.run_id, evidence.UNKNOWN_PROVENANCE)
+                    if agent not in evidence.RESERVED_AGENT_NAMES
+                    and provenance.get(record.run_id, evidence.UNATTESTED_PROVENANCE)
                     .evidence_class in in_scope
                 ]
                 excluded_runs += len(everything) - len(scoped)
@@ -231,9 +230,15 @@ def build_report(
             if historical_runs
             else ""
         )
-        scope_notice = (
-            f" Evidence scope '{scope}': {excluded_runs} run(s) outside this scope "
-            "(for example mock/synthetic evaluations) are excluded."
+        scope_meaning = {
+            "benchmark": "real + legacy evidence; mock/synthetic evaluations excluded",
+            "real": "runs with a recorded real provider only",
+            "synthetic": "mock/synthetic evaluations only - NOT benchmark evidence",
+            "all": "every run including mock/synthetic and unverified provenance - "
+                   "NOT benchmark evidence",
+        }[scope]
+        scope_notice = f" Evidence scope '{scope}' ({scope_meaning})." + (
+            f" {excluded_runs} run(s) outside this scope are excluded."
             if excluded_runs
             else ""
         )

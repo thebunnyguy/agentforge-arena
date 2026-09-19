@@ -271,12 +271,13 @@ def _run_job_locked(
     if agent_factory is None:
         agent_factory = factory_for(params)
     declared_kind = getattr(agent_factory, "backend_kind", None)
-    # Undeclared (test) factories fall back to the requested kind. The evaluation
-    # snapshot keeps what was REQUESTED; the run keeps what actually ran; a
-    # disagreement is surfaced by the projections/reports, never resolved silently.
-    backend_kind = (
-        declared_kind if declared_kind in evidence.BACKEND_KINDS else params.backend.kind
-    )
+    # The run records what the factory DECLARES it drives, i.e. what actually ran.
+    # A factory that declares nothing (an injected test double) is not attested:
+    # the run then carries NO provider of its own (NULL) and its class is derived
+    # from the evaluation's REQUESTED backend, labelled provider_source
+    # "evaluation". The evaluation snapshot keeps what was requested; a declared
+    # kind that disagrees with it is surfaced as a conflict, never resolved silently.
+    backend_kind = declared_kind if declared_kind in evidence.BACKEND_KINDS else None
 
     # The borrowed connection is essential: save_run(commit=False) and the
     # trial update must publish together. Injected stores remain for test seams,

@@ -50,6 +50,12 @@ class RunStore(Protocol):
 BACKEND_KINDS: tuple[str, ...] = ("mock", "ollama", "openai_compat")
 
 
+# The scoring formula this store's readers aggregate. run_scores is keyed by
+# (run_id, formula_version) so a re-score APPENDS a row; readers must pin one
+# formula or a re-scored run would be counted once per formula. Mirrors the
+# column default in SQLITE_SCHEMA below (guarded by a test).
+SCORE_FORMULA_VERSION = "v0.1"
+
 # DDL for the SQLite raw layer. Mirrors db/schema.sql (Postgres) at the column
 # level; types are SQLite-flavored. Append-only by discipline (no UPDATE paths).
 SQLITE_SCHEMA = """
@@ -151,6 +157,19 @@ class SqliteRunStore:
     def open_readonly(cls, path: str | Path) -> "SqliteRunStore":
         """Open an existing raw DB without creating or altering its schema."""
         return cls(path, read_only=True)
+
+    @property
+    def connection(self) -> sqlite3.Connection:
+        """The underlying connection (for read-side callers that must share one
+        snapshot with this store's reads)."""
+        return self._conn
+
+    def begin_read_snapshot(self) -> None:
+        """Start one deferred read transaction: every later read through this
+        store or ``connection`` then sees a single consistent snapshot, even while
+        another connection commits (WAL). Ended by close()/rollback."""
+        if not self._conn.in_transaction:
+            self._conn.execute("BEGIN")
 
     def save_run(
         self,
@@ -319,6 +338,15 @@ class SqliteRunStore:
                 conn.commit()
         return int(run_id)
 
+    def _score_formula_clause(self) -> str:
+        """Join predicate pinning ``SCORE_FORMULA_VERSION``. A database that predates
+        the formula_version column keys run_scores by run_id alone (one row per run),
+        so there is nothing to pin."""
+        columns = {row[1] for row in self._conn.execute("PRAGMA table_info(run_scores)")}
+        if "formula_version" not in columns:
+            return ""
+        return f"AND s.formula_version = '{SCORE_FORMULA_VERSION}' "
+
     def load_runs(
         self, task_id: str | None = None, agent: str | None = None
     ) -> list[RunRecord]:
@@ -333,6 +361,7 @@ class SqliteRunStore:
             "d.files_changed, d.lines_added, d.lines_removed "
             "FROM runs r "
             "JOIN run_scores s ON s.run_id = r.id "
+            f"{self._score_formula_clause()}"
             "JOIN diffs d ON d.run_id = r.id"
         )
         clauses = []
@@ -349,7 +378,14 @@ class SqliteRunStore:
 
         records: list[RunRecord] = []
         for row in self._conn.execute(sql, params):
-            status = RunStatus(row["status"])
+            try:
+                status = RunStatus(row["status"])
+            except ValueError:
+                # Fail closed, but name the row so it can be found and repaired.
+                raise ValueError(
+                    f"run {row['id']} ({row['agent']}/{row['task_id']}) has an "
+                    f"unrecognised status {row['status']!r}"
+                ) from None
             score = RunScore(
                 status=status,
                 gate_product=int(row["gate_product"]),

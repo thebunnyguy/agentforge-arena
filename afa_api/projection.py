@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from collections.abc import Iterator
@@ -15,6 +17,41 @@ from .store_load import LoadedStores, load_stores
 
 class ProjectionUnavailable(RuntimeError):
     """The selected database cannot produce a trustworthy read projection."""
+
+
+_MIGRATION_RETRY_INTERVAL_S = 1.0
+_migration_retry_lock = threading.Lock()
+
+
+def retry_migration_if_failed(app) -> None:
+    """Re-attempt a FAILED startup migration instead of staying 503 until restart.
+
+    A migration can fail transiently (for example another initializer held the
+    write lock longer than busy_timeout while the launcher started the worker and
+    the API together). ``migrate_error`` used to be sticky, which took every
+    projection down until the process was restarted. Retrying is safe: migrate()
+    is idempotent, serialised, and refuses unsupported shapes with the same error
+    (so a permanent refusal simply stays a refusal). Rate-limited so a permanent
+    failure costs at most one attempt per second.
+    """
+    if not getattr(app.state, "migrate_error", None):
+        return
+    if time.monotonic() - getattr(app.state, "migrate_retry_at", 0.0) < _MIGRATION_RETRY_INTERVAL_S:
+        return
+    with _migration_retry_lock:
+        if not getattr(app.state, "migrate_error", None):
+            return
+        app.state.migrate_retry_at = time.monotonic()
+        try:
+            conn = db.connect(db.resolve_db_path(getattr(app.state, "db_path", None)))
+            try:
+                db.migrate(conn)
+            finally:
+                conn.close()
+        except Exception as exc:  # noqa: BLE001 - the failure is the state
+            app.state.migrate_error = str(exc)
+            return
+        app.state.migrate_error = None
 
 
 @dataclass
@@ -43,6 +80,7 @@ def open_projection(
     ``evidence_scope`` selects which provenance classes may enter the aggregates
     (default: the benchmark scope, which excludes synthetic/mock evidence).
     """
+    retry_migration_if_failed(request.app)
     migration_error = getattr(request.app.state, "migrate_error", None)
     if migration_error:
         raise ProjectionUnavailable(f"database migration failed: {migration_error}")

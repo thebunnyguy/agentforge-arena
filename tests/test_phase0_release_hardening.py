@@ -416,6 +416,7 @@ def test_overview_current_benchmark_and_real_counts_are_current_only(pristine):
         "synthetic_runs": 0,
         "synthetic_models": [],
         "provenance_conflict_runs": 0,
+        "unaccounted_runs": 0,
     }
     for model in MODELS:
         assert ov["evidence_counts"][model] == {
@@ -1487,7 +1488,7 @@ def test_control_valid_interrupted_job_runs_through_the_app_lifespan(tmp_path, r
     assert spy.calls == [("control-model", TASK)]
     assert run_once_counter["n"] == 1
     kinds = _rows(path, "SELECT backend_kind FROM runs WHERE job_id=?", (job.id,))
-    assert kinds == [("mock",)]
+    assert kinds == [(None,)]  # the spy declares no backend: nothing is attested
 
 
 # --------------------------------------------------------------------------- #
@@ -1617,9 +1618,9 @@ def test_mock_evaluation_report_trials_are_consistent_and_comparable(mockc, mock
 
 @pytest.mark.parametrize(
     "key,kind",
-    [("declared-ollama", "ollama"), ("declared-openai", "openai_compat"), ("undeclared", "ollama")],
+    [("declared-ollama", "ollama"), ("declared-openai", "openai_compat")],
 )
-def test_declared_or_requested_backend_kind_is_persisted(provenance_world, provc, key, kind):
+def test_declared_backend_kind_is_persisted(provenance_world, provc, key, kind):
     job_id = provenance_world.jobs[key]
     assert _backend_of(provenance_world.path, job_id) == [kind]
     trial = provc.get(f"/api/v1/jobs/{job_id}/report.json").json()["trials"][0]
@@ -1627,6 +1628,24 @@ def test_declared_or_requested_backend_kind_is_persisted(provenance_world, provc
     assert trial["comparability"] == "comparable"
     job = provc.get(f"/api/v1/jobs/{job_id}").json()
     assert job["backend_kind"] == kind and job["evidence_class"] == "real"
+
+
+def test_an_undeclared_factory_records_no_provider_and_is_never_stamped_from_the_request(
+    provenance_world, provc
+):
+    """A factory that does not declare its backend cannot ATTEST one, so the raw
+    run stays NULL (never stamped from the merely REQUESTED kind). The run's class
+    is then resolved from the evaluation's own snapshot and says so."""
+    job_id = provenance_world.jobs["undeclared"]
+    assert _backend_of(provenance_world.path, job_id) == [None]
+    trial = provc.get(f"/api/v1/jobs/{job_id}/report.json").json()["trials"][0]
+    assert trial["backend_kind"] is None and trial["provenance"] == "unknown"
+    job = provc.get(f"/api/v1/jobs/{job_id}").json()
+    assert job["backend_kind"] == "ollama" and job["evidence_class"] == "real"
+    run_id = _rows(provenance_world.path, "SELECT id FROM runs WHERE job_id=?", (job_id,))[0][0]
+    run = provc.get(f"/api/v1/runs/{run_id}").json()
+    assert run["backend_kind"] == "ollama"  # resolved, not stored
+    assert run["provider_source"] == "evaluation" and run["evidence_class"] == "real"
 
 
 def test_a_factory_that_really_drives_mock_is_recorded_as_mock_and_flagged(provenance_world, provc):
@@ -1697,9 +1716,9 @@ def test_factory_for_returns_factories_that_declare_their_backend(kind, attr, ag
 
 def test_legacy_rows_keep_null_backend_kind_forever(mock_world, provenance_world, evcopy):
     for path in (mock_world.path, provenance_world.path):
-        assert _scalar(path, "SELECT COUNT(*) FROM runs WHERE backend_kind IS NULL") == 720
         assert _scalar(path, "SELECT COUNT(*) FROM runs WHERE job_id IS NULL") == 720
-        assert _scalar(path, "SELECT COUNT(*) FROM runs WHERE job_id IS NOT NULL AND backend_kind IS NULL") == 0
+        assert _scalar(path, "SELECT COUNT(*) FROM runs WHERE job_id IS NULL AND backend_kind IS NULL") == 720
+        assert _scalar(path, "SELECT COUNT(*) FROM runs WHERE job_id IS NULL AND backend_kind IS NOT NULL") == 0
     conn = db.connect(evcopy)
     try:
         db.migrate(conn)
@@ -1745,6 +1764,7 @@ def test_mock_evaluation_under_a_real_name_does_not_move_the_default_views(mockc
         "synthetic_runs": 4,  # 2 (qwen3.5:9b: fbs + sanitize) + 2 (mock-only-model)
         "synthetic_models": sorted([MOCK_REAL_NAME, MOCK_ONLY]),
         "provenance_conflict_runs": 0,
+        "unaccounted_runs": 0,
     }
     assert MOCK_ONLY not in now["models"] and MOCK_ONLY not in now["real_counts"]
     assert MOCK_ONLY not in [e["agent"] for e in now["leaderboard"]]
@@ -1806,7 +1826,10 @@ def test_synthetic_and_all_scopes_expose_the_mock_evidence(mockc):
     assert everything["current_benchmark"]["current_runs"] == 184
     entry = next(e for e in everything["leaderboard"] if e["agent"] == MOCK_REAL_NAME)
     assert entry["n"] == 32
-    assert everything["excluded"] == {"synthetic_runs": 0, "synthetic_models": [], "provenance_conflict_runs": 0}
+    assert everything["excluded"] == {
+        "synthetic_runs": 0, "synthetic_models": [], "provenance_conflict_runs": 0,
+        "unaccounted_runs": 0,
+    }
     cell = mockc.get(f"/api/v1/cell/{_enc(MOCK_ONLY)}/{TASK}?evidence=synthetic").json()
     assert cell["state"] == "captured" and cell["current_runs"] == 2
     assert {r["evidence_class"] for r in cell["runs"]} == {"synthetic"}
@@ -1870,7 +1893,12 @@ def test_regenerate_default_excludes_mock_but_synthetic_scope_includes_it(mockc,
     syn = mockc.post("/api/v1/reports/regenerate?evidence=synthetic")
     assert syn.status_code == 200 and syn.json()["evidence_scope"] == "synthetic"
     assert syn.json()["real_counts"][MOCK_ONLY] == {"n_runs": 2, "n_tasks": 1}
-    assert MOCK_ONLY in regen_out.read_text()
+    # A non-benchmark report goes to a scope-suffixed sibling: it can never replace
+    # the canonical benchmark artifact.
+    sibling = regen_out.with_name("leaderboard-synthetic.html")
+    assert Path(syn.json()["path"]) == sibling
+    assert MOCK_ONLY in sibling.read_text()
+    assert regen_out.read_text() == html and MOCK_ONLY not in regen_out.read_text()
 
 
 # --------------------------------------------------------------------------- #

@@ -16,6 +16,7 @@ only; no auth, no untrusted-agent claims.
 from __future__ import annotations
 
 import os
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -26,6 +27,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import db, jobs, worker
 from .routes_jobs import router as jobs_router
+from .projection import retry_migration_if_failed
 from .routes_readonly import router as readonly_router
 
 # Local SPA origins (Vite default ports). Local-only by design.
@@ -128,6 +130,9 @@ def create_app() -> FastAPI:
             or path.startswith("/api/v1/jobs/")
             or path in {"/api/v1/settings", "/api/v1/reports/regenerate"}
         )
+        if guarded and getattr(request.app.state, "migrate_error", None):
+            # blocking (bounded by busy_timeout): keep it off the event loop
+            await asyncio.to_thread(retry_migration_if_failed, request.app)
         error = getattr(request.app.state, "migrate_error", None)
         if guarded and error:
             return JSONResponse(

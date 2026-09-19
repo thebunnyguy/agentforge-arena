@@ -17,6 +17,8 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .evidence import RESERVED_AGENT_NAMES
+
 # Job lifecycle states (worker state machine). queued -> running -> terminal.
 JobStatus = Literal["queued", "running", "succeeded", "failed", "canceled"]
 TERMINAL_STATES: frozenset[str] = frozenset({"succeeded", "failed", "canceled"})
@@ -84,6 +86,15 @@ class JobParams(BaseModel):
     request_timeout_s: int = Field(default=180, ge=1)
     mode: EvaluationMode = "fresh"
     source_evaluation_id: str | None = None
+
+    @field_validator("model")
+    @classmethod
+    def reject_reserved_model_name(cls, value: str) -> str:
+        # The synthetic oracle/noop baselines own these names; a real evaluation
+        # persisted under one would blend into (and corrupt) the bookends.
+        if value in RESERVED_AGENT_NAMES:
+            raise ValueError("model name is reserved for a synthetic baseline")
+        return value
 
 
 class JobCreate(JobParams):

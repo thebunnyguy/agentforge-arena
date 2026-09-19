@@ -4,9 +4,15 @@ resumable — if the job is stopped, re-running it picks up exactly where it lef
 off (already-completed runs are skipped). Progress is flushed live so you can
 watch it work.
 
-    python3 examples/eval_persist.py <model> [n=5] [db=reports/runs.sqlite]
+    python3 examples/eval_persist.py <model> [n=5] [db=<working DB>]
 
 Run it once per model. Then render the combined report with report_combined.py.
+
+The target is a WORKING database (default: the app's runtime DB, reports/app.sqlite,
+seeded from the committed evidence on first use). The committed evidence database
+reports/runs.sqlite is immutable and is refused. Every run is stamped
+backend_kind="ollama" (this script always drives an OllamaAgent), so it is
+recorded as real, provider-attested evidence.
 """
 
 from __future__ import annotations
@@ -16,7 +22,7 @@ import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent.parent
-sys.path[:0] = [str(_ROOT / "kernel"), str(_ROOT / "runner")]
+sys.path[:0] = [str(_ROOT), str(_ROOT / "kernel"), str(_ROOT / "runner")]
 
 import afa_runner as afa  # noqa: E402
 from afa_kernel.types import RunStatus  # noqa: E402
@@ -34,8 +40,21 @@ def completed_indices(store, *, task_id: str, task_version: str, agent: str) -> 
 def main() -> None:
     model = sys.argv[1]
     n = int(sys.argv[2]) if len(sys.argv) > 2 else 5
-    db = sys.argv[3] if len(sys.argv) > 3 else str(_ROOT / "reports" / "runs.sqlite")
-    Path(db).parent.mkdir(parents=True, exist_ok=True)
+    from afa_api import db as app_db
+
+    # Refuses the immutable evidence DB (and any alias of it); bootstraps a
+    # missing working DB from the evidence the same way the app does.
+    target = app_db.assert_writable_runtime_path(
+        app_db.resolve_db_path(sys.argv[3] if len(sys.argv) > 3 else None)
+    )
+    app_db.ensure_working_db(target)
+    Path(target).parent.mkdir(parents=True, exist_ok=True)
+    _conn = app_db.connect(target)
+    try:
+        app_db.migrate(_conn)  # adds runs.backend_kind etc. to an older working DB
+    finally:
+        _conn.close()
+    db = str(target)
 
     manifest = json.loads((_ROOT / "tasks" / "manifest.json").read_text())
     task_ids = [m["id"] for m in manifest]
@@ -71,7 +90,7 @@ def main() -> None:
                 continue
             rec = afa.run_once(agent, task, sandbox=sandbox, idx=i)
             # Persist the score, full patch, and per-test outcomes atomically.
-            store.save_run(rec, report=rec.grade_report)
+            store.save_run(rec, report=rec.grade_report, backend_kind="ollama")
             completed += 1
             if rec.status is RunStatus.INFRA_FAILURE:
                 mark = "VOID(infra)"

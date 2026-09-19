@@ -9,6 +9,7 @@ import sqlite3
 import time
 import urllib.parse
 import uuid
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -216,8 +217,11 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
             "n_runs": 1,
             "n_tasks": 1,
         }
-        assert target in report_output.read_text()
-        assert SENTINEL not in report_output.read_text()
+        synthetic_report = report_output.with_name("leaderboard-synthetic.html")
+        assert Path(regenerated.json()["path"]) == synthetic_report
+        assert target in synthetic_report.read_text()
+        assert SENTINEL not in synthetic_report.read_text()
+        assert not report_output.exists()  # the canonical report is never overwritten
 
         # A second post-startup persistence: a job-less row with NO recorded
         # provider is LEGACY evidence, so the DEFAULT view discovers the model
@@ -270,9 +274,12 @@ def test_same_running_app_discovers_new_model_and_stays_on_bound_db(
             "n_runs": 2,
             "n_tasks": 1,
         }
-        report_text = report_output.read_text()
+        all_report = report_output.with_name("leaderboard-all.html")
+        assert Path(regenerated_after.json()["path"]) == all_report
+        report_text = all_report.read_text()
         assert target in report_text
         assert SENTINEL not in report_text
+        assert not report_output.exists()
 
     working_store = afa.SqliteRunStore.open_readonly(working)
     fallback_store = afa.SqliteRunStore.open_readonly(fallback)

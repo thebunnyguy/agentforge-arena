@@ -132,10 +132,15 @@ _EXECUTION_REQUIRED_KEYS = (
 
 
 def _validation_field_names(exc: ValidationError) -> str:
-    """Field names only; pydantic messages/inputs may echo secrets or garbage."""
-    names = {
-        ".".join(str(part) for part in err["loc"]) or "params" for err in exc.errors()
-    }
+    """Field names only. Pydantic locs can contain attacker/garbage-chosen dict
+    keys (an unexpected key inside ``backend``), so an ``extra_forbidden`` error is
+    reported as ``<parent>.<unexpected key>`` and never echoes the key itself."""
+    names = set()
+    for err in exc.errors():
+        loc = [str(part) for part in err["loc"]]
+        if err.get("type") == "extra_forbidden" and loc:
+            loc = loc[:-1] + ["<unexpected key>"]
+        names.add(".".join(loc) or "params")
     return ", ".join(sorted(names))
 
 
@@ -219,11 +224,26 @@ def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
     execute, create a fresh clone of, or requeue an evaluation on failure.
     """
     row = conn.execute(
-        "SELECT params_json FROM evaluation_jobs WHERE id=?", (evaluation_id,)
+        "SELECT params_json, mode, source_evaluation_id FROM evaluation_jobs WHERE id=?",
+        (evaluation_id,),
     ).fetchone()
     if row is None:
         raise JobStateError(f"evaluation not found: {evaluation_id}")
     params = strict_params_from_json(row["params_json"])
+    # The persisted params must also agree with the row's own control columns.
+    column_disagreements = [
+        name
+        for name, agrees in (
+            ("mode", params.mode == row["mode"]),
+            ("source_evaluation_id", params.source_evaluation_id == row["source_evaluation_id"]),
+        )
+        if not agrees
+    ]
+    if column_disagreements:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: parameters disagree with the evaluation row "
+            f"({', '.join(column_disagreements)})"
+        )
     snapshot = get_snapshot(conn, evaluation_id)
     if snapshot is None:
         raise InvalidPersistedParams(
@@ -515,7 +535,7 @@ def create_job(conn: sqlite3.Connection, params: JobCreate) -> Job:
                     "SELECT r.id, r.job_id, d.patch_text, "
                     "(SELECT COUNT(*) FROM test_results tr WHERE tr.run_id=r.id) AS test_count "
                     "FROM runs r "
-                    "JOIN run_scores s ON s.run_id=r.id "
+                    f"JOIN run_scores s ON s.run_id=r.id AND s.formula_version='{evidence.SCORE_FORMULA_VERSION}' "
                     "JOIN diffs d ON d.run_id=r.id WHERE r.id=?",
                     (source_row["run_id"],),
                 ).fetchone()
@@ -726,6 +746,7 @@ def refresh_counters(
         "COALESCE(SUM(CASE WHEN t.evidence_state='fresh' AND s.voided=1 THEN 1 ELSE 0 END),0) AS voided, "
         "COALESCE(SUM(CASE WHEN t.evidence_state='fresh' AND s.functional_pass=0 AND s.voided=0 THEN 1 ELSE 0 END),0) AS failed "
         "FROM evaluation_trials t LEFT JOIN run_scores s ON s.run_id=t.run_id "
+        f"AND s.formula_version='{evidence.SCORE_FORMULA_VERSION}' "
         "WHERE t.evaluation_id=? AND t.trial_state='completed'",
         (evaluation_id,),
     ).fetchone()
@@ -786,6 +807,7 @@ def trial_detail(
         "s.functional_pass, s.voided, d.patch_text "
         "FROM evaluation_trials t LEFT JOIN runs r ON r.id=t.run_id "
         "LEFT JOIN run_scores s ON s.run_id=t.run_id "
+        f"AND s.formula_version='{evidence.SCORE_FORMULA_VERSION}' "
         "LEFT JOIN diffs d ON d.run_id=t.run_id "
         "WHERE t.evaluation_id=? AND t.task_id=? AND t.idx=?",
         (evaluation_id, task_id, idx),

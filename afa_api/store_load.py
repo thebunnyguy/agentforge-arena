@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import evidence
-from .db import MANIFEST_PATH, ROOT, connect_readonly, resolve_db_path
+from .db import MANIFEST_PATH, ROOT, resolve_db_path
 
 # Ensure kernel + runner are importable (tests run with PYTHONPATH="kernel:runner",
 # but the app may be imported with only the repo root on sys.path).
@@ -259,15 +259,27 @@ def load_stores(
             # This source store is explicitly read-only: projections must never
             # create schema or mutate the selected DB just to read it.
             disk = afa.SqliteRunStore.open_readonly(db_path)
-            raw = connect_readonly(db_path)
-            try:
-                provenance = evidence.read_provenance(raw)
-            finally:
-                raw.close()
+            # ONE read snapshot for provenance, runs and summaries: a run
+            # committed by a live worker mid-load can never be seen by one read
+            # and missed by the other (which used to classify a fresh mock run
+            # as benchmark evidence for one request).
+            disk.begin_read_snapshot()
+            provenance = evidence.read_provenance(disk.connection)
+            total_runs_in_db = disk.connection.execute(
+                "SELECT COUNT(*) FROM runs"
+            ).fetchone()[0]
+            projected_runs = 0
 
             for agent in disk.agents():
                 for record in disk.load_runs(agent=agent):
-                    prov = provenance.get(record.run_id, evidence.UNKNOWN_PROVENANCE)
+                    projected_runs += 1
+                    prov = provenance.get(record.run_id, evidence.UNATTESTED_PROVENANCE)
+                    if agent in evidence.RESERVED_AGENT_NAMES:
+                        # persisted under a synthetic baseline's name: never real
+                        prov = evidence.RunProvenance(
+                            prov.run_id, prov.job_id, prov.backend_kind,
+                            prov.provider_source, evidence.CLASS_CONFLICT,
+                        )
                     stored_cell_versions.setdefault((agent, record.task_id), set()).add(
                         record.task_version
                     )
@@ -380,6 +392,9 @@ def load_stores(
                 "synthetic_runs": excluded_synthetic_runs,
                 "synthetic_models": sorted(excluded_synthetic_models),
                 "provenance_conflict_runs": excluded_conflict_runs,
+                # runs rows the loader cannot see (no run_scores row of the
+                # pinned formula, or no diffs row): visible, never silently lost
+                "unaccounted_runs": max(0, total_runs_in_db - projected_runs),
             },
             excluded_cells=excluded_cells,
             stored_cell_versions=stored_cell_versions,

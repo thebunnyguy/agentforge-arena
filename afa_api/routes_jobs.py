@@ -416,6 +416,11 @@ def regenerate_report(request: Request):
         )
     try:
         out_path = Path(report_combined.OUTPUT)
+        if scope != evidence.DEFAULT_SCOPE:
+            # Only the benchmark-scope report may occupy the canonical artifact; a
+            # synthetic / real-only / all report goes to a scope-suffixed sibling
+            # so it can never replace the benchmark report.
+            out_path = out_path.with_name(f"{out_path.stem}-{scope}{out_path.suffix}")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(html)
     finally:
