@@ -1827,27 +1827,36 @@ def test_mock_runs_stay_inspectable_through_forensic_and_evaluation_routes(mockc
     assert body["evidence_class"] == "synthetic" and body["backend_kind"] == "mock"
     assert body["provider_source"] == "run" and body["version_status"] == "current"
     assert body["agent"] == MOCK_REAL_NAME
+    # The tuple route is a FORENSIC route: it is never filtered by evidence class,
+    # so mock rows stay inspectable (each labelled) without any scope parameter.
     tuple_url = f"/api/v1/run/{_enc(MOCK_ONLY)}/{TASK}/0"
-    default = mockc.get(tuple_url).json()
-    assert not (default.get("found") and default.get("evidence_class") == "synthetic")
-    for scope in ("synthetic", "all"):
-        found = mockc.get(f"{tuple_url}?evidence={scope}").json()
-        assert found["found"] is True and found["evidence_class"] == "synthetic", scope
-        assert found["run_id"] in mock_world.b_runs
+    found = mockc.get(tuple_url).json()
+    assert found["found"] is True and found["evidence_class"] == "synthetic"
+    assert found["backend_kind"] == "mock" and found["run_id"] in mock_world.b_runs
     report = mockc.get(f"/api/v1/jobs/{mock_world.a_job}/report.json").json()
     assert {t["run_id"] for t in report["trials"]} == set(mock_world.a_runs.values())
     results = mockc.get(f"/api/v1/jobs/{mock_world.a_job}/results").json()
     assert all(t["outcome"]["functional_pass"] for t in results["trials"])
 
 
-def test_mock_run_ambiguity_only_appears_when_the_mock_scope_is_asked_for(mockc):
-    """qwen3.5:9b has a legacy AND a mock run at (fbs, idx 0, current version)."""
+def test_mock_rows_take_part_in_the_forensic_tuple_identity_and_ambiguity_is_labelled(mockc):
+    """qwen3.5:9b has a legacy AND a mock run at (fbs, idx 0, current version).
+
+    The tuple route is forensic and never class-filtered, so the pair is honestly
+    ambiguous (409). The response says WHAT each candidate is, so a caller can
+    pick the exact native /runs/{id}; that route (which the UI uses) is exact.
+    """
     url = f"/api/v1/run/{_enc(MOCK_REAL_NAME)}/{TASK}/0"
-    assert mockc.get(url).status_code == 200  # benchmark scope: only the legacy row
-    assert mockc.get(url + "?evidence=synthetic").status_code == 200
-    both = mockc.get(url + "?evidence=all")
+    both = mockc.get(url)
     assert both.status_code == 409 and both.json()["ambiguous"] is True
-    assert len(both.json()["candidate_run_ids"]) == 2
+    body = both.json()
+    assert len(body["candidate_run_ids"]) == 2
+    assert {c["evidence_class"] for c in body["candidates"]} == {"legacy", "synthetic"}
+    assert {c["backend_kind"] for c in body["candidates"]} == {None, "mock"}
+    for candidate in body["candidates"]:
+        exact = mockc.get(f"/api/v1/runs/{candidate['run_id']}").json()
+        assert exact["found"] is True
+        assert exact["evidence_class"] == candidate["evidence_class"]
 
 
 def test_regenerate_default_excludes_mock_but_synthetic_scope_includes_it(mockc, regen_out):

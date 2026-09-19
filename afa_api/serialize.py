@@ -295,19 +295,20 @@ def build_leaderboard(
     selected = version if version is not None else current_version
     task_runs = stores.runs_for(task_id=task_id)
     at_selected = [r for r in task_runs if r.record.task_version == selected]
-    if selected == current_version:
-        entries = afa.leaderboard(stores.real, task_id=task_id)
-        status = "current"
+    status = "current" if selected == current_version else "historical"
+    # Rank ONLY agents that have rows of this task at the selected version. The
+    # kernel emits an entry for every agent in the store it is given (a fabricated
+    # n=0 line would look like a measured result), so it is given a store that
+    # holds just this task/version. Every other agent is listed in
+    # historical_only_agents below instead.
+    if at_selected:
+        scratch = stores.scratch_store(at_selected)
+        try:
+            entries = afa.leaderboard(scratch, task_id=task_id)
+        finally:
+            scratch.close()
     else:
-        status = "historical"
-        if at_selected:
-            scratch = stores.scratch_store(at_selected)
-            try:
-                entries = afa.leaderboard(scratch, task_id=task_id)
-            finally:
-                scratch.close()
-        else:
-            entries = []
+        entries = []
     ranked = {r.record.agent for r in at_selected}
     return {
         "task_id": task_id,
@@ -589,6 +590,17 @@ def build_run(
             "synthetic": False,
             "known_task": known_task,
             "candidate_run_ids": [row["id"] for row in rows],
+            # what each candidate is, so a caller can pick the exact /runs/{id}
+            "candidates": [
+                {
+                    "run_id": row["id"],
+                    "task_version": row["task_version"],
+                    "backend_kind": provenance[row["id"]].backend_kind,
+                    "evidence_class": provenance[row["id"]].evidence_class,
+                    "job_id": row["job_id"],
+                }
+                for row in rows
+            ],
         }
     return _real_run_dict(
         ro, rows[0], known_task=known_task,

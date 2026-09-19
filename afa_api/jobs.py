@@ -239,54 +239,44 @@ def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
 
 
 def _job_params_for_display(raw_json: str) -> tuple[JobParams | None, str | None]:
-    """Best-effort params for LISTING/inspection only.
+    """Params for LISTING/inspection: exactly what execution would accept.
 
-    Tolerates obsolete legacy fields, but never substitutes defaults for a
-    malformed row: it returns ``(None, sanitised_reason)`` instead. The result is
-    display data; execution paths use ``execution_params``.
+    Uses the SAME strict parse as ``execution_params`` (minus the snapshot
+    agreement check), so a listing can never show clean-looking parameters for a
+    row that execution refuses (no coercion of "2" to 2, no defaulted or empty
+    ``tasks``, no silently dropped credential-bearing keys), and a non-finite
+    number can never reach the JSON response. A row that fails returns
+    ``(None, sanitised_reason)``: display data only, never a substitute.
     """
     try:
-        raw = json.loads(raw_json)
-    except (TypeError, ValueError):
-        return None, "params_json is not valid JSON"
-    if not isinstance(raw, dict):
-        return None, "params_json is not a JSON object"
-    if (
-        not isinstance(raw.get("model"), str)
-        or not raw["model"].strip()
-        or not isinstance(raw.get("backend"), dict)
-    ):
-        return None, "missing or malformed fields: model, backend"
-    allowed = {
-        "backend", "model", "name", "tasks", "repeats", "base_seed",
-        "temperature", "request_timeout_s", "mode", "source_evaluation_id",
-    }
-    safe = {key: value for key, value in raw.items() if key in allowed}
-    safe["backend"] = {
-        key: value for key, value in raw["backend"].items() if key in {"kind", "base_url"}
-    }
-    if safe.get("mode") not in ("fresh", "reuse"):
-        safe.pop("mode", None)
+        return strict_params_from_json(raw_json), None
+    except InvalidPersistedParams as exc:
+        return None, str(exc).removeprefix(f"{_INVALID_PREFIX}: ")
+
+
+def _loads_finite(text: str | None):
+    """json.loads that refuses NaN/Infinity (they are not valid JSON and would
+    make the response renderer raise, turning one corrupt row into a 500 for the
+    whole listing). Returns None for anything unusable."""
+
+    def _refuse(constant: str):
+        raise ValueError(constant)
+
+    if not text:
+        return None
     try:
-        return JobParams.model_validate(safe), None
-    except ValidationError as exc:
-        # Malformed/credential-bearing backend values must not poison ordinary
-        # listings or be echoed through the Job projection: names only.
-        return None, f"invalid fields: {_validation_field_names(exc)}"
+        return json.loads(text, parse_constant=_refuse)
     except (TypeError, ValueError):
-        return None, "invalid fields"
+        return None
 
 
 def _job_from_row(row: sqlite3.Row) -> Job:
     params, params_problem = _job_params_for_display(row["params_json"])
     mode = _row_value(row, "mode", "legacy") or "legacy"
-    snapshot = None
     raw_snapshot = _row_value(row, "snapshot_json")
-    if raw_snapshot:
-        try:
-            snapshot = json.loads(raw_snapshot)
-        except (TypeError, json.JSONDecodeError):
-            snapshot = None
+    snapshot = _loads_finite(raw_snapshot)
+    if not isinstance(snapshot, dict):
+        snapshot = None
     backend_kind = evidence.snapshot_backend_kind(raw_snapshot) or (
         params.backend.kind if params is not None else None
     )
