@@ -25,6 +25,7 @@ import dataclasses
 import hashlib
 import json
 import shutil
+import subprocess
 import time
 import urllib.parse
 import uuid
@@ -57,16 +58,38 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _independent_task_digest(task_dir: Path) -> str:
-    """Re-implementation of the ATLAS digest contract, deliberately not calling
-    afa_api.jobs: sorted relative paths + raw bytes of every regular file."""
+def _digest_of(task_dir: Path, rel_paths) -> str:
     h = hashlib.sha256()
-    for path in sorted(p for p in task_dir.rglob("*") if p.is_file()):
-        h.update(path.relative_to(task_dir).as_posix().encode("utf-8"))
+    for rel in sorted(rel_paths):  # Path ordering, matching the ATLAS contract
+        h.update(rel.as_posix().encode("utf-8"))
         h.update(b"\0")
-        h.update(path.read_bytes())
+        h.update((task_dir / rel).read_bytes())
         h.update(b"\0")
     return "sha256:" + h.hexdigest()
+
+
+def _committed_task_digest(task_id: str) -> str:
+    """Digest of the task's COMMITTED files only (git ls-files), independent of
+    afa_api.jobs. Committed content is what "current task contents" means; it
+    must not depend on which untracked caches a given checkout happens to hold."""
+    task_rel = f"tasks/{task_id}"
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z", "--", task_rel],
+            cwd=REPO, capture_output=True, check=True,
+        ).stdout.decode()
+    except (OSError, subprocess.CalledProcessError):
+        out = ""
+    tracked = [Path(x).relative_to(task_rel) for x in out.split("\0") if x]
+    if not tracked:
+        pytest.skip("not a git checkout: cannot derive the committed task content")
+    return _digest_of(REPO / task_rel, tracked)
+
+
+def _legacy_all_files_digest(task_dir: Path) -> str:
+    """The pre-fix ATLAS algorithm (every regular file). Used only to show the
+    fix is byte-identical to it on a tree without bytecode."""
+    return _digest_of(task_dir, [p.relative_to(task_dir) for p in task_dir.rglob("*") if p.is_file()])
 
 
 def _enc(value: str) -> str:
@@ -173,8 +196,46 @@ def test_snapshot_records_current_oracle_version_and_content_digest(task_id: str
     assert snap["task_id"] == task_id
     assert snap["task_version"] == spec["version"] == entry["new_version"]
     assert snap["task_version"] != entry["old_version"]
-    assert snap["task_digest"] == _independent_task_digest(task_dir)
+    assert snap["task_digest"] == _committed_task_digest(task_id)
     assert snap["task_digest"].startswith("sha256:")
+
+
+ALL_TASKS = sorted(p.name for p in (REPO / "tasks").iterdir() if p.is_dir())
+
+
+@pytest.mark.parametrize("task_id", ALL_TASKS)
+def test_task_digest_is_a_function_of_committed_content_only(task_id: str):
+    """Regression for checkout-dependent digests: identical committed content
+    must produce the identical digest whether or not the checkout holds
+    untracked bytecode caches (__pycache__/*.pyc), which the grader never reads."""
+    assert jobs.task_snapshot(task_id)["task_digest"] == _committed_task_digest(task_id)
+
+
+def test_task_digest_ignores_bytecode_the_grader_ignores_but_nothing_else(tmp_path: Path):
+    task_id = "sanitize-filename"
+    root = _private_task_root(tmp_path, task_id, "bytecode_root")
+    task_dir = root / "tasks" / task_id
+    with _tasks_rooted_at(root):
+        base = jobs.task_snapshot(task_id)
+        stale = {"tasks": [base]}
+        # backward compatible: on a tree without bytecode the digest is exactly
+        # what the pre-fix algorithm produced.
+        assert base["task_digest"] == _legacy_all_files_digest(task_dir)
+
+        (task_dir / "grading" / "__pycache__").mkdir()
+        (task_dir / "grading" / "__pycache__" / "test_hidden.cpython-313-pytest-9.0.2.pyc").write_bytes(b"\x00stale")
+        (task_dir / "snapshot" / "stray.pyc").write_bytes(b"\x01")
+        (task_dir / "reference" / "old.pyo").write_bytes(b"\x02")
+        assert jobs.task_snapshot(task_id) == base
+        jobs.validate_snapshot_tasks(stale)  # bytecode never causes false drift
+
+        # anything that is real content still changes the digest
+        for rel in ("integrity/added.txt", "grading/conftest.py", "snapshot/notes.txt"):
+            extra = task_dir / rel
+            extra.write_text("x")
+            assert jobs.task_snapshot(task_id)["task_digest"] != base["task_digest"], rel
+            extra.unlink()
+        assert jobs.task_snapshot(task_id) == base
 
 
 # --------------------------------------------------------------------------- #

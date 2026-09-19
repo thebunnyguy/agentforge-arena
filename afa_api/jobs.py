@@ -182,10 +182,24 @@ def _event_from_row(row: sqlite3.Row) -> JobEvent:
     )
 
 
+_BYTECODE_SUFFIXES = frozenset({".pyc", ".pyo"})
+
+
+def _is_compiled_bytecode(rel: Path) -> bool:
+    """Compiled bytecode is never task content: afa_runner.grader strips
+    __pycache__ / *.pyc / *.pyo from everything it copies into the clean room.
+    Hashing it made identical committed content produce different digests
+    depending on which untracked caches a checkout happened to hold."""
+    return "__pycache__" in rel.parts or rel.suffix in _BYTECODE_SUFFIXES
+
+
 def _task_digest(task_dir: Path) -> str:
-    """Hash the complete task pack used by the runner without text decoding."""
+    """Hash the task pack the runner can read (everything except compiled
+    bytecode) without text decoding."""
     digest = hashlib.sha256()
     for path in sorted(p for p in task_dir.rglob("*") if p.is_file()):
+        if _is_compiled_bytecode(path.relative_to(task_dir)):
+            continue
         rel = path.relative_to(task_dir).as_posix().encode("utf-8")
         digest.update(rel)
         digest.update(b"\0")
