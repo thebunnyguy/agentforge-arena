@@ -10,7 +10,7 @@ import {
 } from "../components/Primitives";
 
 export function Methodology() {
-  const meta = useAsync((signal) => api.meta(signal), []);
+  const meta = useAsync((signal) => api.meta({}, signal), []);
   return (
     <div>
       <PageHeader
@@ -116,11 +116,14 @@ export function Methodology() {
           <Panel>
             <SectionHeader title="Versions and provenance" />
             <p>
-              Every run retains a task version. The report path refuses to pool
-              multiple versions inside a cell rather than blending incompatible
-              task contracts. Run pages retain model/task identity, repeat
-              index, task version, timestamps where available, and transcript
-              hashes.
+              Every run retains the task version it was recorded against.
+              Aggregates, rankings, domain profiles and reports use only the
+              current task version of each task; runs at older versions are kept
+              as historical evidence, shown separately (never pooled, restamped
+              or deleted) and labelled HISTORICAL. A model with only historical
+              evidence is not ranked; it is listed as missing current evidence.
+              Run pages retain model/task identity, repeat index, evidence
+              version, timestamps where available, and transcript hashes.
             </p>
           </Panel>
           <Panel>
@@ -148,9 +151,20 @@ export function Methodology() {
                 </dd>
               </div>
               <div>
-                <dt>Mixed pool</dt>
+                <dt>Versions and coverage</dt>
                 <dd>
-                  Mixed task versions are refused instead of silently averaged.
+                  Task versions are never averaged together. Coverage is shown
+                  as tasks with current evidence out of all tasks, so a partial
+                  ranking is not read as a full-benchmark ranking.
+                </dd>
+              </div>
+              <div>
+                <dt>Evidence classes</dt>
+                <dd>
+                  Real runs (ollama, openai_compat) and legacy rows (provider
+                  unknown) form the benchmark scope. Mock runs are synthetic,
+                  excluded from benchmark views by default, and shown only in
+                  the labelled synthetic scope.
                 </dd>
               </div>
             </dl>

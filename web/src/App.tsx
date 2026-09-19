@@ -33,6 +33,7 @@ export function App() {
           <Route path="/runs" element={<RunsExplorer />} />
           <Route path="/cell/:agent/:taskId" element={<CellPage />} />
           <Route path="/cell/:agent/:taskId/run/:idx" element={<RunPage />} />
+          <Route path="/runs/:runId" element={<RunPage />} />
           <Route path="/methodology" element={<Methodology />} />
 
           {/* Product (orchestrate) */}

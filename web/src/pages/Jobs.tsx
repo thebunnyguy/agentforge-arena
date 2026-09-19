@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, ApiRequestError } from "../api/client";
 import { usePolling } from "../lib/usePolling";
+import { jobParamsView } from "../lib/jobParams";
 import type { Job, JobStatus } from "../api/types";
 import { CaveatBanner } from "../components/CaveatBanner";
 import { EvaluationCard } from "../components/EvaluationCard";
@@ -19,9 +20,10 @@ export function Jobs() {
     () =>
       (jobs.data?.jobs ?? []).filter((job) => {
         const needle = query.trim().toLowerCase();
+        const view = jobParamsView(job);
         return (
           (!needle ||
-            job.params.model.toLowerCase().includes(needle) ||
+            (view.available && view.model.toLowerCase().includes(needle)) ||
             job.id.includes(needle)) &&
           (!status || job.status === status)
         );

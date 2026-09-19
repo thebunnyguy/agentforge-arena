@@ -7,7 +7,13 @@ import {
   jobDuration,
   taskScope,
 } from "../lib/format";
-import { JobStatusBadge } from "./Badges";
+import {
+  PARAMS_UNAVAILABLE_TITLE,
+  reasonSentence,
+  jobEvidenceClass,
+  jobParamsView,
+} from "../lib/jobParams";
+import { JobEvidenceChip, JobStatusBadge } from "./Badges";
 import { LinkArrow, ProgressBar } from "./Primitives";
 
 const TERMINAL = new Set(["succeeded", "failed", "canceled"]);
@@ -19,33 +25,52 @@ export function EvaluationCard({
   job: Job;
   onRetry?: (job: Job) => void;
 }) {
+  const view = jobParamsView(job);
+  const evidenceClass = jobEvidenceClass(job);
   const progress =
     job.counters.total_runs > 0
       ? job.counters.completed_runs / job.counters.total_runs
       : 0;
   const labelDiffers = Boolean(
-    job.params.name && job.params.name !== job.params.model,
+    view.available && view.name && view.name !== view.model,
   );
   return (
     <article className="evaluation-card">
       <div>
         <div className="evaluation-title">
           <Link to={`/jobs/${encodeURIComponent(job.id)}`}>
-            {job.params.model}
+            {view.available ? view.model : PARAMS_UNAVAILABLE_TITLE}
           </Link>
           <JobStatusBadge status={job.status} />
+          {!view.available && (
+            <span className="badge warn">UNVERIFIABLE PARAMETERS</span>
+          )}
         </div>
-        {labelDiffers && (
+        {labelDiffers && view.available && (
           <div className="evaluation-meta">
-            label: <span className="mono">{job.params.name}</span>
+            label: <span className="mono">{view.name}</span>
           </div>
         )}
         <div className="evaluation-meta">
-          {backendLabel(job.params.backend.kind)} ·{" "}
-          {taskScope(job.params.tasks.length, job.params.repeats)} ·{" "}
+          {view.available ? (
+            <>
+              {backendLabel(view.backendKind)} ·{" "}
+              {taskScope(view.tasks.length, view.repeats)} ·{" "}
+            </>
+          ) : (
+            <>evaluation {job.id.slice(0, 10)} · </>
+          )}
           {formatDate(job.created_at)}
           {job.finished_at ? ` → ${formatDate(job.finished_at)}` : ""}
         </div>
+        {view.available && evidenceClass !== "unknown" && (
+          <div className="evaluation-meta">
+            <JobEvidenceChip
+              cls={evidenceClass}
+              backendKind={job.backend_kind}
+            />
+          </div>
+        )}
       </div>
       <div className="evaluation-stats">
         {job.counters.passed_runs} pass · {job.counters.failed_runs} fail ·{" "}
@@ -79,7 +104,7 @@ export function EvaluationCard({
             Results
           </LinkArrow>
         )}
-        {TERMINAL.has(job.status) && onRetry && (
+        {TERMINAL.has(job.status) && onRetry && view.available && (
           <button
             className="btn btn-ghost btn-small"
             type="button"
@@ -89,11 +114,19 @@ export function EvaluationCard({
           </button>
         )}
       </div>
-      {job.error_message && (
+      {!view.available && (
         <div className="evaluation-error">
-          <strong>Reason:</strong> {job.error_message}
+          <strong>{PARAMS_UNAVAILABLE_TITLE}:</strong>{" "}
+          {reasonSentence(view.reason)} Retry and resume are disabled for this
+          evaluation.
         </div>
       )}
+      {job.error_message &&
+        job.error_message !== (view.available ? null : view.reason) && (
+          <div className="evaluation-error">
+            <strong>Reason:</strong> {job.error_message}
+          </div>
+        )}
     </article>
   );
 }

@@ -6,9 +6,16 @@ import { useAsync } from "../lib/useAsync";
 import { CaveatBanner } from "../components/CaveatBanner";
 import { ErrorState, EmptyState, Loading } from "../components/States";
 import { PageHeader, Panel, SectionHeader } from "../components/Primitives";
+import { EvidenceScopeBanner } from "../components/EvidenceScopeBanner";
+import { VersionStatusBadge } from "../components/Badges";
+import { useEvidenceScope } from "../lib/useEvidenceScope";
 
 export function Tasks() {
-  const meta = useAsync((signal) => api.meta(signal), []);
+  const [scope, setScope] = useEvidenceScope();
+  const meta = useAsync(
+    (signal) => api.meta({ evidence: scope }, signal),
+    [scope],
+  );
   const [query, setQuery] = useState("");
   const [domain, setDomain] = useState("");
   const tasks = useMemo(() => {
@@ -41,9 +48,22 @@ export function Tasks() {
       <PageHeader
         eyebrow="Analyze"
         title="Tasks"
-        description="The benchmark pack is the experimental surface. Versions and domains stay visible so comparisons have context."
+        description="The benchmark pack is the experimental surface. The current task version, its evidence and any historical versions stay visible so comparisons have context."
       />
       <CaveatBanner caveat={meta.data?.notes?.trust} />
+      <EvidenceScopeBanner
+        scope={scope}
+        onScopeChange={setScope}
+        coverage={
+          meta.data!.current_benchmark
+            ? {
+                withCurrent:
+                  meta.data!.current_benchmark.tasks_with_current_evidence,
+                total: meta.data!.current_benchmark.n_tasks,
+              }
+            : null
+        }
+      />
       <Panel>
         <SectionHeader
           title="Task pack"
@@ -86,7 +106,8 @@ export function Tasks() {
                   <th>difficulty</th>
                   <th>scale</th>
                   <th>domains</th>
-                  <th>version</th>
+                  <th>current version</th>
+                  <th>evidence</th>
                   <th></th>
                 </tr>
               </thead>
@@ -121,6 +142,30 @@ export function Tasks() {
                       )}
                     </td>
                     <td className="mono">{task.current_version ?? "—"}</td>
+                    <td>
+                      {task.has_current_evidence === undefined ? (
+                        "—"
+                      ) : task.has_current_evidence ? (
+                        <>
+                          <VersionStatusBadge status="current" />
+                          <span className="sub-cell">
+                            {task.models_with_current_evidence ?? 0} models ·{" "}
+                            {task.current_runs ?? 0} runs
+                          </span>
+                        </>
+                      ) : (task.historical_versions?.length ?? 0) > 0 ? (
+                        <>
+                          <VersionStatusBadge status="historical_only" />
+                          <span className="sub-cell">
+                            MISSING current evidence · historical{" "}
+                            {task.historical_versions!.join(", ")} (
+                            {task.historical_runs ?? 0} runs)
+                          </span>
+                        </>
+                      ) : (
+                        <VersionStatusBadge status="none" />
+                      )}
+                    </td>
                     <td>
                       <Link
                         className="link-arrow"

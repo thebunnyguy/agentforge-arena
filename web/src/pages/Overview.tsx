@@ -17,11 +17,18 @@ import {
   StatusDot,
 } from "../components/Primitives";
 import { WilsonBar } from "../components/WilsonBar";
+import { EvidenceScopeBanner } from "../components/EvidenceScopeBanner";
+import { MissingCurrentEvidence } from "../components/Badges";
+import { linkQuery, useEvidenceScope } from "../lib/useEvidenceScope";
 import { backendLabel, pct, rankLabel } from "../lib/format";
 
 export function Overview() {
-  const overview = useAsync((signal) => api.overview(signal), []);
-  const meta = useAsync((signal) => api.meta(signal), []);
+  const [scope, setScope] = useEvidenceScope();
+  const overview = useAsync(
+    (signal) => api.overview({ evidence: scope }, signal),
+    [scope],
+  );
+  const meta = useAsync((signal) => api.meta({}, signal), []);
   const jobs = usePolling((signal) => api.jobs(signal), [], 5000);
   const health = useAsync((signal) => api.health(signal), []);
   const settings = useAsync((signal) => api.settings(signal), []);
@@ -66,6 +73,8 @@ export function Overview() {
   const obs = data.observability;
   const recentJobs = jobs.data?.jobs.slice(0, 4) ?? [];
   const topEntries = data.leaderboard.slice(0, 4);
+  const benchmark = data.current_benchmark;
+  const historicalOnly = data.historical_only_models ?? [];
   const configuredBackend = settings.data
     ? `${backendLabel(settings.data.default_backend)} configured · verify before launch`
     : settings.error
@@ -134,7 +143,11 @@ export function Overview() {
               }
             />
             <StatusDot
-              label={`${data.n_tasks} benchmark tasks`}
+              label={
+                benchmark
+                  ? `${benchmark.tasks_with_current_evidence}/${benchmark.n_tasks} tasks with current evidence`
+                  : `${data.n_tasks} benchmark tasks`
+              }
               tone="accent"
             />
             <StatusDot label="Trusted-local execution" tone="warn" />
@@ -142,6 +155,18 @@ export function Overview() {
         </div>
       </div>
       <CaveatBanner caveat={meta.data?.notes?.trust} />
+      <EvidenceScopeBanner
+        scope={scope}
+        onScopeChange={setScope}
+        coverage={
+          benchmark
+            ? {
+                withCurrent: benchmark.tasks_with_current_evidence,
+                total: benchmark.n_tasks,
+              }
+            : null
+        }
+      />
       <div className="split-layout">
         <Panel>
           <SectionHeader
@@ -185,9 +210,13 @@ export function Overview() {
         </Panel>
         <Panel>
           <SectionHeader
-            title="Benchmark snapshot"
-            description="Kernel order, pooled across tasks."
-            action={<LinkArrow to="/leaderboard">Full ranking</LinkArrow>}
+            title="Current benchmark snapshot"
+            description="Kernel order over current-version evidence, pooled across the tasks that have it."
+            action={
+              <LinkArrow to={`/leaderboard${linkQuery(scope)}`}>
+                Full ranking
+              </LinkArrow>
+            }
           />
           <div className="snapshot-list">
             {topEntries.map((entry) => (
@@ -200,11 +229,16 @@ export function Overview() {
                   )}
                 </span>
                 <div className="snapshot-agent">
-                  <Link to={`/agent/${encodeURIComponent(entry.agent)}`}>
+                  <Link
+                    to={`/agent/${encodeURIComponent(entry.agent)}${linkQuery(scope)}`}
+                  >
                     {entry.agent}
                   </Link>
                   <span>
                     {entry.n} valid runs · {pct(entry.pass_rate, 1)}
+                    {entry.coverage
+                      ? ` · ${entry.coverage.tasks_with_current_evidence}/${entry.coverage.tasks_total} tasks`
+                      : ""}
                   </span>
                 </div>
                 <WilsonBar
@@ -218,9 +252,22 @@ export function Overview() {
               </div>
             ))}
           </div>
+          {topEntries.length === 0 && (
+            <p className="note muted">
+              No model has current benchmark evidence in this scope.
+            </p>
+          )}
+          {historicalOnly.length > 0 && (
+            <div className="note muted">
+              <MissingCurrentEvidence
+                detail={`for ${historicalOnly.join(", ")}; not ranked.`}
+              />
+            </div>
+          )}
           <p className="note muted">
             Intervals qualify every point estimate; rank ranges stay visible
-            when evidence overlaps.
+            when evidence overlaps. Partial coverage is not a full-benchmark
+            rank.
           </p>
           {meta.data?.synthetic_agents.length ? (
             <p className="note muted">
@@ -233,31 +280,57 @@ export function Overview() {
       <Panel className="home-health">
         <SectionHeader
           title="Evidence health"
-          description="Counts from the API startup snapshot; patch and test-result coverage are independent."
+          description="Persisted-run counts cover all versions and evidence classes (API startup snapshot); the current-benchmark counts are the subset used for ranking. Patch and test-result coverage are independent."
         />
         <div className="evidence-strip evidence-strip-strong">
           <div className="evidence-item">
-            <span className="evidence-label">Persisted runs</span>
+            <span className="evidence-label">
+              Persisted runs (all versions)
+            </span>
             <span className="evidence-value evidence-good">
               {obs.total_runs}
             </span>
           </div>
+          {benchmark && (
+            <>
+              <div className="evidence-item">
+                <span className="evidence-label">Current-benchmark runs</span>
+                <span className="evidence-value evidence-good">
+                  {benchmark.current_runs}
+                </span>
+              </div>
+              <div className="evidence-item">
+                <span className="evidence-label">Historical runs</span>
+                <span className="evidence-value evidence-warn">
+                  {benchmark.historical_runs}
+                </span>
+              </div>
+            </>
+          )}
           <div className="evidence-item">
             <span className="evidence-label">Agents</span>
             <span className="evidence-value">{data.models.length}</span>
           </div>
           <div className="evidence-item">
-            <span className="evidence-label">Tasks</span>
-            <span className="evidence-value">{data.n_tasks}</span>
+            <span className="evidence-label">
+              {benchmark ? "Tasks with current evidence" : "Tasks"}
+            </span>
+            <span className="evidence-value">
+              {benchmark
+                ? `${benchmark.tasks_with_current_evidence}/${benchmark.n_tasks}`
+                : data.n_tasks}
+            </span>
           </div>
           <div className="evidence-item">
-            <span className="evidence-label">Patch coverage</span>
+            <span className="evidence-label">Patch coverage (all runs)</span>
             <span className="evidence-value">
               {obs.runs_with_patch}/{obs.total_runs}
             </span>
           </div>
           <div className="evidence-item">
-            <span className="evidence-label">Test-result coverage</span>
+            <span className="evidence-label">
+              Test-result coverage (all runs)
+            </span>
             <span className="evidence-value">
               {obs.runs_with_test_results}/{obs.total_runs}
             </span>

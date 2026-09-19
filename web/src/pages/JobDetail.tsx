@@ -16,7 +16,13 @@ import { latestCurrentRun, summarizeEvent } from "../lib/jobView";
 import type { RunView } from "../lib/jobView";
 import { TaskRunGrid } from "../components/TaskRunGrid";
 import { CaveatBanner } from "../components/CaveatBanner";
-import { JobStatusBadge } from "../components/Badges";
+import { JobEvidenceChip, JobStatusBadge } from "../components/Badges";
+import {
+  PARAMS_UNAVAILABLE_TITLE,
+  reasonSentence,
+  jobEvidenceClass,
+  jobParamsView,
+} from "../lib/jobParams";
 import { ErrorState, Loading } from "../components/States";
 import {
   InlineNotice,
@@ -144,7 +150,10 @@ export function JobDetail() {
   const canCancel =
     !currentJob.cancel_requested &&
     (currentJob.status === "queued" || currentJob.status === "running");
-  const canRetry = terminal;
+  const paramsView = jobParamsView(currentJob);
+  const evidenceClass = jobEvidenceClass(currentJob);
+  // Unverifiable parameters can neither be retried nor resumed.
+  const canRetry = terminal && paramsView.available;
   const transportLabel =
     stream.transport === "poll"
       ? "Live · fallback polling"
@@ -202,8 +211,14 @@ export function JobDetail() {
     <div>
       <PageHeader
         eyebrow="Evaluation monitor"
-        title={currentJob.params.model}
-        description={`${backendLabel(currentJob.params.backend.kind)} · ${taskScope(currentJob.params.tasks.length, currentJob.params.repeats)} · created ${formatDate(currentJob.created_at)}`}
+        title={
+          paramsView.available ? paramsView.model : PARAMS_UNAVAILABLE_TITLE
+        }
+        description={
+          paramsView.available
+            ? `${backendLabel(paramsView.backendKind)} · ${taskScope(paramsView.tasks.length, paramsView.repeats)} · created ${formatDate(currentJob.created_at)}`
+            : `evaluation ${currentJob.id.slice(0, 10)} · created ${formatDate(currentJob.created_at)}`
+        }
         actions={
           <div className="monitor-actions">
             {canCancel && (
@@ -303,6 +318,15 @@ export function JobDetail() {
         </div>
         <div className="monitor-actions">
           <JobStatusBadge status={currentJob.status} />
+          {!paramsView.available && (
+            <span className="badge warn">UNVERIFIABLE PARAMETERS</span>
+          )}
+          {paramsView.available && evidenceClass !== "unknown" && (
+            <JobEvidenceChip
+              cls={evidenceClass}
+              backendKind={currentJob.backend_kind}
+            />
+          )}
         </div>
       </div>
       <MetricGroup>
@@ -334,10 +358,32 @@ export function JobDetail() {
           mono
         />
       </MetricGroup>
-      {currentJob.error_message && (
-        <InlineNotice tone="danger">
+      {!paramsView.available && (
+        <InlineNotice tone="warn">
           <AlertTriangle size={16} aria-hidden="true" />
-          <span>{currentJob.error_message}</span>
+          <span>
+            <strong>{PARAMS_UNAVAILABLE_TITLE}.</strong>{" "}
+            {reasonSentence(paramsView.reason)} The persisted parameters could
+            not be verified, so this evaluation cannot be retried or resumed and
+            no run evidence is inferred from it.
+          </span>
+        </InlineNotice>
+      )}
+      {currentJob.error_message &&
+        (paramsView.available ||
+          currentJob.error_message !== paramsView.reason) && (
+          <InlineNotice tone="danger">
+            <AlertTriangle size={16} aria-hidden="true" />
+            <span>{currentJob.error_message}</span>
+          </InlineNotice>
+        )}
+      {paramsView.available && evidenceClass === "synthetic" && (
+        <InlineNotice tone="info">
+          <span>
+            <strong>Synthetic (mock) evaluation.</strong> Its runs are excluded
+            from the default benchmark views and results. They stay inspectable
+            through run links and the synthetic evidence scope.
+          </span>
         </InlineNotice>
       )}
 
@@ -419,6 +465,18 @@ export function JobDetail() {
             <dl className="kv">
               <dt>evaluation ID</dt>
               <dd>{currentJob.id}</dd>
+              <dt>parameters</dt>
+              <dd>
+                {paramsView.available
+                  ? "verified"
+                  : `${PARAMS_UNAVAILABLE_TITLE} (unverifiable)`}
+              </dd>
+              <dt>evidence class</dt>
+              <dd>
+                {evidenceClass === "synthetic"
+                  ? "synthetic (mock) - excluded from benchmark results"
+                  : evidenceClass}
+              </dd>
               <dt>created</dt>
               <dd>{formatDate(currentJob.created_at)}</dd>
               <dt>started</dt>
@@ -492,7 +550,11 @@ function CurrentRun({
     <div className="current-run">
       <div className="current-run-title">{current.taskId}</div>
       <div className="current-run-subtitle">
-        Repeat {current.idx + 1} of {job.params.repeats}
+        Repeat {current.idx + 1}
+        {(() => {
+          const view = jobParamsView(job);
+          return view.available ? ` of ${view.repeats}` : "";
+        })()}
       </div>
       <div className="stage-list">
         <div className="stage-row">

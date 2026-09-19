@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Job, JobEvent } from "../api/types";
+import { PARAMS_UNAVAILABLE_TITLE, jobParamsView } from "../lib/jobParams";
 import {
   projectEventTape,
   runStateLabel,
@@ -17,6 +18,15 @@ export function TaskRunGrid({
   historyLoading?: boolean;
   historyError?: Error | null;
 }) {
+  const view = jobParamsView(job);
+  if (!view.available)
+    return (
+      <p className="note muted">
+        {PARAMS_UNAVAILABLE_TITLE}: the task and repeat grid cannot be built
+        without verified parameters.
+      </p>
+    );
+  const { tasks, repeats } = view;
   const projection = projectEventTape(events);
   const historyIncomplete = historyLoading || historyError !== null;
   const terminal =
@@ -25,7 +35,7 @@ export function TaskRunGrid({
     job.status === "canceled";
   return (
     <div className="task-run-grid">
-      {job.params.tasks.map((taskId) => {
+      {tasks.map((taskId) => {
         const taskError = projection.taskErrors.get(taskId);
         return (
           <div className="task-run-row" key={taskId}>
@@ -39,7 +49,7 @@ export function TaskRunGrid({
               )}
             </span>
             <div className="run-markers">
-              {Array.from({ length: job.params.repeats }).map((_, idx) => {
+              {Array.from({ length: repeats }).map((_, idx) => {
                 const run = projection.runs.get(`${taskId}:${idx}`);
                 const state =
                   run?.state ??

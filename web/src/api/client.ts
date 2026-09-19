@@ -14,6 +14,7 @@ import type {
   CellResponse,
   DomainProfileResponse,
   DomainScore,
+  EvidenceScope,
   HealthResponse,
   Job,
   JobEvent,
@@ -45,11 +46,19 @@ export const API_BASE = resolveBaseUrl();
 export class ApiRequestError extends Error {
   status: number;
   detail?: string;
-  constructor(message: string, status: number, detail?: string) {
+  /** Parsed JSON error body, when the server sent one (e.g. 409 ambiguous). */
+  body?: unknown;
+  constructor(
+    message: string,
+    status: number,
+    detail?: string,
+    body?: unknown,
+  ) {
     super(message);
     this.name = "ApiRequestError";
     this.status = status;
     this.detail = detail;
+    this.body = body;
   }
 }
 
@@ -78,9 +87,11 @@ async function request<T>(
 
   if (!res.ok) {
     let detail: string | undefined;
+    let errorBody: unknown;
     let message = `Request failed (${res.status})`;
     try {
       const body: unknown = await res.json();
+      errorBody = body;
       if (body && typeof body === "object") {
         const envelope = body as {
           error?: unknown;
@@ -109,11 +120,28 @@ async function request<T>(
     } catch {
       // non-JSON error body
     }
-    throw new ApiRequestError(message, res.status, detail);
+    throw new ApiRequestError(message, res.status, detail, errorBody);
   }
 
   if (res.status === 204) return undefined as unknown as T;
   return (await res.json()) as T;
+}
+
+/** Optional selectors accepted by the aggregate/read routes. */
+export interface ReadOpts {
+  /** Evidence scope. "benchmark" (real + legacy) is the server default. */
+  evidence?: EvidenceScope | null;
+  /** Task version for cell / task-scoped leaderboard (default: current). */
+  version?: string | null;
+}
+
+function query(opts?: ReadOpts, extra?: Record<string, string>): string {
+  const params = new URLSearchParams(extra);
+  if (opts?.version) params.set("version", opts.version);
+  if (opts?.evidence && opts.evidence !== "benchmark")
+    params.set("evidence", opts.evidence);
+  const text = params.toString();
+  return text ? `?${text}` : "";
 }
 
 // ----------------------------- Read-only ------------------------------ //
@@ -124,51 +152,83 @@ export const api = {
   health: (signal?: AbortSignal) =>
     request<HealthResponse>("/healthz", { signal }),
 
-  meta: (signal?: AbortSignal) => request<MetaResponse>("/meta", { signal }),
+  // Aggregate reads default to the CURRENT benchmark (?evidence=benchmark).
+  // The default is omitted from the URL so default requests stay unchanged.
+  meta: (opts?: ReadOpts, signal?: AbortSignal) =>
+    request<MetaResponse>(`/meta${query(opts)}`, { signal }),
 
-  overview: (signal?: AbortSignal) =>
-    request<OverviewResponse>("/overview", { signal }),
+  overview: (opts?: ReadOpts, signal?: AbortSignal) =>
+    request<OverviewResponse>(`/overview${query(opts)}`, { signal }),
 
-  leaderboard: (taskId?: string | null, signal?: AbortSignal) => {
-    const q = taskId ? `?task_id=${encodeURIComponent(taskId)}` : "";
-    return request<LeaderboardResponse>(`/leaderboard${q}`, { signal });
-  },
+  leaderboard: (
+    taskId?: string | null,
+    opts?: ReadOpts,
+    signal?: AbortSignal,
+  ) =>
+    request<LeaderboardResponse>(
+      `/leaderboard${query(opts, taskId ? { task_id: taskId } : undefined)}`,
+      { signal },
+    ),
 
-  domainProfile: (agent: string, signal?: AbortSignal) =>
-    request<DomainProfileResponse>(`/domains/${encodeURIComponent(agent)}`, {
+  domainProfile: (agent: string, opts?: ReadOpts, signal?: AbortSignal) =>
+    request<DomainProfileResponse>(
+      `/domains/${encodeURIComponent(agent)}${query(opts)}`,
+      { signal },
+    ),
+
+  cell: (
+    agent: string,
+    taskId: string,
+    opts?: ReadOpts,
+    signal?: AbortSignal,
+  ) =>
+    request<CellResponse>(
+      `/cell/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}${query(opts)}`,
+      { signal },
+    ),
+
+  // Tuple route (agent, task, idx): idx alone collides across versions, so
+  // prefer runById for links. Kept for pre-existing /cell/.../run/:idx URLs.
+  run: (
+    agent: string,
+    taskId: string,
+    idx: number,
+    opts?: ReadOpts,
+    signal?: AbortSignal,
+  ) =>
+    request<RunDetailResponse>(
+      `/run/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}/${idx}${query(opts)}`,
+      { signal },
+    ),
+
+  // Exact forensic identity; never class-filtered (mock rows stay inspectable).
+  runById: (runId: number | string, signal?: AbortSignal) =>
+    request<RunDetailResponse>(`/runs/${encodeURIComponent(String(runId))}`, {
       signal,
     }),
-
-  cell: (agent: string, taskId: string, signal?: AbortSignal) =>
-    request<CellResponse>(
-      `/cell/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}`,
-      { signal },
-    ),
-
-  run: (agent: string, taskId: string, idx: number, signal?: AbortSignal) =>
-    request<RunDetailResponse>(
-      `/run/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}/${idx}`,
-      { signal },
-    ),
 
   // Domain matrix = per-agent profiles stitched into one grid. There is no
   // matrix endpoint; we fetch each agent's profile and assemble for DISPLAY.
   // No pooling/statistics here — every cell value is the server's pooled rate.
   domainMatrix: async (
     agents: string[],
+    opts?: ReadOpts,
     signal?: AbortSignal,
   ): Promise<{
     domains: string[];
     agents: string[];
     byAgent: Record<string, Record<string, DomainScore>>;
+    profiles: Record<string, DomainProfileResponse>;
   }> => {
     const profiles = await Promise.all(
-      agents.map((a) => api.domainProfile(a, signal)),
+      agents.map((a) => api.domainProfile(a, opts, signal)),
     );
     const domainSet = new Set<string>();
     const byAgent: Record<string, Record<string, DomainScore>> = {};
+    const byProfile: Record<string, DomainProfileResponse> = {};
     profiles.forEach((p) => {
       byAgent[p.agent] = {};
+      byProfile[p.agent] = p;
       p.domains.forEach((d) => {
         domainSet.add(d.domain);
         byAgent[p.agent][d.domain] = d;
@@ -178,6 +238,7 @@ export const api = {
       domains: [...domainSet].sort(),
       agents,
       byAgent,
+      profiles: byProfile,
     };
   },
 

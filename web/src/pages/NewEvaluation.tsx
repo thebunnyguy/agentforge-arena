@@ -57,7 +57,7 @@ const BACKENDS: Array<{
   {
     kind: "mock",
     title: "Mock",
-    detail: "Deterministic offline test mode",
+    detail: "Synthetic - excluded from benchmark results",
     icon: FlaskConical,
   },
 ];
@@ -71,7 +71,7 @@ type TaskOption = {
 
 export function NewEvaluation() {
   const navigate = useNavigate();
-  const meta = useAsync((signal) => api.meta(signal), []);
+  const meta = useAsync((signal) => api.meta({}, signal), []);
   const settings = useAsync((signal) => api.settings(signal), []);
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<BackendKind>("mock");
@@ -507,8 +507,9 @@ function BackendStep({
       <h2>Where is your model running?</h2>
       <p className="note muted">
         Pick a local backend, then verify its reachable model list before
-        continuing. Mock also requires explicit verification so every launch has
-        the same readiness contract.
+        continuing. Mock is a deterministic offline test mode: its runs are
+        synthetic and excluded from benchmark results. It also requires explicit
+        verification so every launch has the same readiness contract.
       </p>
       <div className="option-grid">
         {BACKENDS.map((backend) => {
@@ -906,6 +907,14 @@ function ReviewStep({
           <span className="review-label">Backend</span>
           <span className="review-value">
             {backendLabel(params.backend.kind)}
+          </span>
+        </div>
+        <div className="review-item">
+          <span className="review-label">Evidence class</span>
+          <span className="review-value">
+            {params.backend.kind === "mock"
+              ? "Synthetic - excluded from benchmark results"
+              : "Real provider run - counts toward benchmark results"}
           </span>
         </div>
         <div className="review-item">

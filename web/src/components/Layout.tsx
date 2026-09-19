@@ -64,7 +64,7 @@ function ConnPill() {
 }
 
 function SidebarContents({ onNavigate }: { onNavigate?: () => void }) {
-  const { data: meta } = useAsync((signal) => api.meta(signal), []);
+  const { data: meta } = useAsync((signal) => api.meta({}, signal), []);
   const obs = meta?.observability;
   return (
     <>
@@ -111,7 +111,9 @@ function SidebarContents({ onNavigate }: { onNavigate?: () => void }) {
         <StatusDot label="Trusted local" tone="warn" />
         <div className="sidebar-count">
           {meta
-            ? `${obs?.total_runs ?? 0} persisted runs · ${meta.n_tasks} tasks`
+            ? meta.current_benchmark
+              ? `${meta.current_benchmark.current_runs} current / ${obs?.total_runs ?? 0} persisted runs · ${meta.current_benchmark.tasks_with_current_evidence}/${meta.current_benchmark.n_tasks} tasks with current evidence`
+              : `${obs?.total_runs ?? 0} persisted runs · ${meta.n_tasks} tasks`
             : "Loading evidence store…"}
         </div>
       </div>
@@ -124,7 +126,7 @@ export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
-  const obsState = useAsync((signal) => api.meta(signal), []);
+  const obsState = useAsync((signal) => api.meta({}, signal), []);
   const obs = obsState.data?.observability;
 
   useEffect(() => {
@@ -238,13 +240,13 @@ export function Layout() {
       </main>
       <footer className="footer">
         <span>
-          Evidence window:{" "}
+          Evidence window (all persisted runs):{" "}
           {obs?.first_created_at
             ? `${formatDate(obs.first_created_at)} → ${formatDate(obs.last_created_at)}`
             : "—"}
         </span>
         <span>
-          Patch capture:{" "}
+          Patch capture (all versions):{" "}
           {obs ? `${obs.runs_with_patch}/${obs.total_runs}` : "—"}
         </span>
         <span>API {API_BASE || "same origin"}</span>

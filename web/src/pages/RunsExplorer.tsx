@@ -13,18 +13,31 @@ import {
 import { CaveatBanner } from "../components/CaveatBanner";
 import { ErrorState, EmptyState, Loading } from "../components/States";
 import { PageHeader, Panel, SectionHeader } from "../components/Primitives";
+import { EvidenceScopeSelect } from "../components/EvidenceScopeBanner";
+import { EvidenceClassBadge, VersionStatusBadge } from "../components/Badges";
+import { runHref } from "../lib/links";
+import { useEvidenceScope } from "../lib/useEvidenceScope";
 
 export function RunsExplorer() {
-  const meta = useAsync((signal) => api.meta(signal), []);
+  const meta = useAsync((signal) => api.meta({}, signal), []);
   const [agent, setAgent] = useState("");
   const [taskId, setTaskId] = useState("");
   const [status, setStatus] = useState("");
   const [funcPass, setFuncPass] = useState("");
+  const [version, setVersion] = useState("");
+  const [scope, setScope] = useEvidenceScope();
   const ready = Boolean(agent && taskId);
   const cell = useAsync(
     (signal) =>
-      ready ? api.cell(agent, taskId, signal) : Promise.resolve(null),
-    [agent, taskId],
+      ready
+        ? api.cell(
+            agent,
+            taskId,
+            { version: version || null, evidence: scope },
+            signal,
+          )
+        : Promise.resolve(null),
+    [agent, taskId, version, scope],
   );
   const filtered = useMemo<CellRunRow[]>(
     () =>
@@ -56,14 +69,17 @@ export function RunsExplorer() {
       <Panel>
         <SectionHeader
           title="Choose evidence scope"
-          description="Run identity remains agent + task + repeat index."
+          description="Run identity is the exact run id: agent + task + repeat index repeats across task versions, so each row links by run id."
         />
         <div className="toolbar">
           <label htmlFor="run-agent">Agent</label>
           <select
             id="run-agent"
             value={agent}
-            onChange={(event) => setAgent(event.target.value)}
+            onChange={(event) => {
+              setAgent(event.target.value);
+              setVersion("");
+            }}
           >
             <option value="">Choose agent…</option>
             {meta.data!.models.map((item) => (
@@ -76,7 +92,10 @@ export function RunsExplorer() {
           <select
             id="run-task"
             value={taskId}
-            onChange={(event) => setTaskId(event.target.value)}
+            onChange={(event) => {
+              setTaskId(event.target.value);
+              setVersion("");
+            }}
           >
             <option value="">Choose task…</option>
             {meta.data!.tasks.map((task) => (
@@ -85,6 +104,27 @@ export function RunsExplorer() {
               </option>
             ))}
           </select>
+          <label htmlFor="run-version">Task version</label>
+          <select
+            id="run-version"
+            value={version}
+            onChange={(event) => setVersion(event.target.value)}
+            disabled={!ready}
+          >
+            <option value="">Current version</option>
+            {(cell.data?.versions ?? [])
+              .filter((v) => v.status === "historical")
+              .map((v) => (
+                <option key={v.version} value={v.version}>
+                  Historical {v.version}
+                </option>
+              ))}
+          </select>
+          <EvidenceScopeSelect
+            scope={scope}
+            onChange={setScope}
+            id="runs-evidence-scope"
+          />
           <label htmlFor="run-status">
             <Filter size={14} aria-hidden="true" /> Status
           </label>
@@ -129,12 +169,27 @@ export function RunsExplorer() {
             <SectionHeader
               title={`${agent} × ${taskId}`}
               description={`Showing ${filtered.length} of ${cell.data!.runs.length} run rows.`}
+              action={
+                cell.data!.evidence_status ? (
+                  <VersionStatusBadge
+                    status={
+                      cell.data!.evidence_status === "none" &&
+                      cell.data!.has_historical_evidence &&
+                      !cell.data!.has_current_evidence
+                        ? "missing"
+                        : cell.data!.evidence_status
+                    }
+                  />
+                ) : undefined
+              }
             />
             <div className="table-scroll" tabIndex={0}>
               <table className="data">
                 <thead>
                   <tr>
                     <th className="num">run</th>
+                    <th>version</th>
+                    <th>evidence class</th>
                     <th>status</th>
                     <th className="num">G</th>
                     <th className="num">S</th>
@@ -144,8 +199,19 @@ export function RunsExplorer() {
                 </thead>
                 <tbody>
                   {filtered.map((run) => (
-                    <tr key={run.idx}>
+                    <tr key={run.run_id ?? `${run.task_version}:${run.idx}`}>
                       <td className="num mono">#{run.idx}</td>
+                      <td className="mono">{run.task_version ?? "—"}</td>
+                      <td>
+                        {run.evidence_class ? (
+                          <EvidenceClassBadge
+                            cls={run.evidence_class}
+                            backendKind={run.backend_kind}
+                          />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td>
                         <StatusBadge status={run.status} />
                       </td>
@@ -164,7 +230,7 @@ export function RunsExplorer() {
                       <td>
                         <Link
                           className="link-arrow"
-                          to={`/cell/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}/run/${run.idx}`}
+                          to={runHref(run, agent, taskId)}
                         >
                           Forensics
                         </Link>

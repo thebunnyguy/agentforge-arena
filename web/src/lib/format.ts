@@ -52,6 +52,8 @@ export function captureLabel(state: string): string {
       return "captured";
     case "synthetic":
       return "synthetic baseline";
+    case "historical_only":
+      return "historical only";
     default:
       return "not captured";
   }
@@ -132,4 +134,51 @@ export function backendLabel(kind: string): string {
 
 export function taskScope(tasks: number, repeats: number): string {
   return `${tasks} task${tasks === 1 ? "" : "s"} × ${repeats} repeat${repeats === 1 ? "" : "s"}`;
+}
+
+// ---------------------------------------------------------------------- //
+// Version / evidence vocabulary. All values are SERVER enums or counts; the
+// SPA never decides current-vs-historical by comparing version strings.
+// ---------------------------------------------------------------------- //
+
+export function evidenceClassLabel(cls: string | null | undefined): string {
+  switch (cls) {
+    case "real":
+      return "real";
+    case "synthetic":
+      return "synthetic";
+    case "legacy":
+      return "legacy";
+    case "conflict":
+      return "conflict";
+    default:
+      return "unknown";
+  }
+}
+
+export function evidenceClassHelp(cls: string | null | undefined): string {
+  switch (cls) {
+    case "real":
+      return "Real provider run (ollama / openai_compat).";
+    case "synthetic":
+      return "Synthetic (mock) run. Not benchmark evidence.";
+    case "legacy":
+      return "Legacy row: provider unknown (recorded before provenance existed).";
+    case "conflict":
+      return "Provenance conflict: the run contradicts its evaluation snapshot. Excluded from benchmark views.";
+    default:
+      return "Provider provenance unknown.";
+  }
+}
+
+export const EVIDENCE_SCOPE_OPTIONS = [
+  { value: "benchmark", label: "Benchmark (real + legacy)" },
+  { value: "real", label: "Real only" },
+  { value: "synthetic", label: "Mock only (synthetic)" },
+  { value: "all", label: "All" },
+] as const;
+
+/** "6/24 tasks with current evidence" (numbers from the server). */
+export function coverageText(withCurrent: number, total: number): string {
+  return `${withCurrent}/${total} tasks with current evidence`;
 }

@@ -1,17 +1,24 @@
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
 import { FileCode2, FlaskConical, Info, ShieldCheck } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
-import { api } from "../api/client";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { api, ApiRequestError } from "../api/client";
 import { useAsync } from "../lib/useAsync";
+import {
+  PARAMS_UNAVAILABLE_TITLE,
+  jobParamsView,
+  reasonSentence,
+} from "../lib/jobParams";
 import type { CaptureState, RunDetailResponse } from "../api/types";
 import {
   CaptureBadge,
+  EvidenceClassBadge,
   GateBadge,
   PassBadge,
   RunOutcomeBadge,
   ScoreBadge,
   StatusBadge,
+  VersionStatusBadge,
 } from "../components/Badges";
 import { CaveatBanner } from "../components/CaveatBanner";
 import { PatchView } from "../components/PatchView";
@@ -27,35 +34,106 @@ import {
 import { durationMs, fixed, formatDate } from "../lib/format";
 
 export function RunPage() {
-  const { agent, taskId = "", idx = "0", jobId } = useParams();
+  const { agent, taskId = "", idx = "0", jobId, runId } = useParams();
+  const [searchParams] = useSearchParams();
+  const version = searchParams.get("version") || null;
   const runIndex = Number(idx);
   const [tab, setTab] = useState<"patch" | "tests" | "metadata">("patch");
   const job = useAsync(
     (signal) => (jobId ? api.job(jobId, signal) : Promise.resolve(null)),
     [jobId],
   );
-  const resolvedAgent = jobId ? (job.data?.params.model ?? "") : (agent ?? "");
+  // Job.params can be null (unverifiable): never dereference it here.
+  const jobView = job.data ? jobParamsView(job.data) : null;
+  const resolvedAgent = jobId
+    ? jobView?.available
+      ? jobView.model
+      : ""
+    : (agent ?? "");
   const detail = useAsync(
-    (signal) =>
-      resolvedAgent
-        ? api.run(resolvedAgent, taskId, runIndex, signal)
-        : Promise.resolve(null),
-    [resolvedAgent, taskId, runIndex],
+    (signal) => {
+      if (runId) return api.runById(runId, signal);
+      return resolvedAgent
+        ? api.run(resolvedAgent, taskId, runIndex, { version }, signal)
+        : Promise.resolve(null);
+    },
+    [runId, resolvedAgent, taskId, runIndex, version],
   );
 
   if (job.loading || detail.loading)
     return <Loading label="Loading run evidence…" />;
   if (job.error) return <ErrorState error={job.error} onRetry={job.reload} />;
-  if (detail.error)
+  if (jobId && jobView && !jobView.available)
+    return (
+      <EmptyState
+        title={PARAMS_UNAVAILABLE_TITLE}
+        action={
+          <Link
+            className="btn btn-secondary btn-small"
+            to={`/jobs/${encodeURIComponent(jobId)}`}
+          >
+            Back to evaluation
+          </Link>
+        }
+      >
+        <p>
+          This evaluation's persisted parameters are unverifiable, so the run
+          cannot be resolved through it. {reasonSentence(jobView.reason)}
+        </p>
+      </EmptyState>
+    );
+  if (detail.error) {
+    const body =
+      detail.error instanceof ApiRequestError ? detail.error.body : null;
+    const candidates =
+      detail.error instanceof ApiRequestError &&
+      detail.error.status === 409 &&
+      body &&
+      typeof body === "object" &&
+      Array.isArray((body as { candidate_run_ids?: unknown }).candidate_run_ids)
+        ? ((body as { candidate_run_ids: number[] }).candidate_run_ids ?? [])
+        : null;
+    if (candidates)
+      return (
+        <EmptyState title="Ambiguous run identity">
+          <p>
+            More than one run matches {resolvedAgent} × {taskId} #{runIndex}.
+            Open the exact run:
+          </p>
+          <div className="badge-row">
+            {candidates.map((id) => (
+              <Link className="version-chip" key={id} to={`/runs/${id}`}>
+                run id {id}
+              </Link>
+            ))}
+          </div>
+        </EmptyState>
+      );
     return <ErrorState error={detail.error} onRetry={detail.reload} />;
+  }
   const run = detail.data as RunDetailResponse | null;
   if (!run || !run.found || !run.score)
     return (
       <EmptyState title="Run not found">
         <p>
-          No run for {resolvedAgent} × {taskId} #{runIndex} was returned by the
-          local API.
+          {runId
+            ? `No run with id ${runId} was returned by the local API.`
+            : `No run for ${resolvedAgent} × ${taskId} #${runIndex} at ${version ? `version ${version}` : "the current task version"} was returned by the local API.`}
         </p>
+        {run?.historical_versions && run.historical_versions.length > 0 && (
+          <p>
+            Historical versions with a run at this index:{" "}
+            {run.historical_versions.map((v) => (
+              <Link
+                className="version-chip"
+                key={v}
+                to={`?version=${encodeURIComponent(v)}`}
+              >
+                {v} · historical
+              </Link>
+            ))}
+          </p>
+        )}
       </EmptyState>
     );
 
@@ -65,9 +143,12 @@ export function RunPage() {
     : run.patch_available
       ? "captured"
       : "not_captured";
+  const cellBase = `/cell/${encodeURIComponent(run.agent)}/${encodeURIComponent(run.task_id)}`;
   const backLink = jobId
     ? `/jobs/${encodeURIComponent(jobId)}`
-    : `/cell/${encodeURIComponent(run.agent)}/${encodeURIComponent(run.task_id)}`;
+    : run.version_status === "historical" && run.task_version
+      ? `${cellBase}?version=${encodeURIComponent(run.task_version)}`
+      : cellBase;
   const testRows = Array.isArray(run.test_results) ? run.test_results : [];
 
   return (
@@ -75,7 +156,7 @@ export function RunPage() {
       <PageHeader
         eyebrow="Run forensics"
         title={`Run #${run.idx}`}
-        description={`${run.agent} · ${run.task_id} · task version ${run.task_version ?? "—"}`}
+        description={`${run.agent} · ${run.task_id} · evidence version ${run.task_version ?? "—"}`}
         actions={
           <Link className="btn btn-secondary" to={backLink}>
             ← Back to {jobId ? "evaluation" : "cell"}
@@ -83,6 +164,57 @@ export function RunPage() {
         }
       />
       <CaveatBanner />
+      {run.evidence_class === "synthetic" && !run.synthetic && (
+        <InlineNotice tone="warn">
+          <span>
+            <strong>Synthetic - not benchmark evidence.</strong> This run was
+            produced by the mock backend and is excluded from benchmark views.
+          </span>
+        </InlineNotice>
+      )}
+      <dl className="evidence-facts" aria-label="Run evidence status">
+        <div>
+          <dt>Evidence version</dt>
+          <dd className="mono">{run.task_version ?? "—"}</dd>
+        </div>
+        {run.current_version !== undefined && (
+          <div>
+            <dt>Current task version</dt>
+            <dd className="mono">{run.current_version ?? "—"}</dd>
+          </div>
+        )}
+        {run.version_status && (
+          <div>
+            <dt>Status</dt>
+            <dd>
+              <VersionStatusBadge status={run.version_status} />
+            </dd>
+          </div>
+        )}
+        {run.evidence_class && (
+          <div>
+            <dt>Evidence class</dt>
+            <dd>
+              <EvidenceClassBadge
+                cls={run.evidence_class}
+                backendKind={run.backend_kind}
+                long
+              />
+            </dd>
+          </div>
+        )}
+      </dl>
+      {run.version_status === "historical" && (
+        <InlineNotice tone="warn">
+          <span>
+            <strong>HISTORICAL run</strong> - recorded at task version{" "}
+            <span className="mono">{run.task_version}</span>; the current
+            version is{" "}
+            <span className="mono">{run.current_version ?? "unknown"}</span>. It
+            is not part of the current benchmark.
+          </span>
+        </InlineNotice>
+      )}
       <div className="score-hero">
         <div>
           <div className="score-hero-label">Functional outcome</div>
@@ -272,8 +404,48 @@ export function RunPage() {
               <dd>{run.known_task ? "yes" : "no"}</dd>
               <dt>repeat index</dt>
               <dd>{run.idx}</dd>
-              <dt>task version</dt>
+              <dt>evidence version</dt>
               <dd>{run.task_version ?? "—"}</dd>
+              {run.current_version !== undefined && (
+                <>
+                  <dt>current task version</dt>
+                  <dd>{run.current_version ?? "—"}</dd>
+                </>
+              )}
+              {run.version_status && (
+                <>
+                  <dt>version status</dt>
+                  <dd>{run.version_status.toUpperCase()}</dd>
+                </>
+              )}
+              {run.run_id !== undefined && (
+                <>
+                  <dt>run id</dt>
+                  <dd>{run.run_id}</dd>
+                </>
+              )}
+              {run.job_id && (
+                <>
+                  <dt>evaluation</dt>
+                  <dd>
+                    <Link to={`/jobs/${encodeURIComponent(run.job_id)}`}>
+                      {run.job_id}
+                    </Link>
+                  </dd>
+                </>
+              )}
+              {run.evidence_class && (
+                <>
+                  <dt>evidence class</dt>
+                  <dd>
+                    {run.evidence_class}
+                    {run.backend_kind ? ` · ${run.backend_kind}` : ""}
+                    {run.provider_source
+                      ? ` (provider source: ${run.provider_source})`
+                      : ""}
+                  </dd>
+                </>
+              )}
               <dt>status</dt>
               <dd>{runStatus}</dd>
               <dt>voided</dt>

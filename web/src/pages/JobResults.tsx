@@ -7,7 +7,14 @@ import { useJobEvents } from "../lib/useJobEvents";
 import { TaskRunGrid } from "../components/TaskRunGrid";
 import { CaveatBanner } from "../components/CaveatBanner";
 import { ErrorState, Loading } from "../components/States";
-import { JobStatusBadge } from "../components/Badges";
+import { JobStatusBadge, MissingCurrentEvidence } from "../components/Badges";
+import {
+  PARAMS_UNAVAILABLE_TITLE,
+  reasonSentence,
+  jobEvidenceClass,
+  jobParamsView,
+} from "../lib/jobParams";
+import type { EvidenceScope } from "../api/types";
 import {
   InlineNotice,
   LinkArrow,
@@ -24,16 +31,26 @@ export function JobResults() {
   const { jobId = "" } = useParams();
   const job = useAsync((signal) => api.job(jobId, signal), [jobId]);
   const stream = useJobEvents(jobId, true);
-  const agent = job.data?.params.model ?? "";
-  const taskKey = job.data?.params.tasks.join(",") ?? "";
+  // Job.params may be null (unverifiable): only jobParamsView reads it.
+  const view = job.data ? jobParamsView(job.data) : null;
+  const agent = view?.available ? view.model : "";
+  const tasks = view?.available ? view.tasks : [];
+  const taskKey = tasks.join(",");
+  const evidenceClass = job.data ? jobEvidenceClass(job.data) : "unknown";
+  // A mock job's runs are excluded from the benchmark scope; look them up in
+  // the synthetic scope and label the result accordingly.
+  const cellScope: EvidenceScope =
+    evidenceClass === "synthetic" ? "synthetic" : "benchmark";
   const cells = useAsync(
     (signal) =>
-      job.data
+      view?.available
         ? Promise.all(
-            job.data.params.tasks.map((task) => api.cell(agent, task, signal)),
+            tasks.map((task) =>
+              api.cell(agent, task, { evidence: cellScope }, signal),
+            ),
           )
         : Promise.resolve([]),
-    [agent, taskKey],
+    [agent, taskKey, cellScope, view?.available],
   );
   const cellsByTask = useMemo(
     () => new Map((cells.data ?? []).map((cell) => [cell.task_id, cell])),
@@ -47,8 +64,12 @@ export function JobResults() {
     <div>
       <PageHeader
         eyebrow="Evaluation results"
-        title={evaluation.params.model}
-        description={`${taskScope(evaluation.params.tasks.length, evaluation.params.repeats)} · evaluation ${evaluation.id.slice(0, 10)}`}
+        title={view?.available ? view.model : PARAMS_UNAVAILABLE_TITLE}
+        description={
+          view?.available
+            ? `${taskScope(view.tasks.length, view.repeats)} · evaluation ${evaluation.id.slice(0, 10)}`
+            : `evaluation ${evaluation.id.slice(0, 10)}`
+        }
         actions={
           <Link
             className="btn btn-secondary"
@@ -59,6 +80,28 @@ export function JobResults() {
         }
       />
       <CaveatBanner />
+      {view && !view.available && (
+        <InlineNotice tone="warn">
+          <span>
+            <strong>{PARAMS_UNAVAILABLE_TITLE}.</strong>{" "}
+            {reasonSentence(view.reason)} Task outcomes and global aggregates
+            cannot be attributed to this evaluation.
+          </span>
+        </InlineNotice>
+      )}
+      {evidenceClass === "synthetic" && (
+        <InlineNotice tone="warn">
+          <span>
+            <strong>Synthetic - not benchmark evidence.</strong> This is a mock
+            evaluation. Its runs are excluded from the default benchmark
+            results, leaderboard and agent profile.{" "}
+            <Link to="/leaderboard?evidence=synthetic">
+              Open the synthetic view
+            </Link>
+            .
+          </span>
+        </InlineNotice>
+      )}
       <MetricGroup>
         <Metric
           label="Status"
@@ -92,13 +135,22 @@ export function JobResults() {
           description="The task/repeat tape below is scoped to this evaluation. Global cell aggregates are separate API projections and may require an API reload after a newly completed job."
         />
         <div className="toolbar">
+          {view?.available && (
+            <Link
+              className="btn btn-secondary"
+              to={`/agent/${encodeURIComponent(agent)}${cellScope === "synthetic" ? "?evidence=synthetic" : ""}`}
+            >
+              Open agent profile <ExternalLink size={14} aria-hidden="true" />
+            </Link>
+          )}
           <Link
-            className="btn btn-secondary"
-            to={`/agent/${encodeURIComponent(agent)}`}
+            className="btn btn-ghost"
+            to={
+              cellScope === "synthetic"
+                ? "/leaderboard?evidence=synthetic"
+                : "/leaderboard"
+            }
           >
-            Open agent profile <ExternalLink size={14} aria-hidden="true" />
-          </Link>
-          <Link className="btn btn-ghost" to="/leaderboard">
             Open leaderboard
           </Link>
         </div>
@@ -126,10 +178,23 @@ export function JobResults() {
       </Panel>
       <Panel>
         <SectionHeader
-          title="Global task aggregates"
-          description="These are global task cells shown separately from this evaluation."
+          title={
+            cellScope === "synthetic"
+              ? "Synthetic task aggregates - not benchmark evidence"
+              : "Global task aggregates (current benchmark)"
+          }
+          description={
+            cellScope === "synthetic"
+              ? "Mock runs are excluded from the benchmark scope, so these cells come from the synthetic view and are shown separately from this evaluation."
+              : "Current-version benchmark cells shown separately from this evaluation. A task without current-version evidence is marked as missing, not as a zero."
+          }
         />
-        {cells.loading ? (
+        {view && !view.available ? (
+          <p className="note muted">
+            {PARAMS_UNAVAILABLE_TITLE}: no per-task cells are requested for this
+            evaluation.
+          </p>
+        ) : cells.loading ? (
           <Loading label="Loading global aggregates…" />
         ) : cells.error ? (
           <ErrorState error={cells.error} onRetry={cells.reload} />
@@ -146,8 +211,10 @@ export function JobResults() {
                 </tr>
               </thead>
               <tbody>
-                {evaluation.params.tasks.map((taskId) => {
-                  const aggregate = cellsByTask.get(taskId)?.aggregate;
+                {tasks.map((taskId) => {
+                  const cell = cellsByTask.get(taskId);
+                  const aggregate = cell?.aggregate;
+                  const cellLink = `/cell/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}${cellScope === "synthetic" ? "?evidence=synthetic" : ""}`;
                   return (
                     <tr key={taskId}>
                       <td className="primary-cell">
@@ -159,9 +226,23 @@ export function JobResults() {
                         </Link>
                       </td>
                       <td className="mono">
-                        {aggregate
-                          ? pct(aggregate.pass_rate, 1)
-                          : "not available in loaded snapshot"}
+                        {aggregate ? (
+                          <>
+                            {pct(aggregate.pass_rate, 1)}
+                            {cellScope === "synthetic" && (
+                              <span className="missing-note">
+                                Synthetic - not benchmark evidence
+                              </span>
+                            )}
+                          </>
+                        ) : cell?.has_historical_evidence &&
+                          !cell.has_current_evidence ? (
+                          <MissingCurrentEvidence />
+                        ) : cellScope === "synthetic" ? (
+                          "no synthetic evidence for this task"
+                        ) : (
+                          "no current benchmark evidence"
+                        )}
                       </td>
                       <td>
                         {aggregate ? (
@@ -178,12 +259,8 @@ export function JobResults() {
                       </td>
                       <td className="mono">{aggregate?.n_valid ?? "—"}</td>
                       <td>
-                        {aggregate ? (
-                          <LinkArrow
-                            to={`/cell/${encodeURIComponent(agent)}/${encodeURIComponent(taskId)}`}
-                          >
-                            Open global cell
-                          </LinkArrow>
+                        {cell ? (
+                          <LinkArrow to={cellLink}>Open global cell</LinkArrow>
                         ) : (
                           "—"
                         )}

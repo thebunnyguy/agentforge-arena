@@ -15,7 +15,7 @@ import {
 import { formatDate } from "../lib/format";
 
 export function Reports() {
-  const meta = useAsync((signal) => api.meta(signal), []);
+  const meta = useAsync((signal) => api.meta({}, signal), []);
   const [regenerating, setRegenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +50,17 @@ export function Reports() {
         <Metric
           label="Persisted runs"
           value={obs.total_runs}
-          detail="report source"
+          detail="all versions and evidence classes"
           mono
         />
+        {meta.data!.current_benchmark && (
+          <Metric
+            label="Current / historical runs"
+            value={`${meta.data!.current_benchmark.current_runs} / ${meta.data!.current_benchmark.historical_runs}`}
+            detail="the report covers current-benchmark evidence"
+            mono
+          />
+        )}
         <Metric
           label="Agents"
           value={meta.data!.models.length}
@@ -76,7 +84,7 @@ export function Reports() {
         <Panel>
           <SectionHeader
             title="Report snapshot"
-            description="The report is generated from the current database and keeps mixed-version refusal behavior."
+            description="The report covers current-benchmark evidence (each task's current version, real and legacy runs). Historical versions and mock runs are preserved in the database but excluded from it; the report counts what it left out."
           />
           <dl className="kv">
             <dt>earliest run</dt>
