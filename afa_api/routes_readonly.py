@@ -136,7 +136,22 @@ async def run(
     )
     if isinstance(result, dict) and result.get("ambiguous"):
         return JSONResponse(status_code=409, content=result)
+    if isinstance(result, dict):
+        return _render_stored(result)
     return result
+
+
+def _render_stored(payload: Any, status_code: int = 200) -> JSONResponse:
+    """Render a forensic payload built from raw stored columns. A row holding a
+    value JSON cannot represent (an infinite score, an unencodable string) answers
+    a clear 503 instead of failing inside the response encoder."""
+    try:
+        return JSONResponse(status_code=status_code, content=payload)
+    except (ValueError, TypeError, OverflowError, UnicodeError, RecursionError):
+        return JSONResponse(
+            status_code=503,
+            content={"error": "stored run data could not be rendered (unreadable column)"},
+        )
 
 
 @router.get("/runs/{run_id}")
@@ -145,11 +160,16 @@ async def run_by_id(request: Request, run_id: Annotated[int, PathParam(ge=0, le=
     ro = db.connect_readonly(db_path_for(request))
     try:
         result = serialize.build_run_by_id(ro, run_id)
+    except (ValueError, TypeError, OverflowError, UnicodeError, RecursionError):
+        return JSONResponse(
+            status_code=503,
+            content={"error": f"run {run_id} has an unreadable stored column"},
+        )
     finally:
         ro.close()
     if not result.get("found"):
         return JSONResponse(status_code=404, content=result)
-    return result
+    return _render_stored(result)
 
 
 @router.get("/meta")

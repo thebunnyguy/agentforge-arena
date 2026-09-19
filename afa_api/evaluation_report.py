@@ -259,8 +259,7 @@ def _build_evaluation_report(
         limitations.append(
             "Persisted evaluation parameters could not be verified against the creation "
             "record (" + str(exc).removeprefix(f"{jobs._INVALID_PREFIX}: ") + "); "
-            "the values below come from the creation snapshot and this evaluation "
-            "cannot be resumed or retried."
+            "this evaluation cannot be resumed or retried."
         )
     for trial_row in jobs.trial_rows(conn, evaluation_id):
         detail = jobs.trial_detail(

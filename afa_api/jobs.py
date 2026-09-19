@@ -142,19 +142,43 @@ def _finite_float(literal: str) -> float:
     return value
 
 
+_MAX_JSON_DEPTH = 32  # persisted control-plane JSON is shallow; deeper is corrupt
+
+
+def _nesting_depth(value: Any) -> int:
+    """Depth of nested lists/dicts, computed iteratively (no recursion)."""
+    deepest = 0
+    stack: list[tuple[Any, int]] = [(value, 1)]
+    while stack:
+        item, depth = stack.pop()
+        if isinstance(item, dict):
+            children = list(item.values())
+        elif isinstance(item, list):
+            children = item
+        else:
+            continue
+        deepest = max(deepest, depth)
+        if deepest > _MAX_JSON_DEPTH:
+            return deepest
+        stack.extend((child, depth + 1) for child in children)
+    return deepest
+
+
 def _loads_finite(text: str | None):
-    """json.loads that refuses NaN / Infinity / 1e999: a non-finite number would
-    make the response renderer raise, turning one corrupt row into a 500 for the
-    whole listing. Returns None for anything unusable."""
+    """json.loads that refuses NaN / Infinity / 1e999 and absurd nesting: a
+    non-finite number or a document that is parseable but too deep to encode again
+    would make the response renderer raise, turning one corrupt row into a 500 for
+    the whole listing. Returns None for anything unusable."""
     if not text:
         return None
     try:
-        return json.loads(
+        value = json.loads(
             text, parse_constant=_refuse_constant, parse_float=_finite_float
         )
     except (TypeError, ValueError, RecursionError):
         # RecursionError: absurdly nested JSON is unusable input, not a crash
         return None
+    return None if _nesting_depth(value) > _MAX_JSON_DEPTH else value
 
 
 def _validation_field_names(exc: ValidationError) -> str:
@@ -187,6 +211,10 @@ def strict_params_from_json(raw_json: str) -> JobParams:
         raise InvalidPersistedParams(
             f"{_INVALID_PREFIX}: params_json is not valid JSON"
         ) from None
+    if _nesting_depth(raw) > _MAX_JSON_DEPTH:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: params_json is not valid JSON"
+        )
     if not isinstance(raw, dict):
         raise InvalidPersistedParams(
             f"{_INVALID_PREFIX}: params_json is not a JSON object"
@@ -232,10 +260,10 @@ def _snapshot_disagreements(params: JobParams, snapshot: dict[str, Any]) -> list
     generation = snapshot.get("generation")
     generation = generation if isinstance(generation, dict) else {}
     raw_tasks = snapshot.get("tasks")
+    junk = object()  # never equals a task id: a non-dict item cannot verify
     snapshot_tasks = [
-        item.get("task_id")
+        item.get("task_id") if isinstance(item, dict) else junk
         for item in (raw_tasks if isinstance(raw_tasks, list) else [])
-        if isinstance(item, dict)
     ]
     checks = {
         "model": snapshot.get("model") == params.model,
@@ -347,6 +375,14 @@ def _job_params_for_display(row: sqlite3.Row) -> tuple[JobParams | None, str | N
         return None, str(exc).removeprefix(f"{_INVALID_PREFIX}: ")
 
 
+UNREADABLE_JOB_MESSAGE = "evaluation row is unreadable (corrupt control columns)"
+
+
+def is_unreadable(job: Job) -> bool:
+    """True for the placeholder ``_unreadable_job`` renders for a corrupt row."""
+    return job.params_status == "unverifiable" and job.error_message == UNREADABLE_JOB_MESSAGE
+
+
 def _unreadable_job(row: sqlite3.Row) -> Job:
     """A listable placeholder for a control row whose columns cannot form a Job
     (unknown status/mode literal, non-numeric counters, non-finite numbers ...).
@@ -376,7 +412,7 @@ def _unreadable_job(row: sqlite3.Row) -> Job:
         created_at=text("created_at") or "",
         started_at=text("started_at"),
         finished_at=text("finished_at"),
-        error_message="evaluation row is unreadable (corrupt control columns)",
+        error_message=UNREADABLE_JOB_MESSAGE,
     )
 
 
@@ -432,14 +468,24 @@ def _job_from_row_checked(row: sqlite3.Row) -> Job:
 
 
 def _event_from_row(row: sqlite3.Row) -> JobEvent:
-    payload = _loads_finite(row["payload_json"])
-    return JobEvent(
-        job_id=row["job_id"],
-        seq=row["seq"],
-        ts=row["ts"],
-        type=row["type"],
-        payload=payload,
-    )
+    try:
+        payload = _loads_finite(row["payload_json"])
+        return JobEvent(
+            job_id=row["job_id"],
+            seq=row["seq"],
+            ts=row["ts"],
+            type=str(row["type"]).replace("\r", " ").replace("\n", " "),
+            payload=payload if isinstance(payload, dict) else None,
+        )
+    except (ValidationError, TypeError, ValueError, KeyError, OverflowError):
+        try:
+            seq = int(row["seq"])
+        except (TypeError, ValueError, OverflowError):
+            seq = 0
+        return JobEvent(
+            job_id=str(row["job_id"]), seq=seq, ts=str(row["ts"]),
+            type="unreadable_event", payload=None,
+        )
 
 
 _BYTECODE_SUFFIXES = frozenset({".pyc", ".pyo"})
@@ -470,10 +516,14 @@ def _task_digest(task_dir: Path) -> str:
 
 def task_snapshot(task_id: str) -> dict[str, str]:
     """Resolve and snapshot a task before an evaluation is dispatchable."""
-    task_dir = (db.ROOT / "tasks" / task_id).resolve()
-    spec_path = task_dir / "task.json"
-    if not spec_path.is_file():
-        raise JobStateError(f"task is unavailable: {task_id}")
+    try:
+        task_dir = (db.ROOT / "tasks" / task_id).resolve()
+        spec_path = task_dir / "task.json"
+        available = spec_path.is_file()
+    except (OSError, ValueError):
+        available = False  # e.g. a name longer than the filesystem allows
+    if not available:
+        raise JobStateError(f"task is unavailable: {task_id[:80]}")
     try:
         spec = json.loads(spec_path.read_text())
         version = str(spec["version"])
@@ -591,6 +641,8 @@ def create_job(conn: sqlite3.Connection, params: JobCreate) -> Job:
             source_job = get_job(conn, source_id or "")
             if source_job is None or source_snapshot is None or source_job.mode == "legacy":
                 raise JobStateError("reuse source evaluation is unavailable or legacy")
+            if source_job.params_status != "available":
+                raise JobStateError("reuse source evaluation has unverifiable parameters")
             if _snapshot_identity(source_snapshot) != _snapshot_identity(snapshot):
                 raise JobStateError("reuse source snapshot is incompatible")
             source_tasks = source_snapshot.get("tasks")
@@ -1163,22 +1215,39 @@ def reclaim_stale_running(
         elif isinstance(outcome, tuple):
             unverifiable.append((row["id"], outcome[1]))
     for jid, reason in unverifiable:
-        refresh_counters(conn, jid, commit=not caller_owned_transaction)
-        append_event(
-            conn, jid, "job_failed",
+        _record_recovery_outcome(
+            conn, jid, caller_owned_transaction, failures,
+            "job_failed",
             {"reason": reason, "recovery": "not resumed: parameters are unverifiable"},
-            commit=not caller_owned_transaction,
         )
     for jid in ids:
-        refresh_counters(conn, jid, commit=not caller_owned_transaction)
-        append_event(
-            conn, jid, "job_reclaimed",
+        _record_recovery_outcome(
+            conn, jid, caller_owned_transaction, failures,
+            "job_reclaimed",
             {"reason": "owner lock was released; resuming remaining trials"},
-            commit=not caller_owned_transaction,
         )
     if failures:
         raise RecoveryIncomplete(ids, failures)
     return ids
+
+
+def _record_recovery_outcome(
+    conn: sqlite3.Connection,
+    job_id: str,
+    caller_owned_transaction: bool,
+    failures: list[str],
+    event_type: str,
+    payload: dict[str, Any],
+) -> None:
+    """Counters + event for one recovered job. Its state transition is already
+    committed, so a failure here is recorded and must never lose the others."""
+    try:
+        refresh_counters(conn, job_id, commit=not caller_owned_transaction)
+        append_event(conn, job_id, event_type, payload, commit=not caller_owned_transaction)
+    except Exception as exc:  # noqa: BLE001 - isolate the job, report it
+        if not caller_owned_transaction and conn.in_transaction:
+            conn.rollback()
+        failures.append(f"{str(job_id)[:12]}: {type(exc).__name__} while recording recovery")
 
 
 def _reclaim_one(
@@ -1205,6 +1274,8 @@ def _reclaim_one(
                 # unusable hint only: the strict check below decides the
                 # evaluation's fate
                 pass
+            # an absurd (or negative) timeout must not disable staleness detection
+            request_timeout = min(max(request_timeout, 0), 86_400)
             threshold = max(base_threshold, request_timeout + 60)
             stale = conn.execute(
                 "SELECT 1 FROM evaluation_jobs WHERE id=? AND owner_started_at < "
@@ -1420,18 +1491,27 @@ def append_event(
     *,
     commit: bool = True,
 ) -> int:
-    row = conn.execute(
-        "SELECT COALESCE(MAX(seq), 0) AS m FROM job_events WHERE job_id=?", (job_id,)
-    ).fetchone()
-    seq = int(row["m"]) + 1
-    conn.execute(
-        "INSERT INTO job_events (job_id, seq, ts, type, payload_json) "
-        "VALUES (?, ?, datetime('now'), ?, ?)",
-        (job_id, seq, type, json.dumps(payload) if payload is not None else None),
-    )
-    if commit:
-        conn.commit()
-    return seq
+    encoded = json.dumps(payload) if payload is not None else None
+    for attempt in range(8):
+        row = conn.execute(
+            "SELECT COALESCE(MAX(seq), 0) AS m FROM job_events WHERE job_id=?", (job_id,)
+        ).fetchone()
+        seq = int(row["m"]) + 1
+        try:
+            conn.execute(
+                "INSERT INTO job_events (job_id, seq, ts, type, payload_json) "
+                "VALUES (?, ?, datetime('now'), ?, ?)",
+                (job_id, seq, type, encoded),
+            )
+        except sqlite3.IntegrityError:
+            # a concurrent writer took this seq between our MAX() and INSERT
+            if attempt == 7:
+                raise
+            continue
+        if commit:
+            conn.commit()
+        return seq
+    raise AssertionError("unreachable")
 
 
 def events_since(
@@ -1480,10 +1560,8 @@ def get_settings_raw(conn: sqlite3.Connection) -> dict[str, Any]:
     row = conn.execute("SELECT settings_json FROM app_settings WHERE id=1").fetchone()
     if row is None:
         return {}
-    try:
-        return json.loads(row["settings_json"]) or {}
-    except (json.JSONDecodeError, TypeError):
-        return {}
+    value = _loads_finite(row["settings_json"])
+    return value if isinstance(value, dict) else {}
 
 
 def put_settings(conn: sqlite3.Connection, data: dict[str, Any]) -> dict[str, Any]:
@@ -1491,7 +1569,7 @@ def put_settings(conn: sqlite3.Connection, data: dict[str, Any]) -> dict[str, An
         "INSERT INTO app_settings (id, settings_json, updated_at) VALUES (1, ?, datetime('now')) "
         "ON CONFLICT(id) DO UPDATE SET settings_json=excluded.settings_json, "
         "updated_at=excluded.updated_at",
-        (json.dumps(data),),
+        (json.dumps(data, allow_nan=False),),
     )
     conn.commit()
     return data

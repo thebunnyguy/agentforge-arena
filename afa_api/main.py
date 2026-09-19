@@ -86,8 +86,10 @@ def _maybe_mount_spa(app: FastAPI) -> None:
         # any stray /api/* path should 404, not return the SPA shell.
         if full_path.startswith("api"):
             raise HTTPException(status_code=404)
-        candidate = dist / full_path
-        if full_path and candidate.is_file():
+        dist_root = dist.resolve()
+        candidate = (dist / full_path).resolve()
+        # never serve a file outside the built SPA (e.g. via %2e%2e path segments)
+        if full_path and candidate.is_relative_to(dist_root) and candidate.is_file():
             return FileResponse(str(candidate))
         return FileResponse(str(index))
 

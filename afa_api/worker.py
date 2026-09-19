@@ -212,12 +212,23 @@ def run_job(
 ) -> None:
     """Execute one claimed evaluation while holding its same-host owner lock."""
     job = jobs.get_job(conn, job_id)
-    if job is None or job.status != "running":
+    if job is None:
         return
     # The dispatcher must pass the token it acquired. Reading a token here
     # would let a delayed old dispatcher adopt a successor after recovery.
     expected_owner = owner_token
     if expected_owner is None:
+        return
+    if jobs.is_unreadable(job):
+        # The claim was made on the raw row; the API can only show a placeholder
+        # for it. Fail it closed (fenced by our token) instead of abandoning a
+        # phantom 'running' row that would be requeued forever.
+        jobs.mark_terminal(
+            conn, job_id, "failed", error_message=jobs.UNREADABLE_JOB_MESSAGE,
+            owner_token=expected_owner,
+        )
+        return
+    if job.status != "running":
         return
     lock = jobs.try_acquire_owner_lock(conn, job_id)
     if lock is None:
@@ -510,15 +521,16 @@ def dispatch_job(db_path, job_id: str, *, agent_factory: AgentFactory | None = N
         except Exception as exc:  # noqa: BLE001 - last-resort safety net
             # A dispatch thread must never die silently and leave an evaluation
             # 'running' behind a live-looking owner: fail it (fenced by our token).
-            if token is not None:
-                try:
-                    jobs.mark_terminal(
-                        conn, job_id, "failed",
-                        error_message=f"dispatch failed: {type(exc).__name__}",
-                        owner_token=token,
-                    )
-                except Exception:  # noqa: BLE001
-                    pass
+            if token is None:
+                raise  # nothing was claimed: keep the thread traceback (job stays queued)
+            try:
+                jobs.mark_terminal(
+                    conn, job_id, "failed",
+                    error_message=f"dispatch failed: {type(exc).__name__}",
+                    owner_token=token,
+                )
+            except Exception:  # noqa: BLE001
+                traceback.print_exc()  # the secondary failure is logged, not hidden
         finally:
             conn.close()
 
@@ -540,6 +552,9 @@ def serve(poll_interval: float = 2.0, db_path=None) -> None:
             # keep serving: the requeued jobs are picked up by the polling loop
             reclaimed = exc.recovered
             print(f"[afa-worker] recovery incomplete: {exc}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - never crash-loop the worker on startup
+            reclaimed = []
+            print(f"[afa-worker] recovery failed: {type(exc).__name__}", flush=True)
         if reclaimed:
             print(f"[afa-worker] reclaimed {len(reclaimed)} stale running job(s): {reclaimed}", flush=True)
         print(f"[afa-worker] polling {db_path} every {poll_interval}s", flush=True)

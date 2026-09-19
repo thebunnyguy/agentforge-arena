@@ -46,7 +46,7 @@ def recover_stale_jobs(app) -> None:
         recovered = exc.recovered  # already committed as queued: still dispatch
         error = str(exc)
     except Exception as exc:  # noqa: BLE001 - the failure is the state
-        error = f"{type(exc).__name__}: {exc}"
+        error = f"recovery failed: {type(exc).__name__}"  # never echo row content
     app.state.recovery_error = error
     if getattr(app.state, "auto_dispatch", True):
         for job_id in recovered:

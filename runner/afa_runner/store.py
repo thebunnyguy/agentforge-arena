@@ -8,6 +8,7 @@ production Postgres store implements the same RunStore Protocol.
 
 from __future__ import annotations
 
+import math
 import sqlite3
 import uuid
 from dataclasses import dataclass
@@ -147,6 +148,9 @@ class SqliteRunStore:
             self._conn.execute("PRAGMA busy_timeout=5000")
         else:
             self._conn = sqlite3.connect(str(path))
+        if connection is None:
+            # undecodable TEXT must not fail every read that touches its row
+            self._conn.text_factory = lambda raw: raw.decode("utf-8", "replace")
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
         if not read_only and connection is None:
@@ -397,6 +401,16 @@ class SqliteRunStore:
                     functional_pass=bool(row["functional_pass"]),
                     voided=bool(row["voided"]),
                 )
+                for value in (score.t_hidden, score.q, score.final_score):
+                    if not math.isfinite(value):
+                        raise ValueError("non-finite score")
+                for number in (
+                    score.gate_product, int(row["idx"]), int(row["files_changed"]),
+                    int(row["lines_added"]), int(row["lines_removed"]),
+                    int(row["duration_ms"]), int(row["id"]),
+                ):
+                    if not -(2**63) <= number < 2**63:
+                        raise ValueError("integer outside the SQLite range")
                 records.append(
                     RunRecord(
                         task_id=row["task_id"],

@@ -43,20 +43,28 @@ def retry_migration_if_failed(app) -> None:
         return
     if time.monotonic() - getattr(app.state, "migrate_retry_at", 0.0) < _MIGRATION_RETRY_INTERVAL_S:
         return
-    with _migration_retry_lock:
+    if not _migration_retry_lock.acquire(blocking=False):
+        return  # another request is already retrying: never queue behind it
+    try:
         if not (
             getattr(app.state, "migrate_error", None)
             or getattr(app.state, "recovery_error", None)
         ):
             return
+        if time.monotonic() - getattr(app.state, "migrate_retry_at", 0.0) < _MIGRATION_RETRY_INTERVAL_S:
+            return  # re-checked under the lock: a slow attempt just finished
         app.state.migrate_retry_at = time.monotonic()
         # Deferred import: startup pulls in the worker, which projections never need.
         from . import startup
 
         if getattr(app.state, "migrate_error", None) and not startup.migrate_control_plane(app):
+            app.state.migrate_retry_at = time.monotonic()  # rate-limit from attempt END
             return
         # Recovery was skipped when the migration failed (or failed itself).
         startup.recover_stale_jobs(app)
+        app.state.migrate_retry_at = time.monotonic()
+    finally:
+        _migration_retry_lock.release()
 
 
 @dataclass

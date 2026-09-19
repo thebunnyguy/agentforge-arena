@@ -84,9 +84,9 @@ class JobParams(BaseModel):
     name: str | None = None
     tasks: list[str] = Field(default_factory=list)
     repeats: int = Field(default=1, ge=1, le=10_000)
-    base_seed: int = 1000
+    base_seed: int = Field(default=1000, ge=-(2**63), le=2**63 - 1)
     temperature: float = 0.6
-    request_timeout_s: int = Field(default=180, ge=1)
+    request_timeout_s: int = Field(default=180, ge=1, le=86_400)
     mode: EvaluationMode = "fresh"
     source_evaluation_id: str | None = None
 
@@ -195,10 +195,33 @@ class Settings(BaseModel):
     ollama_base_url: str = "http://localhost:11434"
     openai_base_url: str | None = None
     default_backend: BackendKind = "mock"
-    default_temperature: float = 0.6
-    default_repeats: int = Field(default=1, ge=1)
-    default_request_timeout_s: int = Field(default=180, ge=1)
+    default_temperature: float = Field(default=0.6, allow_inf_nan=False)
+    default_repeats: int = Field(default=1, ge=1, le=10_000)
+    default_request_timeout_s: int = Field(default=180, ge=1, le=86_400)
     extra: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("extra")
+    @classmethod
+    def require_renderable_extra(cls, value: dict[str, Any]) -> dict[str, Any]:
+        # Whatever is stored must be renderable again: finite numbers, encodable
+        # text and shallow nesting (a value that cannot be rendered would poison
+        # every later GET /settings).
+        stack: list[tuple[Any, int]] = [(value, 1)]
+        while stack:
+            item, depth = stack.pop()
+            if depth > 16:
+                raise ValueError("extra is nested too deeply")
+            if isinstance(item, float) and not math.isfinite(item):
+                raise ValueError("extra must not contain non-finite numbers")
+            if isinstance(item, str):
+                item.encode("utf-8")  # lone surrogates cannot be rendered
+            elif isinstance(item, dict):
+                for key, child in item.items():
+                    str(key).encode("utf-8")
+                    stack.append((child, depth + 1))
+            elif isinstance(item, list):
+                stack.extend((child, depth + 1) for child in item)
+        return value
 
     @field_validator("ollama_base_url", "openai_base_url")
     @classmethod

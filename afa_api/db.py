@@ -202,6 +202,17 @@ def _enable_wal(conn: sqlite3.Connection) -> None:
         delay = min(delay * 2, 0.1)
 
 
+def _tolerant_text(raw: bytes) -> str:
+    """Decode TEXT that is not valid UTF-8 instead of raising.
+
+    A single undecodable column would otherwise fail every read that touches its
+    row (listing, recovery, projections). The replacement characters make such a
+    value unusable for verification (it can no longer match its snapshot), which is
+    the fail-closed outcome, without taking unrelated rows down.
+    """
+    return raw.decode("utf-8", "replace")
+
+
 def connect(db_path: str | Path | None = None) -> sqlite3.Connection:
     """Open a read/write app connection with WAL + busy_timeout and Row factory.
 
@@ -212,6 +223,7 @@ def connect(db_path: str | Path | None = None) -> sqlite3.Connection:
     path = assert_writable_runtime_path(resolve_db_path(db_path))
     conn = sqlite3.connect(str(path))
     conn.row_factory = sqlite3.Row
+    conn.text_factory = _tolerant_text
     _apply_pragmas(conn)
     return conn
 
@@ -226,6 +238,7 @@ def connect_readonly(db_path: str | Path | None = None) -> sqlite3.Connection:
     uri = path.as_uri() + "?mode=ro"
     conn = sqlite3.connect(uri, uri=True)
     conn.row_factory = sqlite3.Row
+    conn.text_factory = _tolerant_text
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
     return conn

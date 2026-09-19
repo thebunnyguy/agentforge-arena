@@ -264,6 +264,7 @@ async def job_events(
         cursor = int(last_id) if last_id is not None else 0
     except ValueError:
         cursor = 0
+    cursor = min(max(cursor, 0), 9223372036854775807)  # the same bounds as ?since=
 
     db_path = db_path_for(request)
 
@@ -323,7 +324,13 @@ def get_settings(request: Request):
     finally:
         conn.close()
     # Merge stored values over defaults, then redact secrets on the way out.
-    merged = Settings.model_validate(raw).model_dump()
+    try:
+        merged = Settings.model_validate(raw).model_dump()
+    except (ValueError, TypeError, RecursionError):
+        # a stored blob that no longer validates must not take GET /settings down
+        merged = Settings().model_dump()
+        merged["stored_settings_error"] = "stored settings are unreadable; showing defaults"
+        return redact_settings(merged)
     if isinstance(raw.get("extra"), dict):
         merged["extra"] = {**merged.get("extra", {}), **raw["extra"]}
     return redact_settings(merged)
@@ -416,10 +423,10 @@ def regenerate_report(request: Request):
         )
     except ValueError as exc:
         return JSONResponse(status_code=409, content={"error": str(exc)})
-    except (OSError, sqlite3.Error) as exc:
+    except (OSError, sqlite3.Error, OverflowError, RecursionError) as exc:
         return JSONResponse(
             status_code=503,
-            content={"error": f"report database unavailable: {exc}"},
+            content={"error": f"report database unavailable: {type(exc).__name__}"},
         )
     try:
         out_path = Path(report_combined.OUTPUT)
