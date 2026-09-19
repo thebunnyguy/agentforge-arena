@@ -506,3 +506,37 @@ def test_report_provenance_panel_says_it_counts_every_persisted_run():
         runs_with_test_results=1, test_result_rows=2,
     ))
     assert "persisted runs (all versions and evidence classes)" in html
+
+
+# --------------------------------------------------------------------------- #
+# 7. The immutable evidence database cannot be reached through an alias
+# --------------------------------------------------------------------------- #
+
+
+def test_evidence_db_aliases_are_refused_as_a_writable_runtime_path(tmp_path):
+    evidence_path = db.EVIDENCE_DB_PATH
+    aliases = {
+        "dotdot": evidence_path.parent / ".." / evidence_path.parent.name / evidence_path.name,
+        "relative-dot": evidence_path.parent / "." / evidence_path.name,
+    }
+    link = tmp_path / "evidence-symlink.sqlite"
+    link.symlink_to(evidence_path)
+    aliases["symlink"] = link
+    for label, alias in aliases.items():
+        with pytest.raises(Exception, match="immutable|evidence"):
+            db.assert_writable_runtime_path(alias)
+        assert label  # keeps the failing alias visible in pytest output
+    # a case-variant spelling is the same file on a case-insensitive filesystem
+    upper = evidence_path.parent / evidence_path.name.upper()
+    if upper.exists():
+        with pytest.raises(Exception, match="immutable|evidence"):
+            db.assert_writable_runtime_path(upper)
+    # a hard link is the same file; only testable when tmp shares the filesystem
+    hard = tmp_path / "evidence-hardlink.sqlite"
+    try:
+        hard.hardlink_to(evidence_path)
+    except OSError:
+        pytest.skip("cannot create a hard link across filesystems here")
+    with pytest.raises(Exception, match="immutable|evidence"):
+        db.assert_writable_runtime_path(hard)
+    hard.unlink()

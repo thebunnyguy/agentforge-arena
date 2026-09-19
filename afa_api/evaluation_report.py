@@ -52,6 +52,16 @@ def _safe_model(value: Any) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
+def _loads_lenient(text: Any) -> Any:
+    """json.loads for best-effort labelling: garbage or absurdly nested JSON is
+    None. Non-finite numbers are kept out of the report field by field
+    (``_safe_*``), so the rest of a partly damaged row can still be labelled."""
+    try:
+        return json.loads(text)
+    except (TypeError, ValueError, RecursionError):
+        return None
+
+
 def _persisted_parameters(raw_json: Any) -> dict[str, Any]:
     """Keep only usable, non-secret fields from the stored params JSON.
 
@@ -59,7 +69,7 @@ def _persisted_parameters(raw_json: Any) -> dict[str, Any]:
     for legacy listings. Reports must not mistake those defaults for provenance,
     so this projection parses the persisted payload independently.
     """
-    raw = jobs._loads_finite(raw_json)  # None for garbage, non-finite or absurdly nested JSON
+    raw = _loads_lenient(raw_json)
     if not isinstance(raw, dict):
         return {}
 
@@ -96,7 +106,7 @@ def _stored_snapshot(row: sqlite3.Row) -> dict[str, Any] | None:
     raw_snapshot = row["snapshot_json"] if "snapshot_json" in row.keys() else None
     if not raw_snapshot:
         return None
-    snapshot = jobs._loads_finite(raw_snapshot)
+    snapshot = _loads_lenient(raw_snapshot)
     return snapshot if isinstance(snapshot, dict) else None
 
 
