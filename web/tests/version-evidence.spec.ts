@@ -556,6 +556,9 @@ test("unverifiable job: monitor, list, results and run pages never dereference n
   await expect(page.getByRole("button", { name: /Retry/ })).toHaveCount(0);
   await expect(page.getByText("UNVERIFIABLE PARAMETERS").first()).toBeVisible();
   await expect(page.getByText("Failed", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("unknown - parameters unverifiable"),
+  ).toBeVisible();
   await noSeriousAxe(page);
 
   await page.goto("/jobs", { waitUntil: "networkidle" });
@@ -582,6 +585,72 @@ test("unverifiable job: monitor, list, results and run pages never dereference n
     page.getByRole("heading", { name: "Evaluation parameters unavailable" }),
   ).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("evaluation cards never clip their actions or overlap columns at any width", async ({
+  page,
+}) => {
+  await mockApi(page, (url) => {
+    if (url.pathname === "/api/v1/jobs") return { jobs: [BAD_JOB, MOCK_JOB] };
+    if (url.pathname === "/api/v1/overview")
+      return {
+        models: [],
+        task_ids: [],
+        n_tasks: 24,
+        real_counts: {},
+        observability: META.observability,
+        agent_observability: {},
+        leaderboard: [],
+        synthetic_agents: [],
+        evidence_scope: "benchmark",
+        current_models: [],
+        historical_only_models: [],
+        evidence_counts: {},
+        current_benchmark: META.current_benchmark,
+        excluded: META.excluded,
+      };
+    return undefined;
+  });
+  for (const width of [1440, 1280, 1100, 900, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const path of ["/", "/jobs"]) {
+      await page.goto(path, { waitUntil: "networkidle" });
+      const cards = page.locator(".evaluation-card");
+      await expect(cards).toHaveCount(2);
+      const problems = await cards.evaluateAll((els) =>
+        els.flatMap((card) => {
+          const out: string[] = [];
+          const box = card.getBoundingClientRect();
+          const kids = [...card.children] as HTMLElement[];
+          const rects = kids.map((kid) => kid.getBoundingClientRect());
+          kids.forEach((kid, i) => {
+            const r = rects[i];
+            const name = kid.className || kid.tagName;
+            if (r.right > box.right + 1 || r.left < box.left - 1)
+              out.push(
+                `${name} leaves the card (${r.left}..${r.right} vs ${box.left}..${box.right})`,
+              );
+            if (kid.scrollWidth > kid.clientWidth + 1)
+              out.push(
+                `${name} overflows its own box (${kid.scrollWidth} > ${kid.clientWidth})`,
+              );
+            kids.forEach((other, j) => {
+              if (j <= i) return;
+              const o = rects[j];
+              const w = Math.min(r.right, o.right) - Math.max(r.left, o.left);
+              const h = Math.min(r.bottom, o.bottom) - Math.max(r.top, o.top);
+              if (w > 1 && h > 1)
+                out.push(
+                  `${name} overlaps ${other.className || other.tagName}`,
+                );
+            });
+          });
+          return out;
+        }),
+      );
+      expect(problems, `${path} @${width}px`).toEqual([]);
+    }
+  }
 });
 
 test("mock job results explain the benchmark exclusion instead of 'not available'", async ({

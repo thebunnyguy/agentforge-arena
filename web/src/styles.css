@@ -1413,12 +1413,15 @@ table.matrix {
 .evaluation-card {
   display: grid;
   grid-template-columns:
-    minmax(200px, 1.4fr) minmax(140px, 0.7fr) minmax(190px, 1fr)
+    minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 1fr)
     auto;
   gap: 18px;
   align-items: center;
   padding: 17px 0;
   border-bottom: 1px solid var(--border);
+}
+.evaluation-card > * {
+  min-width: 0;
 }
 .evaluation-card:last-child {
   border-bottom: 0;
@@ -1431,8 +1434,9 @@ table.matrix {
 }
 .evaluation-title {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   color: var(--text);
   font-weight: 700;
 }
@@ -1448,8 +1452,23 @@ table.matrix {
 }
 .evaluation-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 7px;
+}
+/* The overview shows the list in a ~two-thirds column, too narrow for four
+   columns: keep the title and actions on one row, stats and progress below. */
+@media (min-width: 1081px) {
+  .split-layout .evaluation-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .split-layout .evaluation-card .evaluation-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .split-layout .evaluation-card .evaluation-progress {
+    grid-column: 1 / -1;
+  }
 }
 .monitor-hero {
   display: grid;
@@ -2421,7 +2440,7 @@ pre.log {
     justify-content: flex-start;
   }
   .evaluation-card {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
     gap: 9px;
   }
   .evaluation-card .evaluation-progress {
@@ -2429,8 +2448,9 @@ pre.log {
     grid-row: auto;
   }
   .evaluation-actions {
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: 1;
+    grid-row: auto;
+    justify-content: flex-start;
   }
   .evaluation-stats {
     grid-column: 1 / -1;

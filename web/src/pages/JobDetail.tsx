@@ -473,9 +473,11 @@ export function JobDetail() {
               </dd>
               <dt>evidence class</dt>
               <dd>
-                {evidenceClass === "synthetic"
-                  ? "synthetic (mock) - excluded from benchmark results"
-                  : evidenceClass}
+                {!paramsView.available
+                  ? "unknown - parameters unverifiable"
+                  : evidenceClass === "synthetic"
+                    ? "synthetic (mock) - excluded from benchmark results"
+                    : evidenceClass}
               </dd>
               <dt>created</dt>
               <dd>{formatDate(currentJob.created_at)}</dd>

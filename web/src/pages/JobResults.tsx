@@ -132,7 +132,7 @@ export function JobResults() {
       <Panel>
         <SectionHeader
           title="Results handoff"
-          description="The task/repeat tape below is scoped to this evaluation. Global cell aggregates are separate API projections and may require an API reload after a newly completed job."
+          description="The task/repeat tape below is scoped to this evaluation. Global cell aggregates are separate projections over the current benchmark; a completed job appears in them immediately when it is benchmark evidence (mock runs never are)."
         />
         <div className="toolbar">
           {view?.available && (
