@@ -12,6 +12,7 @@ import errno
 import fcntl
 import hashlib
 import json
+import math
 import sqlite3
 import tempfile
 import threading
@@ -19,7 +20,9 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from . import db
+from pydantic import ValidationError
+
+from . import db, evidence
 from .schemas import (
     DEFAULT_BACKEND_URLS,
     TERMINAL_STATES,
@@ -33,6 +36,14 @@ from .schemas import (
 
 class JobStateError(ValueError):
     """The requested lifecycle operation is not safe for this evaluation."""
+
+
+class InvalidPersistedParams(JobStateError):
+    """Persisted evaluation parameters cannot be trusted for execution.
+
+    Raised by the strict execution parse. The message never echoes persisted
+    values (they may be corrupt or credential-bearing): only field names.
+    """
 
 
 class TrialClaimError(RuntimeError):
@@ -109,37 +120,165 @@ def _row_value(row: sqlite3.Row, key: str, default: Any = None) -> Any:
     return row[key] if key in row.keys() else default
 
 
-def _job_params_from_row(raw_json: str) -> JobParams:
-    """Project legacy params without letting obsolete fields break listing."""
+_INVALID_PREFIX = "invalid persisted evaluation parameters"
+
+# Every field an EXECUTABLE evaluation must carry explicitly. JobParams supplies
+# defaults (model "mock", backend mock, ...) for convenience when CREATING a job;
+# a persisted row is never allowed to fall back on them.
+_EXECUTION_REQUIRED_KEYS = (
+    "model", "backend", "tasks", "repeats", "base_seed", "temperature",
+    "request_timeout_s",
+)
+
+
+def _validation_field_names(exc: ValidationError) -> str:
+    """Field names only; pydantic messages/inputs may echo secrets or garbage."""
+    names = {
+        ".".join(str(part) for part in err["loc"]) or "params" for err in exc.errors()
+    }
+    return ", ".join(sorted(names))
+
+
+def strict_params_from_json(raw_json: str) -> JobParams:
+    """Parse persisted params for EXECUTION: no defaults, no coercion, no repair.
+
+    Anything malformed raises InvalidPersistedParams. In particular a corrupt row
+    can never degrade to ``JobParams()`` (mock backend / model "mock"), which
+    would run the reference-overlay mock agent under a job that claims something
+    else.
+    """
     try:
         raw = json.loads(raw_json)
-    except (TypeError, json.JSONDecodeError):
-        return JobParams()
+    except (TypeError, ValueError):
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: params_json is not valid JSON"
+        ) from None
     if not isinstance(raw, dict):
-        return JobParams()
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: params_json is not a JSON object"
+        )
+    missing = [key for key in _EXECUTION_REQUIRED_KEYS if key not in raw]
+    if missing:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: missing fields: {', '.join(missing)}"
+        )
+    try:
+        params = JobParams.model_validate(raw, strict=True)
+    except ValidationError as exc:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: invalid fields: {_validation_field_names(exc)}"
+        ) from None
+    problems = []
+    if not params.model.strip():
+        problems.append("model")
+    if not math.isfinite(params.temperature):
+        problems.append("temperature")
+    if (
+        not params.tasks
+        or len(set(params.tasks)) != len(params.tasks)
+        or any(not task.strip() for task in params.tasks)
+    ):
+        problems.append("tasks")
+    if problems:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: invalid fields: {', '.join(problems)}"
+        )
+    return params
+
+
+def _snapshot_disagreements(params: JobParams, snapshot: dict[str, Any]) -> list[str]:
+    """Fields where the persisted params contradict the creation snapshot."""
+    backend = snapshot.get("backend")
+    backend = backend if isinstance(backend, dict) else {}
+    generation = snapshot.get("generation")
+    generation = generation if isinstance(generation, dict) else {}
+    snapshot_tasks = [
+        item.get("task_id")
+        for item in (snapshot.get("tasks") or [])
+        if isinstance(item, dict)
+    ]
+    checks = {
+        "model": snapshot.get("model") == params.model,
+        "backend.kind": backend.get("kind") == params.backend.kind,
+        "backend.base_url": backend.get("base_url") == effective_backend_url(params),
+        "base_seed": generation.get("base_seed") == params.base_seed,
+        "temperature": generation.get("temperature") == params.temperature,
+        "request_timeout_s": generation.get("request_timeout_s")
+        == params.request_timeout_s,
+        "repeats": snapshot.get("repeats") == params.repeats,
+        "tasks": snapshot_tasks == list(params.tasks),
+    }
+    return [name for name, agrees in checks.items() if not agrees]
+
+
+def execution_params(conn: sqlite3.Connection, evaluation_id: str) -> JobParams:
+    """The ONLY parameters an evaluation may be executed, resumed, retried or
+    recovered with: strictly parsed and in agreement with the creation snapshot.
+
+    Raises InvalidPersistedParams (a JobStateError) otherwise. Callers must not
+    execute, create a fresh clone of, or requeue an evaluation on failure.
+    """
+    row = conn.execute(
+        "SELECT params_json FROM evaluation_jobs WHERE id=?", (evaluation_id,)
+    ).fetchone()
+    if row is None:
+        raise JobStateError(f"evaluation not found: {evaluation_id}")
+    params = strict_params_from_json(row["params_json"])
+    snapshot = get_snapshot(conn, evaluation_id)
+    if snapshot is None:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: evaluation has no creation snapshot"
+        )
+    disagreements = _snapshot_disagreements(params, snapshot)
+    if disagreements:
+        raise InvalidPersistedParams(
+            f"{_INVALID_PREFIX}: parameters disagree with the creation snapshot "
+            f"({', '.join(disagreements)})"
+        )
+    return params
+
+
+def _job_params_for_display(raw_json: str) -> tuple[JobParams | None, str | None]:
+    """Best-effort params for LISTING/inspection only.
+
+    Tolerates obsolete legacy fields, but never substitutes defaults for a
+    malformed row: it returns ``(None, sanitised_reason)`` instead. The result is
+    display data; execution paths use ``execution_params``.
+    """
+    try:
+        raw = json.loads(raw_json)
+    except (TypeError, ValueError):
+        return None, "params_json is not valid JSON"
+    if not isinstance(raw, dict):
+        return None, "params_json is not a JSON object"
+    if (
+        not isinstance(raw.get("model"), str)
+        or not raw["model"].strip()
+        or not isinstance(raw.get("backend"), dict)
+    ):
+        return None, "missing or malformed fields: model, backend"
     allowed = {
         "backend", "model", "name", "tasks", "repeats", "base_seed",
         "temperature", "request_timeout_s", "mode", "source_evaluation_id",
     }
     safe = {key: value for key, value in raw.items() if key in allowed}
-    backend = safe.get("backend")
-    if isinstance(backend, dict):
-        safe["backend"] = {
-            key: value for key, value in backend.items() if key in {"kind", "base_url"}
-        }
+    safe["backend"] = {
+        key: value for key, value in raw["backend"].items() if key in {"kind", "base_url"}
+    }
     if safe.get("mode") not in ("fresh", "reuse"):
         safe.pop("mode", None)
     try:
-        return JobParams.model_validate(safe)
+        return JobParams.model_validate(safe), None
+    except ValidationError as exc:
+        # Malformed/credential-bearing backend values must not poison ordinary
+        # listings or be echoed through the Job projection: names only.
+        return None, f"invalid fields: {_validation_field_names(exc)}"
     except (TypeError, ValueError):
-        # A legacy row is listable but never implicitly executable. In
-        # particular, malformed/credential-bearing backend values must not
-        # poison ordinary listings or be echoed through the Job projection.
-        return JobParams()
+        return None, "invalid fields"
 
 
 def _job_from_row(row: sqlite3.Row) -> Job:
-    params = _job_params_from_row(row["params_json"])
+    params, params_problem = _job_params_for_display(row["params_json"])
     mode = _row_value(row, "mode", "legacy") or "legacy"
     snapshot = None
     raw_snapshot = _row_value(row, "snapshot_json")
@@ -148,6 +287,14 @@ def _job_from_row(row: sqlite3.Row) -> Job:
             snapshot = json.loads(raw_snapshot)
         except (TypeError, json.JSONDecodeError):
             snapshot = None
+    backend_kind = evidence.snapshot_backend_kind(raw_snapshot) or (
+        params.backend.kind if params is not None else None
+    )
+    evidence_class = {
+        "mock": "synthetic",
+        "ollama": "real",
+        "openai_compat": "real",
+    }.get(backend_kind, "unknown")
     return Job(
         id=row["id"],
         status=row["status"],
@@ -155,7 +302,13 @@ def _job_from_row(row: sqlite3.Row) -> Job:
         source_evaluation_id=_row_value(row, "source_evaluation_id"),
         snapshot=snapshot,
         cancel_requested=bool(row["cancel_requested"]),
+        backend_kind=backend_kind,
+        evidence_class=evidence_class,
         params=params,
+        params_status="available" if params is not None else "unverifiable",
+        params_error=(
+            None if params is not None else f"{_INVALID_PREFIX}: {params_problem}"
+        ),
         counters=JobCounters(
             total_runs=row["total_runs"],
             completed_runs=row["completed_runs"],
@@ -611,11 +764,34 @@ def all_trials_completed(conn: sqlite3.Connection, evaluation_id: str) -> bool:
     return bool(row and row["n"] == 0)
 
 
+def _run_provenance(
+    conn: sqlite3.Connection, evaluation_id: str, run_kind: str | None
+) -> tuple[str, str | None]:
+    """Compare a raw run's own backend with its evaluation snapshot's backend.
+
+    Returns (state, snapshot_kind): "consistent", "mismatch" or "unknown" (the run
+    predates provenance, or the snapshot recorded no usable backend). A mismatch
+    is surfaced, never silently resolved.
+    """
+    snap = conn.execute(
+        "SELECT snapshot_json FROM evaluation_jobs WHERE id=?", (evaluation_id,)
+    ).fetchone()
+    snapshot_kind = evidence.snapshot_backend_kind(snap["snapshot_json"] if snap else None)
+    if run_kind is None or snapshot_kind is None:
+        return "unknown", snapshot_kind
+    return ("consistent" if run_kind == snapshot_kind else "mismatch"), snapshot_kind
+
+
 def trial_detail(
     conn: sqlite3.Connection, evaluation_id: str, task_id: str, idx: int
 ) -> dict[str, Any] | None:
+    has_backend_kind = any(
+        col[1] == "backend_kind" for col in conn.execute("PRAGMA table_info(runs)")
+    )
+    backend_column = "r.backend_kind AS backend_kind, " if has_backend_kind else "NULL AS backend_kind, "
     row = conn.execute(
         "SELECT t.*, r.agent, r.status, r.task_version AS run_task_version, "
+        + backend_column +
         "r.transcript_hash, r.duration_ms, r.created_at, s.final_score, "
         "s.functional_pass, s.voided, d.patch_text "
         "FROM evaluation_trials t LEFT JOIN runs r ON r.id=t.run_id "
@@ -638,12 +814,24 @@ def trial_detail(
         "source_run_id": row["source_run_id"],
         "origin_evaluation_id": row["origin_evaluation_id"],
         "error_message": row["error_message"],
+        "backend_kind": None,
+        "provenance": "unknown",
     }
     run_id = row["run_id"]
     if run_id is None:
         result["outcome"] = None
         result["artifact_state"] = "absent"
         return result
+    provenance_state, snapshot_kind = _run_provenance(
+        conn, evaluation_id, row["backend_kind"]
+    )
+    result["backend_kind"] = row["backend_kind"]
+    result["provenance"] = provenance_state
+    if provenance_state == "mismatch":
+        result["integrity_error"] = (
+            f"run backend {row['backend_kind']!r} disagrees with the evaluation "
+            f"snapshot backend {snapshot_kind!r}"
+        )
 
     # A trial link alone is not enough to call the outcome or artifacts
     # available: a failed/legacy partial write may leave no raw or score row.
@@ -673,7 +861,9 @@ def trial_detail(
     # Comparability is deliberately omitted when persisted evidence is
     # incomplete; outcome and provenance remain useful without inventing a
     # statistical claim from missing patch/test artifacts.
-    if artifacts_complete:
+    # A run whose own backend contradicts its evaluation snapshot is an integrity
+    # error: it is never presented as comparable evidence.
+    if artifacts_complete and provenance_state != "mismatch":
         if row["evidence_state"] == "reused":
             result["comparability"] = "provisional"
         elif row["evidence_state"] == "fresh":
@@ -760,6 +950,53 @@ def claim_next_queued(conn: sqlite3.Connection) -> str | None:
     return claim[0] if claim else None
 
 
+def _fail_unverifiable_running_job(
+    conn: sqlite3.Connection,
+    row: sqlite3.Row,
+    reason: str,
+    caller_owned_transaction: bool,
+) -> bool:
+    """Terminalise an unowned running evaluation whose parameters are unverifiable.
+
+    Its non-completed trials become blocked/unverifiable; no evidence is created
+    and nothing is queued. Guarded exactly like the requeue transition so a
+    live owner that finishes concurrently is never overwritten.
+    """
+    savepoint = f"afa_unverifiable_{uuid.uuid4().hex}"
+    conn.execute(f"SAVEPOINT {savepoint}")
+    try:
+        cur = conn.execute(
+            "UPDATE evaluation_jobs SET status='failed', error_message=?, "
+            "finished_at=datetime('now'), owner_token=NULL, owner_started_at=NULL "
+            "WHERE id=? AND status='running' AND owner_token IS ? "
+            "AND owner_started_at IS ?",
+            (reason, row["id"], row["owner_token"], row["owner_started_at"]),
+        )
+        if cur.rowcount != 1:
+            conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+            if not caller_owned_transaction and conn.in_transaction:
+                conn.rollback()
+            return False
+        conn.execute(
+            "UPDATE evaluation_trials SET trial_state='blocked', "
+            "evidence_state='unverifiable', error_message=?, claim_token=NULL, "
+            "claimed_at=NULL WHERE evaluation_id=? "
+            "AND trial_state IN ('pending', 'claimed')",
+            (reason, row["id"]),
+        )
+        conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+    except Exception:
+        conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+        conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+        if not caller_owned_transaction and conn.in_transaction:
+            conn.rollback()
+        raise
+    if not caller_owned_transaction:
+        conn.commit()
+    return True
+
+
 def reclaim_stale_running(
     conn: sqlite3.Connection, *, stale_after_s: int = 300,
     recover_unlocked: bool = False,
@@ -776,6 +1013,7 @@ def reclaim_stale_running(
         "WHERE status='running'"
     ).fetchall()
     ids: list[str] = []
+    unverifiable: list[tuple[str, str]] = []
     base_threshold = max(0, int(stale_after_s))
     for row in rows:
         lock = try_acquire_owner_lock(conn, row["id"])
@@ -798,6 +1036,19 @@ def reclaim_stale_running(
                     (row["id"], f"-{threshold} seconds"),
                 ).fetchone() is not None
             if not stale and not recover_unlocked:
+                continue
+
+            # Fail closed: an evaluation whose persisted parameters or creation
+            # snapshot cannot be trusted must never be requeued (and therefore
+            # never auto-dispatched) with defaults. It becomes an explicit
+            # failed / unverifiable evaluation instead.
+            try:
+                execution_params(conn, row["id"])
+            except InvalidPersistedParams as exc:
+                if _fail_unverifiable_running_job(
+                    conn, row, str(exc), caller_owned_transaction
+                ):
+                    unverifiable.append((row["id"], str(exc)))
                 continue
 
             # The owner may finish between the stale observation and this
@@ -837,6 +1088,13 @@ def reclaim_stale_running(
             ids.append(row["id"])
         finally:
             lock.release()
+    for jid, reason in unverifiable:
+        refresh_counters(conn, jid, commit=not caller_owned_transaction)
+        append_event(
+            conn, jid, "job_failed",
+            {"reason": reason, "recovery": "not resumed: parameters are unverifiable"},
+            commit=not caller_owned_transaction,
+        )
     for jid in ids:
         refresh_counters(conn, jid, commit=not caller_owned_transaction)
         append_event(
@@ -855,6 +1113,8 @@ def resume_job(conn: sqlite3.Connection, job_id: str) -> Job | None:
     snapshot = get_snapshot(conn, job_id)
     if job.mode == "legacy" or snapshot is None:
         raise JobStateError("evaluation has no verifiable creation snapshot")
+    # Fail closed on corrupt persisted parameters before touching any state.
+    execution_params(conn, job_id)
     validate_snapshot_tasks(snapshot)
     if job.status == "succeeded":
         raise JobStateError("succeeded evaluations are not resumable")
@@ -974,7 +1234,8 @@ def retry_job(conn: sqlite3.Connection, job_id: str) -> Job | None:
     job = get_job(conn, job_id)
     if job is None or job.status not in TERMINAL_STATES or job.mode == "legacy":
         return None
-    params = job.params.model_copy(
+    # Never clone defaults: a malformed row raises InvalidPersistedParams (409).
+    params = execution_params(conn, job_id).model_copy(
         update={"mode": "fresh", "source_evaluation_id": None}
     )
     return create_job(conn, JobCreate.model_validate(params.model_dump()))

@@ -196,6 +196,11 @@ def _limitations(row: sqlite3.Row, trial: dict[str, Any]) -> list[str]:
         result.append(f"{label} artifacts are {trial['artifact_state']}.")
     if trial["outcome"] is None:
         result.append(f"{label} outcome evidence is unavailable or unverifiable.")
+    if trial.get("integrity_error"):
+        result.append(
+            f"{label} provenance integrity error: {trial['integrity_error']}; "
+            "it is not presented as comparable evidence."
+        )
     return result
 
 
@@ -257,8 +262,12 @@ def _build_evaluation_report(
             "outcome": detail.get("outcome"),
             "artifact_state": detail.get("artifact_state", "unavailable"),
             "comparability": detail.get("comparability"),
+            "backend_kind": detail.get("backend_kind"),
+            "provenance": detail.get("provenance", "unknown"),
             "error_message": trial_row["error_message"],
         }
+        if detail.get("integrity_error"):
+            trial["integrity_error"] = detail["integrity_error"]
         trials.append(trial)
         limitations.extend(_limitations(trial_row, trial))
 
@@ -432,6 +441,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Score: `{_value(outcome.get('final_score'))}`",
             f"- Artifacts: `{trial['artifact_state']}`",
             f"- Comparability: `{_value(trial['comparability'])}`",
+            f"- Backend: `{_value(trial.get('backend_kind'))}`",
+            f"- Provenance: `{trial.get('provenance', 'unknown')}`",
         ])
         if trial["source_evaluation_id"] is not None:
             lines.append(f"- Source evaluation: `{trial['source_evaluation_id']}`")

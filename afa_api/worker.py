@@ -16,7 +16,7 @@ import traceback
 from pathlib import Path
 from typing import Callable, Protocol
 
-from . import db, jobs
+from . import db, evidence, jobs
 from .db import ROOT
 from .schemas import JobParams
 
@@ -81,6 +81,14 @@ def openai_compat_agent_factory(
         base_seed=params.base_seed,
         request_timeout=params.request_timeout_s,
     )
+
+
+# Each production factory declares which backend it really drives. The worker
+# records THAT (not merely what was requested) as the run's provenance, so a
+# mock-driven run can never be persisted as ollama/openai_compat evidence.
+mock_agent_factory.backend_kind = "mock"  # type: ignore[attr-defined]
+ollama_agent_factory.backend_kind = "ollama"  # type: ignore[attr-defined]
+openai_compat_agent_factory.backend_kind = "openai_compat"  # type: ignore[attr-defined]
 
 
 def factory_for(params: JobParams) -> AgentFactory:
@@ -174,6 +182,25 @@ def _release_claim(
     conn.commit()
 
 
+def _fail_unverifiable(
+    conn: sqlite3.Connection, job_id: str, owner: str, reason: str
+) -> None:
+    """Terminalise an evaluation that must not execute: its non-completed trials
+    become blocked/unverifiable, no agent is created and no run is written."""
+    for task_id in sorted(
+        {
+            row["task_id"]
+            for row in jobs.trial_rows(conn, job_id)
+            if row["trial_state"] != "completed"
+        }
+    ):
+        jobs.mark_trial_unverifiable(
+            conn, job_id, task_id, error_message=reason, owner_token=owner
+        )
+    jobs.append_event(conn, job_id, "error", {"error": reason})
+    jobs.mark_terminal(conn, job_id, "failed", error_message=reason, owner_token=owner)
+
+
 def run_job(
     conn: sqlite3.Connection,
     job_id: str,
@@ -233,8 +260,23 @@ def _run_job_locked(
             owner_token=owner,
         )
         return
+    # Fail closed BEFORE any agent factory is chosen or called: corrupt persisted
+    # parameters (or parameters that contradict the creation snapshot) must never
+    # degrade to defaults, i.e. never run the reference-overlay mock agent.
+    try:
+        params = jobs.execution_params(conn, job_id)
+    except jobs.InvalidPersistedParams as exc:
+        _fail_unverifiable(conn, job_id, owner, str(exc))
+        return
     if agent_factory is None:
-        agent_factory = factory_for(job.params)
+        agent_factory = factory_for(params)
+    declared_kind = getattr(agent_factory, "backend_kind", None)
+    # Undeclared (test) factories fall back to the requested kind. The evaluation
+    # snapshot keeps what was REQUESTED; the run keeps what actually ran; a
+    # disagreement is surfaced by the projections/reports, never resolved silently.
+    backend_kind = (
+        declared_kind if declared_kind in evidence.BACKEND_KINDS else params.backend.kind
+    )
 
     # The borrowed connection is essential: save_run(commit=False) and the
     # trial update must publish together. Injected stores remain for test seams,
@@ -257,11 +299,11 @@ def _run_job_locked(
         job_id,
         "job_started",
         {
-            "model": job.params.model,
-            "backend": job.params.backend.kind,
+            "model": params.model,
+            "backend": params.backend.kind,
             "mode": job.mode,
             "tasks": [t.get("task_id") for t in snapshot.get("tasks", [])],
-            "repeats": snapshot.get("repeats", job.params.repeats),
+            "repeats": snapshot.get("repeats", params.repeats),
             "total_runs": job.counters.total_runs,
         },
     )
@@ -312,9 +354,9 @@ def _run_job_locked(
             try:
                 agent = agents.get(task_id)
                 if agent is None:
-                    agent = agent_factory(job.params.model, task, job.params)
+                    agent = agent_factory(params.model, task, params)
                     agents[task_id] = agent
-                _set_effective_seed(agent, job.params.base_seed + idx)
+                _set_effective_seed(agent, params.base_seed + idx)
                 jobs.append_event(conn, job_id, "run_started", {"task_id": task_id, "idx": idx})
             except Exception:
                 conn.rollback()
@@ -362,6 +404,7 @@ def _run_job_locked(
                     report=rec.grade_report,
                     commit=False,
                     job_id=job_id,
+                    backend_kind=backend_kind,
                 )
                 jobs.complete_trial(
                     conn,

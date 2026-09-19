@@ -115,7 +115,17 @@ class Job(BaseModel):
     source_evaluation_id: str | None = None
     snapshot: dict[str, Any] | None = None
     cancel_requested: bool = False
-    params: JobParams
+    # None (with params_status "unverifiable") when the persisted parameters are
+    # malformed: a malformed row is listable but its parameters are never
+    # replaced by defaults, and it is never executable.
+    params: JobParams | None = None
+    params_status: Literal["available", "unverifiable"] = "available"
+    params_error: str | None = None
+    # What the evaluation snapshot recorded as its backend (None if unknown) and
+    # the evidence class that implies: mock runs are synthetic dev/test evidence
+    # and are excluded from the default benchmark aggregates.
+    backend_kind: Literal["mock", "ollama", "openai_compat"] | None = None
+    evidence_class: Literal["real", "synthetic", "unknown"] = "unknown"
     counters: JobCounters
     created_at: str
     started_at: str | None = None
