@@ -104,6 +104,16 @@ class OllamaAgent:
     generate: GenerateFn | None = None   # injected in tests; default hits Ollama
     _call: int = 0
 
+    def set_run_seed(self, seed: int) -> None:
+        """Set the deterministic seed for the next position.
+
+        The API worker calls this before every evaluation-owned trial, so a
+        resumed position receives the same seed it would have received in a
+        fresh execution regardless of which earlier positions were skipped.
+        """
+        self.base_seed = seed
+        self._call = 0
+
     def act(self, workspace: Path, task: "Task", sandbox: "Sandbox") -> AgentOutcome:
         workspace = Path(workspace)
         targets = self._editable_files(workspace, task)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 
 import pytest
 
@@ -26,6 +27,78 @@ def _persisted_record() -> RunRecord:
         transcript_hash="sha256:real-persisted-row",
         duration_ms=10,
     )
+
+
+def _report_fixture(tmp_path):
+    db_path = tmp_path / "runs.sqlite"
+    disk = SqliteRunStore(db_path)
+    disk.save_run(_persisted_record())
+    disk.close()
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            [
+                {
+                    "id": "task-one",
+                    "version": "1.0.0",
+                    "manual_difficulty": 2,
+                    "domains": [["backend", 1.0]],
+                }
+            ]
+        )
+    )
+    return db_path, manifest_path
+
+
+def _track_report_store_closes(monkeypatch):
+    store_cls = report_combined.afa.SqliteRunStore
+    original_close = store_cls.close
+    closed = []
+
+    def track_close(store):
+        closed.append(store)
+        original_close(store)
+
+    monkeypatch.setattr(store_cls, "close", track_close)
+    return closed
+
+
+def _assert_report_stores_closed(closed):
+    # One source store and one aggregate store must both be closed on a
+    # post-load failure; checking the actual connection catches leaked owners.
+    assert len(closed) == 2
+    for store in closed:
+        with pytest.raises(sqlite3.ProgrammingError):
+            store.load_runs()
+
+
+def test_combined_report_closes_aggregate_on_synthetic_failure(tmp_path, monkeypatch):
+    db_path, manifest_path = _report_fixture(tmp_path)
+    closed = _track_report_store_closes(monkeypatch)
+
+    def fail_synthetic(*args, **kwargs):
+        raise RuntimeError("synthetic baseline failure")
+
+    monkeypatch.setattr(report_combined, "_add_synthetic_baseline", fail_synthetic)
+    with pytest.raises(RuntimeError, match="synthetic baseline failure"):
+        report_combined.build_report(db_path, manifest_path)
+
+    _assert_report_stores_closed(closed)
+
+
+def test_combined_report_closes_aggregate_on_render_failure(tmp_path, monkeypatch):
+    db_path, manifest_path = _report_fixture(tmp_path)
+    closed = _track_report_store_closes(monkeypatch)
+
+    def fail_render(*args, **kwargs):
+        raise RuntimeError("render failure")
+
+    monkeypatch.setattr(report_combined.afa, "render_report", fail_render)
+    with pytest.raises(RuntimeError, match="render failure"):
+        report_combined.build_report(db_path, manifest_path)
+
+    _assert_report_stores_closed(closed)
 
 
 def test_combined_report_uses_db_rows_and_labels_only_synthetic_baselines(tmp_path):

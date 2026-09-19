@@ -25,17 +25,19 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sqlite3
 import sys
-import threading
 from pathlib import Path
 from typing import Any
 
 import httpx
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from . import db, jobs, worker
+from .evaluation_report import build_evaluation_report, render_markdown
 from .db import ROOT
+from .projection import ProjectionUnavailable, db_path_for, open_projection
 from .schemas import (
     TERMINAL_STATES,
     BackendVerifyRequest,
@@ -43,6 +45,7 @@ from .schemas import (
     JobCreate,
     Settings,
     redact_settings,
+    reject_secret_fields,
 )
 
 for _p in (ROOT / "kernel", ROOT / "runner", ROOT / "examples"):
@@ -61,28 +64,16 @@ _SSE_POLL_S = 0.5
 # --------------------------------------------------------------------------- #
 
 def _dispatch_worker(request: Request, job_id: str) -> None:
-    """Run a freshly-created job in a daemon thread with its own connection.
-
-    The agent factory may be overridden on app.state (tests inject a mock); the
-    default is chosen from the job's backend kind inside ``run_job``.
-    """
-    factory = getattr(request.app.state, "agent_factory", None)
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
-
-    def _work() -> None:
-        conn = db.connect(db_path)
-        try:
-            if jobs.claim_job(conn, job_id):
-                worker.run_job(conn, job_id, agent_factory=factory)
-        finally:
-            conn.close()
-
-    threading.Thread(target=_work, name=f"afa-job-{job_id}", daemon=True).start()
+    """Use the shared token-preserving worker dispatcher."""
+    worker.dispatch_job(
+        db_path_for(request),
+        job_id,
+        agent_factory=getattr(request.app.state, "agent_factory", None),
+    )
 
 
 def _conn(request: Request):
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
-    return db.connect(db_path)
+    return db.connect(db_path_for(request))
 
 
 # --------------------------------------------------------------------------- #
@@ -93,7 +84,14 @@ def _conn(request: Request):
 def create_job(request: Request, body: JobCreate):
     conn = _conn(request)
     try:
-        job = jobs.create_job(conn, body)
+        try:
+            job = jobs.create_job(conn, body)
+        except jobs.JobStateError as exc:
+            return JSONResponse(status_code=409, content={"error": str(exc)})
+        except RuntimeError as exc:
+            return JSONResponse(status_code=503, content={"error": str(exc)})
+        except (ValueError, sqlite3.Error) as exc:
+            return JSONResponse(status_code=422, content={"error": str(exc)})
     finally:
         conn.close()
     # Auto-dispatch unless explicitly disabled (tests may want manual control).
@@ -139,7 +137,12 @@ def cancel_job(request: Request, job_id: str):
 def retry_job(request: Request, job_id: str):
     conn = _conn(request)
     try:
-        new_job = jobs.retry_job(conn, job_id)
+        try:
+            new_job = jobs.retry_job(conn, job_id)
+        except RuntimeError as exc:
+            return JSONResponse(status_code=503, content={"error": str(exc)})
+        except (jobs.JobStateError, ValueError, sqlite3.Error) as exc:
+            return JSONResponse(status_code=409, content={"error": str(exc)})
     finally:
         conn.close()
     if new_job is None:
@@ -150,6 +153,80 @@ def retry_job(request: Request, job_id: str):
     if getattr(request.app.state, "auto_dispatch", True):
         _dispatch_worker(request, new_job.id)
     return new_job.model_dump()
+
+
+@router.post("/jobs/{job_id}/resume")
+def resume_job(request: Request, job_id: str):
+    """Explicit same-ID continuation of incomplete, snapshotted trials."""
+    conn = _conn(request)
+    try:
+        try:
+            resumed = jobs.resume_job(conn, job_id)
+        except RuntimeError as exc:
+            return JSONResponse(status_code=503, content={"error": str(exc)})
+        except jobs.JobStateError as exc:
+            return JSONResponse(status_code=409, content={"error": str(exc)})
+    finally:
+        conn.close()
+    if resumed is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    if getattr(request.app.state, "auto_dispatch", True):
+        _dispatch_worker(request, resumed.id)
+    return resumed.model_dump()
+
+
+@router.get("/jobs/{job_id}/trials")
+def get_trials(request: Request, job_id: str):
+    conn = _conn(request)
+    try:
+        result = jobs.evaluation_results(conn, job_id)
+    finally:
+        conn.close()
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    return result
+
+
+@router.get("/jobs/{job_id}/results")
+def get_results(request: Request, job_id: str):
+    """Stable-ID alias for the minimal evaluation-scoped result facts."""
+    return get_trials(request, job_id)
+
+
+@router.get("/jobs/{job_id}/report.json")
+def get_evaluation_report(request: Request, job_id: str):
+    conn = db.connect_readonly(db_path_for(request))
+    try:
+        report = build_evaluation_report(conn, job_id)
+    finally:
+        conn.close()
+    if report is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    return report
+
+
+@router.get("/jobs/{job_id}/report.md")
+def get_evaluation_report_markdown(request: Request, job_id: str):
+    conn = db.connect_readonly(db_path_for(request))
+    try:
+        report = build_evaluation_report(conn, job_id)
+    finally:
+        conn.close()
+    if report is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+    return PlainTextResponse(render_markdown(report), media_type="text/markdown")
+
+
+@router.get("/jobs/{job_id}/trials/{task_id}/{idx}")
+def get_trial(request: Request, job_id: str, task_id: str, idx: int):
+    conn = _conn(request)
+    try:
+        result = jobs.trial_detail(conn, job_id, task_id, idx)
+    finally:
+        conn.close()
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": "trial not found"})
+    return result
 
 
 # --------------------------------------------------------------------------- #
@@ -181,7 +258,7 @@ async def job_events(request: Request, job_id: str, since: int | None = None):
     except ValueError:
         cursor = 0
 
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
+    db_path = db_path_for(request)
 
     def _poll(after: int):
         """Open/query/close a read-only connection on ONE thread (sqlite objects
@@ -247,6 +324,10 @@ def get_settings(request: Request):
 
 @router.put("/settings")
 def put_settings(request: Request, body: Settings):
+    try:
+        reject_secret_fields(body.model_dump())
+    except ValueError as exc:
+        return JSONResponse(status_code=422, content={"error": str(exc)})
     conn = _conn(request)
     try:
         stored = jobs.put_settings(conn, body.model_dump())
@@ -268,7 +349,8 @@ async def verify_backend(request: Request, body: BackendVerifyRequest):
             models=["mock"],
         ).model_dump()
 
-    base_url = (body.base_url or "http://localhost:11434").rstrip("/")
+    default_url = "http://localhost:11434" if body.kind == "ollama" else "http://localhost:1234"
+    base_url = (body.base_url or default_url).rstrip("/")
     # Ollama tags endpoint; OpenAI-compat /v1/models. Local servers only.
     if body.kind == "ollama":
         url = f"{base_url}/api/tags"
@@ -312,11 +394,16 @@ def regenerate_report(request: Request):
     """
     import report_combined  # type: ignore
 
-    db_path = getattr(request.app.state, "db_path", db.DB_PATH)
+    db_path = db_path_for(request)
     try:
         html, store, real_counts = report_combined.build_report(db_path=db_path)
     except ValueError as exc:
         return JSONResponse(status_code=409, content={"error": str(exc)})
+    except (OSError, sqlite3.Error) as exc:
+        return JSONResponse(
+            status_code=503,
+            content={"error": f"report database unavailable: {exc}"},
+        )
     try:
         out_path = Path(report_combined.OUTPUT)
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -336,36 +423,32 @@ def regenerate_report(request: Request):
 
 @router.get("/export")
 async def export(request: Request):
-    """Export the current aggregates as JSON (read-only projection).
-
-    Reuses the loaded stores + the frozen report fns; no statistics computed
-    here. ``format=json`` is the only v1 format.
-    """
-    stores = getattr(request.app.state, "stores", None)
-    if stores is None:
-        err = getattr(request.app.state, "load_error", None) or "stores not loaded"
-        return JSONResponse(status_code=503, content={"error": err})
-
+    """Export a fresh aggregate projection from the configured working DB."""
     import afa_runner as afa  # noqa: E402
 
-    leaderboard = [
-        {
-            "agent": e.agent, "pass_rate": e.pass_rate,
-            "wilson_low": e.wilson_low, "wilson_high": e.wilson_high,
-            "n": e.n, "provisional": e.provisional,
-            "rank_low": e.rank_low, "rank_high": e.rank_high,
-        }
-        for e in afa.leaderboard(stores.real)
-    ]
-    return {
-        "format": "json",
-        "snapshot_note": "Snapshot of the current persisted aggregates; "
-                         "synthetic baselines excluded.",
-        "models": stores.models,
-        "task_ids": stores.task_ids,
-        "real_counts": {
-            agent: {"n_runs": n_runs, "n_tasks": n_tasks}
-            for agent, (n_runs, n_tasks) in stores.real_counts.items()
-        },
-        "leaderboard": leaderboard,
-    }
+    try:
+        with open_projection(request) as projection:
+            stores = projection.stores
+            leaderboard = [
+                {
+                    "agent": e.agent, "pass_rate": e.pass_rate,
+                    "wilson_low": e.wilson_low, "wilson_high": e.wilson_high,
+                    "n": e.n, "provisional": e.provisional,
+                    "rank_low": e.rank_low, "rank_high": e.rank_high,
+                }
+                for e in afa.leaderboard(stores.real)
+            ]
+            return {
+                "format": "json",
+                "snapshot_note": "Snapshot of the current persisted aggregates; "
+                                 "synthetic baselines excluded.",
+                "models": stores.models,
+                "task_ids": stores.task_ids,
+                "real_counts": {
+                    agent: {"n_runs": n_runs, "n_tasks": n_tasks}
+                    for agent, (n_runs, n_tasks) in stores.real_counts.items()
+                },
+                "leaderboard": leaderboard,
+            }
+    except ProjectionUnavailable as exc:
+        return JSONResponse(status_code=503, content={"error": str(exc)})

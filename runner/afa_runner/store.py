@@ -9,6 +9,7 @@ production Postgres store implements the same RunStore Protocol.
 from __future__ import annotations
 
 import sqlite3
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, runtime_checkable
@@ -55,7 +56,8 @@ CREATE TABLE IF NOT EXISTS runs (
     status          TEXT    NOT NULL,
     transcript_hash TEXT    NOT NULL,
     duration_ms     INTEGER NOT NULL,
-    created_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    job_id          TEXT
 );
 CREATE INDEX IF NOT EXISTS ix_runs_task_agent ON runs(task_id, agent);
 
@@ -99,44 +101,104 @@ class SqliteRunStore:
     tests) and execute SQLITE_SCHEMA.
     """
 
-    def __init__(self, path: str | Path = ":memory:") -> None:
-        """Open the connection and create tables. Use sqlite3 with
-        check_same_thread=False off by default; store rows via parameterized
-        SQL only."""
-        # str(path) handles both ":memory:" and a Path to an on-disk DB file.
-        self._conn = sqlite3.connect(str(path))
-        self._conn.row_factory = sqlite3.Row
-        # Enforce the declared foreign keys so an orphaned score/diff/result
-        # row can never be written (the raw layer is append-only by discipline).
-        self._conn.execute("PRAGMA foreign_keys = ON")
-        # executescript runs the multi-statement DDL (CREATE TABLE/INDEX ...).
-        self._conn.executescript(SQLITE_SCHEMA)
-        self._conn.commit()
+    def __init__(
+        self,
+        path: str | Path = ":memory:",
+        *,
+        read_only: bool = False,
+        connection: sqlite3.Connection | None = None,
+    ) -> None:
+        """Open a raw store or borrow an existing SQLite connection.
 
-    def save_run(self, record: RunRecord, report: GradeReport | None = None) -> int:
-        """Insert one run + its score + diff (+ test_results from report if given)
-        in a single transaction. Return the new runs.id. Implements §10 raw layer."""
+        A borrowed connection is not closed by this store. The app evaluation
+        persistence path uses it so raw evidence and its evaluation-trial link
+        share one transaction; standalone callers retain the old path-owned
+        behavior.
+        """
+        if connection is not None and read_only:
+            raise ValueError("a borrowed raw connection cannot be read-only")
+        self._read_only = read_only
+        self._owns_conn = connection is None
+        if connection is not None:
+            self._conn = connection
+        elif read_only:
+            if str(path) == ":memory:":
+                raise ValueError("a read-only store requires an on-disk database")
+            uri = Path(path).expanduser().resolve().as_uri() + "?mode=ro"
+            self._conn = sqlite3.connect(uri, uri=True)
+            self._conn.execute("PRAGMA busy_timeout=5000")
+        else:
+            self._conn = sqlite3.connect(str(path))
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA foreign_keys = ON")
+        if not read_only and connection is None:
+            self._conn.executescript(SQLITE_SCHEMA)
+            self._conn.commit()
+
+    @classmethod
+    def open_readonly(cls, path: str | Path) -> "SqliteRunStore":
+        """Open an existing raw DB without creating or altering its schema."""
+        return cls(path, read_only=True)
+
+    def save_run(
+        self,
+        record: RunRecord,
+        report: GradeReport | None = None,
+        *,
+        commit: bool = True,
+        job_id: str | None = None,
+    ) -> int:
+        """Insert raw evidence and return its native ``runs.id``.
+
+        ``commit=False`` is the explicit transaction seam used by the app when
+        it must publish the raw row and evaluation-trial association together.
+        Existing standalone callers keep the default committed behavior.
+        """
+        if self._read_only:
+            raise sqlite3.ProgrammingError("cannot save a run to a read-only store")
         conn = self._conn
         score = record.score
         # Every record produced by run_once/run_group carries its GradeReport.
         # Keep the explicit argument for callers that construct RunRecords
         # themselves and for backwards compatibility with the public API.
         report = report if report is not None else record.grade_report
+        savepoint = f"afa_raw_{uuid.uuid4().hex}"
+        started_transaction = not conn.in_transaction
+        if started_transaction:
+            conn.execute("BEGIN")
+        conn.execute(f"SAVEPOINT {savepoint}")
         try:
-            cur = conn.execute(
-                "INSERT INTO runs "
-                "(task_id, task_version, agent, idx, status, transcript_hash, duration_ms) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (
-                    record.task_id,
-                    record.task_version,
-                    record.agent,
-                    record.idx,
-                    record.status.value,
-                    record.transcript_hash,
-                    record.duration_ms,
-                ),
-            )
+            if job_id is None:
+                cur = conn.execute(
+                    "INSERT INTO runs "
+                    "(task_id, task_version, agent, idx, status, transcript_hash, duration_ms) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        record.task_id,
+                        record.task_version,
+                        record.agent,
+                        record.idx,
+                        record.status.value,
+                        record.transcript_hash,
+                        record.duration_ms,
+                    ),
+                )
+            else:
+                cur = conn.execute(
+                    "INSERT INTO runs "
+                    "(task_id, task_version, agent, idx, status, transcript_hash, "
+                    "duration_ms, job_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        record.task_id,
+                        record.task_version,
+                        record.agent,
+                        record.idx,
+                        record.status.value,
+                        record.transcript_hash,
+                        record.duration_ms,
+                        job_id,
+                    ),
+                )
             run_id = cur.lastrowid
 
             conn.execute(
@@ -200,10 +262,15 @@ class SqliteRunStore:
                         rows,
                     )
         except Exception:
-            conn.rollback()
+            conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+            if started_transaction:
+                conn.rollback()
             raise
         else:
-            conn.commit()
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+            if commit:
+                conn.commit()
         return int(run_id)
 
     def load_runs(
@@ -213,7 +280,7 @@ class SqliteRunStore:
         ordered by (agent, task_id, idx). Reconstruct RunScore from stored
         columns (q_components is not persisted in v0.1 -> {})."""
         sql = (
-            "SELECT r.task_id, r.task_version, r.agent, r.idx, r.status, "
+            "SELECT r.id, r.task_id, r.task_version, r.agent, r.idx, r.status, "
             "r.transcript_hash, r.duration_ms, "
             "s.gate_product, s.t_hidden, s.q, s.final_score, "
             "s.functional_pass, s.voided, "
@@ -260,6 +327,7 @@ class SqliteRunStore:
                     lines_removed=int(row["lines_removed"]),
                     transcript_hash=row["transcript_hash"],
                     duration_ms=int(row["duration_ms"]),
+                    run_id=int(row["id"]),
                 )
             )
         return records
@@ -309,4 +377,5 @@ class SqliteRunStore:
         )
 
     def close(self) -> None:
-        self._conn.close()
+        if self._owns_conn:
+            self._conn.close()

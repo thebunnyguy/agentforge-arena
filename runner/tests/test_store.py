@@ -8,6 +8,8 @@ the implementation.
 
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 
 from afa_kernel.types import (
@@ -125,6 +127,31 @@ def make_report(
         timed_out=False,
         notes="",
     )
+
+
+# --------------------------------------------------------------------------- #
+# Read-only opening
+# --------------------------------------------------------------------------- #
+
+
+def test_open_readonly_requires_existing_db_and_rejects_writes(tmp_path):
+    missing = tmp_path / "missing.sqlite"
+    with pytest.raises(sqlite3.OperationalError):
+        SqliteRunStore.open_readonly(missing)
+    assert not missing.exists()
+
+    source = tmp_path / "source.sqlite"
+    writable = SqliteRunStore(source)
+    writable.save_run(make_record())
+    writable.close()
+
+    readonly = SqliteRunStore.open_readonly(source)
+    try:
+        with pytest.raises(sqlite3.ProgrammingError, match="read-only"):
+            readonly.save_run(make_record(idx=1))
+        assert len(readonly.load_runs()) == 1
+    finally:
+        readonly.close()
 
 
 # --------------------------------------------------------------------------- #

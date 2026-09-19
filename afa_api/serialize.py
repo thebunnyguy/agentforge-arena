@@ -7,7 +7,7 @@ are field selection, dict-key stringification (pass_at_k keys), and explicit
 state tagging (captured / not-captured / synthetic). If you find yourself adding
 arithmetic, it belongs in the kernel, not here.
 
-Run identity is always (agent, task_id, idx) — never runs.id.
+Legacy tuple identity is (agent, task_id, idx); exact forensic access uses native runs.id.
 """
 
 from __future__ import annotations
@@ -211,17 +211,38 @@ def build_cell(
 
 
 # Raw columns load_runs does not return; fetch directly (plan-allowed).
-_RUN_RAW_SQL = (
-    "SELECT r.id, r.task_id, r.task_version, r.agent, r.idx, r.status, "
-    "r.transcript_hash, r.duration_ms, r.created_at, "
-    "s.gate_product, s.t_hidden, s.q, s.final_score, s.functional_pass, s.voided, "
-    "d.files_changed, d.lines_added, d.lines_removed, d.touched_protected, d.patch_text "
-    "FROM runs r "
-    "JOIN run_scores s ON s.run_id = r.id "
-    "JOIN diffs d ON d.run_id = r.id "
-    "WHERE r.agent = ? AND r.task_id = ? AND r.idx = ? "
-    "ORDER BY r.id"
-)
+def _runs_has_job_id(ro: sqlite3.Connection) -> bool:
+    return any(
+        row["name"] == "job_id"
+        for row in ro.execute("PRAGMA table_info(runs)").fetchall()
+    )
+
+
+def _run_raw_sql(*, by_id: bool, has_job_id: bool) -> str:
+    job_column = "r.job_id" if has_job_id else "NULL AS job_id"
+    where = (
+        "WHERE r.id = ?"
+        if by_id
+        else "WHERE r.agent = ? AND r.task_id = ? AND r.idx = ?"
+    )
+    return (
+        "SELECT r.id, r.task_id, r.task_version, r.agent, r.idx, r.status, "
+        "r.transcript_hash, r.duration_ms, r.created_at, "
+        "s.gate_product, s.t_hidden, s.q, s.final_score, s.functional_pass, s.voided, "
+        "d.files_changed, d.lines_added, d.lines_removed, d.touched_protected, d.patch_text, "
+        f"{job_column} "
+        "FROM runs r "
+        "JOIN run_scores s ON s.run_id = r.id "
+        "JOIN diffs d ON d.run_id = r.id "
+        f"{where} "
+        "ORDER BY r.id"
+    )
+
+
+# Kept as a current-schema inspection aid for existing callers/tests; public
+# reads build the statement after checking whether the optional legacy column is
+# present.
+_RUN_RAW_SQL = _run_raw_sql(by_id=False, has_job_id=True)
 
 
 def build_run(
@@ -268,14 +289,34 @@ def build_run(
             "test_results": [],
         }
 
-    row = ro.execute(_RUN_RAW_SQL, (agent, task_id, idx)).fetchone()
-    if row is None:
+    rows = ro.execute(
+        _run_raw_sql(by_id=False, has_job_id=_runs_has_job_id(ro)),
+        (agent, task_id, idx),
+    ).fetchall()
+    if not rows:
         return {
             "agent": agent, "task_id": task_id, "idx": idx,
             "found": False, "synthetic": False, "captured": False,
             "known_task": known_task,
         }
+    if len(rows) > 1:
+        return {
+            "agent": agent,
+            "task_id": task_id,
+            "idx": idx,
+            "found": False,
+            "ambiguous": True,
+            "synthetic": False,
+            "known_task": known_task,
+            "candidate_run_ids": [row["id"] for row in rows],
+        }
+    return _real_run_dict(ro, rows[0], known_task=known_task)
 
+
+def _real_run_dict(
+    ro: sqlite3.Connection, row: sqlite3.Row, *, known_task: bool = True
+) -> dict[str, Any]:
+    """Project one exact raw row, shared by tuple and native-ID routes."""
     run_id = row["id"]
     test_rows = ro.execute(
         "SELECT suite, test_name, passed, weight FROM test_results "
@@ -284,7 +325,11 @@ def build_run(
     ).fetchall()
     patch_text = row["patch_text"]
     return {
-        "agent": agent, "task_id": task_id, "idx": idx,
+        "run_id": run_id,
+        "job_id": row["job_id"],
+        "agent": row["agent"],
+        "task_id": row["task_id"],
+        "idx": row["idx"],
         "found": True, "synthetic": False, "captured": True,
         "known_task": known_task,
         "task_version": row["task_version"],
@@ -320,6 +365,17 @@ def build_run(
             for tr in test_rows
         ],
     }
+
+
+def build_run_by_id(ro: sqlite3.Connection, run_id: int) -> dict[str, Any]:
+    """Exact immutable forensic lookup, independent of aggregate projection."""
+    row = ro.execute(
+        _run_raw_sql(by_id=True, has_job_id=_runs_has_job_id(ro)),
+        (run_id,),
+    ).fetchone()
+    if row is None:
+        return {"run_id": run_id, "found": False, "synthetic": False}
+    return _real_run_dict(ro, row, known_task=True)
 
 
 def build_meta(stores: LoadedStores, ro: sqlite3.Connection) -> dict[str, Any]:

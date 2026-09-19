@@ -25,10 +25,11 @@ from __future__ import annotations
 
 import json
 import sys
+from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
 
-from .db import DB_PATH, MANIFEST_PATH, ROOT
+from .db import MANIFEST_PATH, ROOT, resolve_db_path
 
 # Ensure kernel + runner are importable (tests run with PYTHONPATH="kernel:runner",
 # but the app may be imported with only the repo root on sys.path).
@@ -41,7 +42,6 @@ import afa_runner as afa  # noqa: E402
 
 # Reuse the canonical report constants + helpers (do NOT reimplement).
 from report_combined import (  # type: ignore  # noqa: E402
-    MODELS,
     N,
     NOOP,
     ORACLE,
@@ -71,8 +71,10 @@ class LoadedStores:
     agent_observability: dict  # agent -> disk RunStoreSummary (real per-agent coverage)
 
     def close(self) -> None:
-        self.real.close()
-        self.full.close()
+        try:
+            self.real.close()
+        finally:
+            self.full.close()
 
 
 def _build_manifest_meta(manifest_path: str | Path):
@@ -101,13 +103,15 @@ def _build_manifest_meta(manifest_path: str | Path):
 
 
 def load_stores(
-    db_path: str | Path = DB_PATH,
+    db_path: str | Path | None = None,
     manifest_path: str | Path = MANIFEST_PATH,
 ) -> LoadedStores:
     """Load both stores following report_combined's sequence exactly.
 
     Raises ValueError on a mixed-version cell (refusal); the caller MUST surface
-    it. The synthetic baselines are added only to ``full``.
+    it. The synthetic baselines are added only to ``full``. Every acquired
+    source and in-memory store is closed if any loading or baseline step fails;
+    successful aggregate stores transfer to the returned owner.
     """
     (
         _manifest,
@@ -117,74 +121,89 @@ def load_stores(
         task_domains,
     ) = _build_manifest_meta(manifest_path)
 
-    real = afa.SqliteRunStore(":memory:")
-    full = afa.SqliteRunStore(":memory:")
-    disk = afa.SqliteRunStore(str(db_path))
-    real_counts: dict[str, tuple[int, int]] = {}
-    evaluated_versions: dict[str, set[str]] = {tid: set() for tid in task_ids}
-    cell_versions: dict[tuple[str, str], set[str]] = {}
+    db_path = resolve_db_path(db_path)
+    aggregate_scope = ExitStack()
     try:
-        for agent in MODELS:
-            records = disk.load_runs(agent=agent)
-            real_counts[agent] = (
-                len(records),
-                len({record.task_id for record in records}),
+        # Register each successful acquisition immediately. pop_all() below
+        # transfers the two aggregate stores to the successful caller.
+        real = afa.SqliteRunStore(":memory:")
+        aggregate_scope.callback(real.close)
+        full = afa.SqliteRunStore(":memory:")
+        aggregate_scope.callback(full.close)
+
+        real_counts: dict[str, tuple[int, int]] = {}
+        evaluated_versions: dict[str, set[str]] = {tid: set() for tid in task_ids}
+        cell_versions: dict[tuple[str, str], set[str]] = {}
+        disk: afa.SqliteRunStore | None = None
+        try:
+            # This source store is explicitly read-only: projections must never
+            # create schema or mutate the selected DB just to read it.
+            disk = afa.SqliteRunStore.open_readonly(db_path)
+            models = disk.agents()
+            for agent in models:
+                records = disk.load_runs(agent=agent)
+                real_counts[agent] = (
+                    len(records),
+                    len({record.task_id for record in records}),
+                )
+                for record in records:
+                    evaluated_versions.setdefault(record.task_id, set()).add(
+                        record.task_version
+                    )
+                    cell_versions.setdefault((agent, record.task_id), set()).add(
+                        record.task_version
+                    )
+                    real.save_run(record)
+                    full.save_run(record)
+            # Capture the DISK summary (real patch / test_results / created_at
+            # coverage) before closing. The in-memory stores re-save aggregate
+            # records without those artifacts, so their summary would report 0
+            # patches and a fake created_at (= load time).
+            disk_summary = disk.summary()
+            disk_agent_summaries = {agent: disk.summary(agent) for agent in models}
+        finally:
+            if disk is not None:
+                disk.close()
+
+        mixed_cells = {
+            cell: sorted(versions)
+            for cell, versions in cell_versions.items()
+            if len(versions) > 1
+        }
+        if mixed_cells:
+            details = "; ".join(
+                f"{agent}/{task}: {','.join(versions)}"
+                for (agent, task), versions in sorted(mixed_cells.items())
             )
-            for record in records:
-                evaluated_versions.setdefault(record.task_id, set()).add(
-                    record.task_version
-                )
-                cell_versions.setdefault((agent, record.task_id), set()).add(
-                    record.task_version
-                )
-                real.save_run(record)
-                full.save_run(record)
-        # Capture the DISK summary (real patch / test_results / created_at
-        # coverage) BEFORE closing. The in-memory stores re-save aggregate
-        # records without those artifacts, so their summary would report 0
-        # patches and a fake created_at (= load time).
-        disk_summary = disk.summary()
-        disk_agent_summaries = {agent: disk.summary(agent) for agent in MODELS}
-    finally:
-        disk.close()
+            raise ValueError(f"refusing to pool multiple task versions: {details}")
 
-    # Mixed-version refusal — surface, never swallow.
-    mixed_cells = {
-        cell: sorted(versions)
-        for cell, versions in cell_versions.items()
-        if len(versions) > 1
-    }
-    if mixed_cells:
-        real.close()
-        full.close()
-        details = "; ".join(
-            f"{agent}/{task}: {','.join(versions)}"
-            for (agent, task), versions in sorted(mixed_cells.items())
+        # Synthetic bookends only in the full store (report_combined parity).
+        for task_id in task_ids:
+            version = current_versions[task_id]
+            _add_synthetic_baseline(full, ORACLE, task_id, version, passed=True)
+            _add_synthetic_baseline(full, NOOP, task_id, version, passed=False)
+
+        # Attach evaluated-version provenance to each task meta (non-fatal
+        # notice source used by build_meta).
+        for task_id in task_ids:
+            stored = evaluated_versions.get(task_id, set())
+            tasks_meta[task_id]["evaluated_versions"] = sorted(stored)
+
+        loaded = LoadedStores(
+            real=real,
+            full=full,
+            real_counts=real_counts,
+            task_ids=task_ids,
+            tasks_meta=tasks_meta,
+            current_versions=current_versions,
+            task_domains=task_domains,
+            models=models,
+            synthetic_agents=[ORACLE, NOOP],
+            observability=disk_summary,
+            agent_observability=disk_agent_summaries,
         )
-        raise ValueError(f"refusing to pool multiple task versions: {details}")
-
-    # Synthetic bookends only in the full store (report_combined parity).
-    for task_id in task_ids:
-        version = current_versions[task_id]
-        _add_synthetic_baseline(full, ORACLE, task_id, version, passed=True)
-        _add_synthetic_baseline(full, NOOP, task_id, version, passed=False)
-
-    # Attach evaluated-version provenance to each task meta (non-fatal notice
-    # source used by build_meta).
-    for task_id in task_ids:
-        stored = evaluated_versions.get(task_id, set())
-        tasks_meta[task_id]["evaluated_versions"] = sorted(stored)
-
-    return LoadedStores(
-        real=real,
-        full=full,
-        real_counts=real_counts,
-        task_ids=task_ids,
-        tasks_meta=tasks_meta,
-        current_versions=current_versions,
-        task_domains=task_domains,
-        models=list(MODELS),
-        synthetic_agents=[ORACLE, NOOP],
-        observability=disk_summary,
-        agent_observability=disk_agent_summaries,
-    )
+        aggregate_scope.pop_all()
+        return loaded
+    except Exception:
+        aggregate_scope.close()
+        raise

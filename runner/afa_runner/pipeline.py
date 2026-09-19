@@ -40,6 +40,9 @@ class RunRecord:
     lines_removed: int
     transcript_hash: str
     duration_ms: int
+    # Native persistence identity. It is absent before save and populated when
+    # a record is loaded from the raw store; it never replaces task/index keys.
+    run_id: int | None = None
     # Pipeline-created records retain their full grading artifact so any
     # RunStore can persist the patch and per-test outcomes without callers
     # having to re-run the grader or maintain a parallel object list.

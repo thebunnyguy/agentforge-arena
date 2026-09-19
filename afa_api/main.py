@@ -1,13 +1,13 @@
 """Local FastAPI app for AgentForge Arena (Phases 1-2, read-only).
 
 ONE local app talking to the SPA in ``web/``. On startup it:
+  * resolves and binds one writable working DB (reports/app.sqlite by default);
   * runs the idempotent additive migration (WAL + app tables + nullable
-    runs.job_id) against reports/runs.sqlite — never breaking the raw layer;
-  * loads the two aggregation stores ONCE (real + real+synthetic), following
-    report_combined's sequence, and stashes them on ``app.state``.
+    runs.job_id) against that DB — never breaking the raw layer;
+  * leaves aggregate projections to each request so persisted results are live.
 
-A mixed-version refusal at load time is captured and surfaced (503 with the
-exact ValueError text) instead of crashing the app.
+A mixed-version refusal at read time is captured and surfaced (503 with the
+exact ValueError text) instead of becoming an empty projection.
 
 Trusted local single-user tool. CORS is opened for the local Vite dev server
 only; no auth, no untrusted-agent claims.
@@ -19,15 +19,14 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import db
+from . import db, jobs, worker
 from .routes_jobs import router as jobs_router
 from .routes_readonly import router as readonly_router
-from .store_load import load_stores
 
 # Local SPA origins (Vite default ports). Local-only by design.
 _LOCAL_ORIGINS = [
@@ -40,47 +39,38 @@ _LOCAL_ORIGINS = [
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # DB selection precedence: explicit app.state (tests) > AFA_DB_PATH env
-    # (launcher/Docker) > the evidence DB default. The app works on a copy so the
-    # committed evidence DB is never mutated (seeded on first use).
-    db_path = (
-        getattr(app.state, "db_path", None)
-        or os.environ.get("AFA_DB_PATH")
-        or db.DB_PATH
-    )
+    # Resolve one authoritative working DB path at the app boundary. Explicit
+    # test/launcher binding wins, then AFA_DB_PATH, then reports/app.sqlite.
+    db_path = db.resolve_db_path(getattr(app.state, "db_path", None))
     app.state.db_path = db_path
     db.ensure_working_db(db_path)
 
-    # Additive migration first (safe/idempotent against the live DB). Run it
-    # against whichever DB this app instance is bound to.
+    # Additive migration and same-host recovery share one startup boundary.
+    # If either refuses the DB, job/control routes remain fail-closed while
+    # exact raw forensic reads can still use the canonical read-only path.
+    recovered: list[str] = []
     try:
         conn = db.connect(db_path)
         try:
             db.migrate(conn)
+            recovered = jobs.reclaim_stale_running(conn, recover_unlocked=True)
         finally:
             conn.close()
     except Exception as exc:  # pragma: no cover - defensive
         app.state.migrate_error = str(exc)
     else:
         app.state.migrate_error = None
+        if getattr(app.state, "auto_dispatch", True):
+            for job_id in recovered:
+                worker.dispatch_job(
+                    db_path,
+                    job_id,
+                    agent_factory=getattr(app.state, "agent_factory", None),
+                )
 
-    # Load the aggregation stores once. Surface a mixed-version refusal rather
-    # than swallowing it.
-    app.state.stores = None
-    app.state.load_error = None
-    try:
-        app.state.stores = load_stores(db_path=db_path)
-    except ValueError as exc:
-        app.state.load_error = str(exc)
-    except Exception as exc:  # pragma: no cover - defensive
-        app.state.load_error = f"failed to load stores: {exc}"
-
-    try:
-        yield
-    finally:
-        stores = getattr(app.state, "stores", None)
-        if stores is not None:
-            stores.close()
+    # Read projections are deliberately built per request, so post-startup
+    # writes are visible without cache invalidation or an app restart.
+    yield
 
 
 def _maybe_mount_spa(app: FastAPI) -> None:
@@ -129,6 +119,23 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def migration_guard(request: Request, call_next):
+        path = request.url.path
+        guarded = (
+            path == "/api/v1/jobs"
+            or path.startswith("/api/v1/jobs/")
+            or path in {"/api/v1/settings", "/api/v1/reports/regenerate"}
+        )
+        error = getattr(request.app.state, "migrate_error", None)
+        if guarded and error:
+            return JSONResponse(
+                status_code=503,
+                content={"error": f"control plane unavailable: {error}"},
+            )
+        return await call_next(request)
+
     app.include_router(readonly_router)
     app.include_router(jobs_router)
     _maybe_mount_spa(app)
