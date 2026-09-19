@@ -345,17 +345,23 @@ def test_phase0_acceptance_canary_real_api_offline(tmp_path, monkeypatch):
                 _assert_native_run(client, run_id, a_id, model, matching)
 
             # Immediate live discovery without app restart/source roster edits.
-            overview = client.get("/api/v1/overview").json()
+            # The canary drives the mock backend, i.e. synthetic evidence: it is
+            # EXCLUDED from the default benchmark view (reported, not hidden) and
+            # discoverable through the explicit synthetic view.
+            default_overview = client.get("/api/v1/overview").json()
+            assert model not in default_overview["models"]
+            assert model in default_overview["excluded"]["synthetic_models"]
+            overview = client.get("/api/v1/overview?evidence=synthetic").json()
             assert model in overview["models"]
             assert overview["real_counts"][model]["n_runs"] >= 2
             assert overview["real_counts"][model]["n_tasks"] >= 1
-            cell = client.get(f"/api/v1/cell/{model}/{TASK}").json()
+            cell = client.get(f"/api/v1/cell/{model}/{TASK}?evidence=synthetic").json()
             assert cell["captured"] is True
             assert cell["state"] == "captured"
             assert set(cell["task_versions"]) == {a_report["task_snapshots"][0]["task_version"]}
             assert {run["idx"] for run in cell["runs"]} == {0, 1}
             assert cell["aggregate"]["n_valid"] >= 2
-            domains = client.get(f"/api/v1/domains/{model}").json()
+            domains = client.get(f"/api/v1/domains/{model}?evidence=synthetic").json()
             assert domains["captured"] is True
             assert domains["agent"] == model
             assert any(domain["n_runs"] >= 2 for domain in domains["domains"])
@@ -585,10 +591,12 @@ def test_phase0_acceptance_canary_real_api_offline(tmp_path, monkeypatch):
                 actual_native = client.get(f"/api/v1/runs/{run_id}").json()
                 restart_native_matches[run_id] = actual_native == expected
                 assert restart_native_matches[run_id]
-            overview = client.get("/api/v1/overview").json()
+            overview = client.get("/api/v1/overview?evidence=synthetic").json()
             assert model in overview["models"]
             assert overview["real_counts"][model]["n_runs"] >= 6
-            assert client.get(f"/api/v1/cell/{model}/{TASK}").json()["captured"] is True
+            assert client.get(
+                f"/api/v1/cell/{model}/{TASK}?evidence=synthetic"
+            ).json()["captured"] is True
 
         _join_threads(observed_threads)
         assert len(intentional_thread_errors) == 1

@@ -31,12 +31,17 @@ def db_path_for(request: Request):
 
 
 @contextmanager
-def open_projection(request: Request) -> Iterator[Projection]:
+def open_projection(
+    request: Request, evidence_scope: str | None = None
+) -> Iterator[Projection]:
     """Open a fresh projection from the current configured DB and close it.
 
     The source store used by ``load_stores`` is read-only; the returned aggregate
     stores are in-memory derived data. This prevents a startup snapshot from
     becoming a second source of truth after a worker appends a run.
+
+    ``evidence_scope`` selects which provenance classes may enter the aggregates
+    (default: the benchmark scope, which excludes synthetic/mock evidence).
     """
     migration_error = getattr(request.app.state, "migrate_error", None)
     if migration_error:
@@ -46,7 +51,7 @@ def open_projection(request: Request) -> Iterator[Projection]:
     stores: LoadedStores | None = None
     raw: sqlite3.Connection | None = None
     try:
-        stores = load_stores(db_path=path)
+        stores = load_stores(db_path=path, evidence_scope=evidence_scope)
         raw = db.connect_readonly(path)
     except ValueError as exc:
         if stores is not None:

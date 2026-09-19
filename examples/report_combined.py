@@ -103,8 +103,21 @@ def _add_synthetic_baseline(
 def build_report(
     db_path: str | Path | None = None,
     manifest_path: str | Path = MANIFEST,
+    evidence_scope: str | None = None,
 ) -> tuple[str, afa.SqliteRunStore, dict[str, tuple[int, int]]]:
-    """Build HTML plus its in-memory aggregate store from persisted DB rows."""
+    """Build HTML plus its in-memory aggregate store from persisted DB rows.
+
+    The aggregates are the CURRENT benchmark: only runs at each task's current
+    version (and in the requested provenance scope; default excludes synthetic
+    mock evidence) enter the store. Historical-version runs are preserved in the
+    database, counted in the subtitle, and never pooled. The store can therefore
+    never span two versions of one cell; the refusal is kept as an invariant.
+    """
+    from afa_api import db as app_db
+    from afa_api import evidence
+
+    scope = evidence.normalize_scope(evidence_scope)
+    in_scope = evidence.SCOPES[scope]
     manifest = json.loads(Path(manifest_path).read_text())
     meta = {item["id"]: item for item in manifest}
     current_versions = {
@@ -133,25 +146,48 @@ def build_report(
             task_id: set() for task_id in task_ids
         }
         cell_versions: dict[tuple[str, str], set[str]] = {}
+        historical_runs = 0
+        excluded_runs = 0
         try:
             disk = afa.SqliteRunStore.open_readonly(selected_db)
-            models = disk.agents()
+            raw = app_db.connect_readonly(selected_db)
+            try:
+                provenance = evidence.read_provenance(raw)
+            finally:
+                raw.close()
             observability = disk.summary()
-            agent_observability = {agent: disk.summary(agent) for agent in models}
-            for agent in models:
-                records = disk.load_runs(agent=agent)
-                real_counts[agent] = (
-                    len(records),
-                    len({record.task_id for record in records}),
-                )
-                for record in records:
+            models: list[str] = []
+            for agent in disk.agents():
+                everything = disk.load_runs(agent=agent)
+                scoped = [
+                    record
+                    for record in everything
+                    if provenance.get(record.run_id, evidence.UNKNOWN_PROVENANCE)
+                    .evidence_class in in_scope
+                ]
+                excluded_runs += len(everything) - len(scoped)
+                if not scoped:
+                    continue
+                models.append(agent)
+                current = [
+                    record
+                    for record in scoped
+                    if record.task_version == current_versions.get(record.task_id)
+                ]
+                # CURRENT in-scope counts (0/0 for a historical-only model).
+                real_counts[agent] = (len(current), len({r.task_id for r in current}))
+                for record in scoped:
                     evaluated_versions.setdefault(record.task_id, set()).add(
                         record.task_version
                     )
+                    if record.task_version != current_versions.get(record.task_id):
+                        historical_runs += 1
+                        continue
                     cell_versions.setdefault((agent, record.task_id), set()).add(
                         record.task_version
                     )
                     store.save_run(record)
+            agent_observability = {agent: disk.summary(agent) for agent in models}
         finally:
             if disk is not None:
                 disk.close()
@@ -188,16 +224,24 @@ def build_report(
                     f"v{current_versions[task_id]}"
                 )
         version_notice = (
-            " Strengthened task versions awaiting reevaluation: "
-            + "; ".join(mismatches)
-            + ". Leaderboard values remain frozen to the stored task versions."
-            if mismatches
+            " Current benchmark evidence only: "
+            f"{historical_runs} historical-version run(s) are excluded from these "
+            "aggregates (never pooled with current versions) and remain in the "
+            "database. Awaiting reevaluation: " + "; ".join(mismatches) + "."
+            if historical_runs
+            else ""
+        )
+        scope_notice = (
+            f" Evidence scope '{scope}': {excluded_runs} run(s) outside this scope "
+            "(for example mock/synthetic evaluations) are excluded."
+            if excluded_runs
             else ""
         )
         subtitle = (
             f"Persisted DB data only: {persisted}. "
             "Oracle and noop are explicitly synthetic baselines."
             + version_notice
+            + scope_notice
         )
         html = afa.render_report(
             store,

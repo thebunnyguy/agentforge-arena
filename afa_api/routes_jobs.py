@@ -34,7 +34,7 @@ import httpx
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
-from . import db, jobs, worker
+from . import db, evidence, jobs, serialize, worker
 from .evaluation_report import build_evaluation_report, render_markdown
 from .db import ROOT
 from .projection import ProjectionUnavailable, db_path_for, open_projection
@@ -390,13 +390,23 @@ async def verify_backend(request: Request, body: BackendVerifyRequest):
 def regenerate_report(request: Request):
     """Rebuild reports/leaderboard.html via report_combined.build_report.
 
-    Surfaces the mixed-version refusal ValueError as a 409 (never swallowed).
+    The report is the CURRENT benchmark in the requested evidence scope
+    (``?evidence=``, default benchmark). Historical and out-of-scope runs are
+    excluded and counted in the HTML subtitle; version coexistence is no longer
+    an error. Unexpected ValueErrors (e.g. the structural single-version
+    invariant) are still surfaced as a 409, never swallowed.
     """
     import report_combined  # type: ignore
 
+    try:
+        scope = evidence.normalize_scope(request.query_params.get("evidence"))
+    except evidence.InvalidEvidenceScope as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
     db_path = db_path_for(request)
     try:
-        html, store, real_counts = report_combined.build_report(db_path=db_path)
+        html, store, real_counts = report_combined.build_report(
+            db_path=db_path, evidence_scope=scope
+        )
     except ValueError as exc:
         return JSONResponse(status_code=409, content={"error": str(exc)})
     except (OSError, sqlite3.Error) as exc:
@@ -414,6 +424,7 @@ def regenerate_report(request: Request):
         "ok": True,
         "path": str(out_path),
         "bytes": len(html),
+        "evidence_scope": scope,
         "real_counts": {
             agent: {"n_runs": n_runs, "n_tasks": n_tasks}
             for agent, (n_runs, n_tasks) in real_counts.items()
@@ -424,31 +435,12 @@ def regenerate_report(request: Request):
 @router.get("/export")
 async def export(request: Request):
     """Export a fresh aggregate projection from the configured working DB."""
-    import afa_runner as afa  # noqa: E402
-
     try:
-        with open_projection(request) as projection:
-            stores = projection.stores
-            leaderboard = [
-                {
-                    "agent": e.agent, "pass_rate": e.pass_rate,
-                    "wilson_low": e.wilson_low, "wilson_high": e.wilson_high,
-                    "n": e.n, "provisional": e.provisional,
-                    "rank_low": e.rank_low, "rank_high": e.rank_high,
-                }
-                for e in afa.leaderboard(stores.real)
-            ]
-            return {
-                "format": "json",
-                "snapshot_note": "Snapshot of the current persisted aggregates; "
-                                 "synthetic baselines excluded.",
-                "models": stores.models,
-                "task_ids": stores.task_ids,
-                "real_counts": {
-                    agent: {"n_runs": n_runs, "n_tasks": n_tasks}
-                    for agent, (n_runs, n_tasks) in stores.real_counts.items()
-                },
-                "leaderboard": leaderboard,
-            }
+        scope = evidence.normalize_scope(request.query_params.get("evidence"))
+    except evidence.InvalidEvidenceScope as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+    try:
+        with open_projection(request, scope) as projection:
+            return serialize.build_export(projection.stores)
     except ProjectionUnavailable as exc:
         return JSONResponse(status_code=503, content={"error": str(exc)})
