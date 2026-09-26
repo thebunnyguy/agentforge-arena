@@ -1,0 +1,1953 @@
+{
+  "schema_version": 1,
+  "campaign_id": "phase0-post-integrity-v1",
+  "title": "Post-Phase-0 trusted baseline: fresh real-backend cohort",
+  "created_at": "2026-09-26T15:42:36Z",
+  "purpose": "A completely fresh post-Phase-0 cohort executed through the ATLAS evaluation lifecycle on the promoted Phase-0 release. The 720 historical runs in reports/runs.sqlite are the PRE-Phase-0 baseline and are never substituted for, pooled with, or overwritten by this cohort.",
+  "code": {
+    "runtime_release_tag": "phase0-integrity-v1",
+    "runtime_release_commit": "7369e67e1ceb4b2a566986f247961f8a63f99567",
+    "runtime_paths": [
+      "afa_api",
+      "runner",
+      "kernel",
+      "tasks"
+    ],
+    "rule": "the launcher refuses to run when the runtime paths differ from the release tag or have uncommitted changes"
+  },
+  "historical_evidence": {
+    "path": "reports/runs.sqlite",
+    "sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced",
+    "role": "PRE-Phase-0 baseline; read-only; never a campaign write target",
+    "documented_generation": {
+      "sources": [
+        "README.md, section 'Evaluation provenance'",
+        "reports/qwen3.5-9b-evaluation-2026-09-17.md"
+      ],
+      "p0_completion_runs": {
+        "temperature": 0.8,
+        "base_seed": 42,
+        "ollama_version": "0.17.4",
+        "models": "not enumerated by the README (it records digests for qwen2.5-coder:7b and llama3.2:latest)",
+        "evaluation_path": "the README's documented real-agent path, examples/eval_persist.py: job-less rows, OllamaAgent seed = base_seed + a call counter running across the whole pack; the script hard-codes temperature 0.8 and base seed 42",
+        "request_timeout_s": null,
+        "digest_prefixes": {
+          "qwen2.5-coder:7b": "dae161e27b0e",
+          "llama3.2:latest": "a80c4f17acd5"
+        }
+      },
+      "qwen3.5:9b": {
+        "temperature": 0.6,
+        "base_seed": 42,
+        "request_timeout_s": 180,
+        "ollama_version": null,
+        "digest": null,
+        "evaluation_path": "a local app evaluation job eb54c065c0b84d099a82570f4aeee83c (runs 1101-1220); the job linkage is not preserved in reports/runs.sqlite and that app version's per-trial seed policy is not documented",
+        "note": "temperature differs from this campaign's 0.8"
+      }
+    }
+  },
+  "remediation_manifest": {
+    "path": "integrity/pack-audit/remediation-manifest.json",
+    "sha256": "356e8cdb8b3f02630e94a6a45823513df5a3e9c8e02c824e34c938861073a780"
+  },
+  "backend": {
+    "kind": "ollama",
+    "base_url": "http://127.0.0.1:11434"
+  },
+  "mode": "fresh",
+  "repetitions": 5,
+  "generation": {
+    "temperature": 0.8,
+    "base_seed": 42,
+    "request_timeout_s": 180,
+    "seed_policy": "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx (0..repetitions-1) before each trial (set_run_seed), so position idx of every (model, task) cell uses the same seed and a resumed position re-uses its original seed"
+  },
+  "evaluation_granularity": "one fresh evaluation per (model, task) cell: tasks=[task_id], repeats=repetitions, name=<evaluation_name_prefix>:<phase>:<model>|<task_id>",
+  "evaluation_name_prefix": "campaign:phase0-post-integrity-v1",
+  "evidence_scope": "real",
+  "models": [
+    "qwen2.5-coder:7b",
+    "qwen2.5-coder:3b",
+    "deepseek-coder:6.7b",
+    "llama3.2:latest",
+    "gemma2:2b",
+    "qwen3.5:9b"
+  ],
+  "tasks": [
+    {
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:1bfcf38552c595e2f45f0b3e0bf9aecb47846d9d155e36fad71bd552ba265525",
+      "domains": [
+        [
+          "security",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": false
+    },
+    {
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:97d42f89f91ca3ba10ee968ac43ec0281bd986ece26f76f6a7bdaef7c13484ce",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "historical_version": "1.0.0",
+      "version_changed_since_historical": false
+    },
+    {
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:b8050c0f63f569c72738fdc8ae02ec19f5f52a23373788e1cffec4df0515f38b",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "async-retry",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:743f10eb2959463740a4c615a60af402fc9e9c650507bccdb0bba67dc4053897",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "async-timeout",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:e2d6c2616c55f1910282e2862a5b7e49709d8d4231f5c97c92bc4c40e7f104fd",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.0",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:e58739216d5cced5e441df27d4a629acf69890dddfa111e391a54e4c0ac384e6",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "historical_version": "1.0.0",
+      "version_changed_since_historical": false
+    },
+    {
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:711a4313f541efaaad7d782730f16ac5bdc09f86babf03e59cb27e4a6ac4cc19",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ],
+        [
+          "api-design",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": false
+    },
+    {
+      "task_id": "mask-secrets",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:be4619e8f0d6da8b484bc30d130eb1ad95838edb5068c206cd4d66a847293b3d",
+      "domains": [
+        [
+          "security",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "merge-intervals",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:413356d815870ac64bc74876b6f2a29006554e56c5d72d043bd69d154be5ab70",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ],
+        [
+          "performance",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "paginator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:8455df342ed6e853cadda163e970fb098fa916472fdfe2f9353d5648c75ef4db",
+      "domains": [
+        [
+          "api-design",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "result-type",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:34098c06cd150ab3166f3c221b8c8ff4685eea2f7cdea204c90fbbd719e820a1",
+      "domains": [
+        [
+          "api-design",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:4546131c33d455d531d3388e629ee3257a973c58b15f81ff5ec44ab99d150574",
+      "domains": [
+        [
+          "security",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:663be68e47533cb829a8c5add006bb24dc838d460190dccf231c4105b2520439",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ],
+        [
+          "performance",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.2",
+      "version_changed_since_historical": false
+    },
+    {
+      "task_id": "async-first-success",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:d2371fcc477cbf55f47b364925a3719a7122b525cf8ad352aa6bc560cd5e3de6",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:bdcf2f0d8fc40260fba5672b6b1017d0da70d47a099e761178bbb2221a97dc54",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:048d526e856035d29278fcc443c99439cacc6aed3e94a28e50c7dbdb0857d8c2",
+      "domains": [
+        [
+          "security",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "grid-paths",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:8bd8923b24f8f5aa16b3cace88b8139c9ae23a69cbad95f5428f679439ae9276",
+      "domains": [
+        [
+          "performance",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20,
+      "historical_version": "1.0.0",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "query-builder",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:fe812df540da8bdacbc65432fabbc8f6bf3ae63d4e6ad2abebf0246a544858c6",
+      "domains": [
+        [
+          "api-design",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:3e2ffe535ab5f3f0ac992e376637a5289a1683ce8e0292b8193b26e2308e3972",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ],
+        [
+          "api-design",
+          0.5
+        ]
+      ],
+      "activity": "refactoring",
+      "timeout_s": 120,
+      "historical_version": "1.0.2",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:c4fb17f874fa701173602d5e8acf50578c7622ad9473baaef1ec5d2e70936d3c",
+      "domains": [
+        [
+          "performance",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20,
+      "historical_version": "1.0.2",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "toposort",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:00858816e5473d96413cc1048ca43e569e378c063aa90c419b7871e1ea219251",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:c7005cb3b399ea7dd1f762352921e5f3588bd28e5fdfbe08515af96db63e4c7d",
+      "domains": [
+        [
+          "performance",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": false
+    },
+    {
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:c7d40bc86203bac8765553e9a2da5f72aad730a2f102cdc36ee0b215aebbac07",
+      "domains": [
+        [
+          "security",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    },
+    {
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:164d48bd040cf2c0c16865284fccd4f8b2b9358fc45e65139cf69dd4dc9cfee3",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "historical_version": "1.0.1",
+      "version_changed_since_historical": true
+    }
+  ],
+  "cells": [
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "fix-list-dedup",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "async-retry",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "async-timeout",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "mask-secrets",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "merge-intervals",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "paginator",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "result-type",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "sanitize-filename",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "async-gather-bounded",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "grid-paths",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "query-builder",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "refactor-order-validation",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "top-k-frequent",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "validate-redirect-url",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "expression-evaluator",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "fix-list-dedup",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "mask-secrets",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "merge-intervals",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "paginator",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "result-type",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "fix-list-dedup",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "async-timeout",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "mask-secrets",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "merge-intervals",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "paginator",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "result-type",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "sanitize-filename",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "async-gather-bounded",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "grid-paths",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "top-k-frequent",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "validate-redirect-url",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "fix-list-dedup",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "async-timeout",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "mask-secrets",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "merge-intervals",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "paginator",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "sanitize-filename",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "grid-paths",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "refactor-order-validation",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "fix-list-dedup",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "top-k-frequent",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-list-dedup",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-timeout",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "mask-secrets",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "merge-intervals",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "paginator",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "sanitize-filename",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "grid-paths",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "query-builder",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "refactor-order-validation",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "top-k-frequent",
+      "phase": "A",
+      "prior_pass": true,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "escape-html",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "fix-binary-search",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "fix-roman-numerals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "implement-lru-cache",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "async-batched",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "async-first-success",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "fix-path-traversal",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "toposort",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "task_id": "two-sum-indices",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "escape-html",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 4
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "fix-binary-search",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "async-retry",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "async-timeout",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "fix-roman-numerals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "implement-lru-cache",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "sanitize-filename",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "async-batched",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "async-first-success",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "async-gather-bounded",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "fix-path-traversal",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "grid-paths",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "query-builder",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "refactor-order-validation",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "top-k-frequent",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "toposort",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "two-sum-indices",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "validate-redirect-url",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "task_id": "expression-evaluator",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "escape-html",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "fix-binary-search",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "async-retry",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "fix-roman-numerals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 2
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "implement-lru-cache",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "async-batched",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "async-first-success",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "fix-path-traversal",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "query-builder",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "refactor-order-validation",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "toposort",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "two-sum-indices",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "deepseek-coder:6.7b",
+      "task_id": "expression-evaluator",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "escape-html",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "fix-binary-search",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "async-retry",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "fix-roman-numerals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "implement-lru-cache",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "result-type",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "async-batched",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "async-first-success",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "async-gather-bounded",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "fix-path-traversal",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "query-builder",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "top-k-frequent",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "toposort",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "two-sum-indices",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "validate-redirect-url",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "llama3.2:latest",
+      "task_id": "expression-evaluator",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "escape-html",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "fix-binary-search",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "async-retry",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "async-timeout",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "fix-roman-numerals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 1
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "implement-lru-cache",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "mask-secrets",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "merge-intervals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "paginator",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "result-type",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "sanitize-filename",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "async-batched",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "async-first-success",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "async-gather-bounded",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "fix-path-traversal",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "grid-paths",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "query-builder",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "refactor-order-validation",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "toposort",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "two-sum-indices",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "validate-redirect-url",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "gemma2:2b",
+      "task_id": "expression-evaluator",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "escape-html",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-binary-search",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 5
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-retry",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-roman-numerals",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.0",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "implement-lru-cache",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 3
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "result-type",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-batched",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.2",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-first-success",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-gather-bounded",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-path-traversal",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "toposort",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "two-sum-indices",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "validate-redirect-url",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "expression-evaluator",
+      "phase": "B",
+      "prior_pass": false,
+      "historical_version": "1.0.1",
+      "historical_runs": 5,
+      "historical_valid": 5,
+      "historical_passes": 0
+    }
+  ],
+  "runtime": {
+    "campaign_db": "reports/phase0-campaign.sqlite",
+    "db_strategy": "clean",
+    "runtime_dir": "reports/phase0-campaign",
+    "ledger": "reports/phase0-campaign/ledger.json",
+    "outputs": "reports/phase0-campaign/outputs",
+    "api_url": "http://127.0.0.1:8000"
+  },
+  "expected": {
+    "models": 6,
+    "tasks": 24,
+    "cells": 144,
+    "runs_per_cell": 5,
+    "runs_per_model": 120,
+    "total_runs": 720,
+    "phase_A_cells": 51,
+    "phase_A_runs": 255,
+    "phase_B_cells": 93,
+    "phase_B_runs": 465
+  }
+}

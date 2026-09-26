@@ -1,0 +1,109 @@
+{
+  "captured_at": "2026-09-26T15:48:56Z",
+  "source": "external Ollama inventory snapshot (not AgentForge-persisted provenance)",
+  "base_url": "http://127.0.0.1:11434",
+  "ollama_version": "0.31.1",
+  "models": {
+    "qwen2.5-coder:7b": {
+      "present": false
+    },
+    "qwen2.5-coder:3b": {
+      "present": false
+    },
+    "deepseek-coder:6.7b": {
+      "present": false
+    },
+    "llama3.2:latest": {
+      "present": false
+    },
+    "gemma2:2b": {
+      "present": false
+    },
+    "qwen3.5:9b": {
+      "present": true,
+      "name": "qwen3.5:9b",
+      "model": "qwen3.5:9b",
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "size": 6594474711,
+      "modified_at": "2026-09-14T15:58:01.425250635+05:30",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "9.7B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 4096
+      },
+      "show": {
+        "modified_at": "2026-09-14T15:58:01.425250635+05:30",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "9.7B",
+          "quantization_level": "Q4_K_M"
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ],
+        "model_info": {
+          "general.architecture": "qwen35",
+          "general.file_type": 15,
+          "general.parameter_count": 9653104368,
+          "general.quantization_version": 2,
+          "qwen35.attention.head_count": 16,
+          "qwen35.attention.key_length": 256,
+          "qwen35.attention.layer_norm_rms_epsilon": 1e-06,
+          "qwen35.attention.value_length": 256,
+          "qwen35.block_count": 32,
+          "qwen35.context_length": 262144,
+          "qwen35.embedding_length": 4096,
+          "qwen35.feed_forward_length": 12288,
+          "qwen35.full_attention_interval": 4,
+          "qwen35.image_token_id": 248056,
+          "qwen35.rope.dimension_count": 64,
+          "qwen35.rope.freq_base": 10000000,
+          "qwen35.rope.mrope_interleaved": true,
+          "qwen35.ssm.conv_kernel": 4,
+          "qwen35.ssm.group_count": 16,
+          "qwen35.ssm.inner_size": 4096,
+          "qwen35.ssm.state_size": 128,
+          "qwen35.ssm.time_step_rank": 32,
+          "qwen35.ssm.v_head_reordered": true,
+          "qwen35.vision.attention.head_count": 16,
+          "qwen35.vision.block_count": 27,
+          "qwen35.vision.embedding_length": 1152,
+          "qwen35.vision.longest_edge": 16777216,
+          "qwen35.vision.num_channels": 3,
+          "qwen35.vision.patch_size": 16,
+          "qwen35.vision.shortest_edge": 65536,
+          "qwen35.vision.spatial_merge_size": 2,
+          "qwen35.vision.temporal_patch_size": 2,
+          "qwen35.vision_end_token_id": 248054,
+          "qwen35.vision_start_token_id": 248053
+        }
+      }
+    }
+  },
+  "missing": [
+    "qwen2.5-coder:7b",
+    "qwen2.5-coder:3b",
+    "deepseek-coder:6.7b",
+    "llama3.2:latest",
+    "gemma2:2b"
+  ],
+  "unrequested_local_models": [
+    "nomic-embed-text:latest",
+    "qwen3.6:27b-mlx"
+  ]
+}
