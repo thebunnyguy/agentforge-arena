@@ -54,6 +54,8 @@ status, free space before/after):
 | When | Removed | Size | Reason | Evidence status | Free after |
 |---|---|---|---|---|---|
 | before M1 | `qwen3.6:27b-mlx` (Ollama, MLX nvfp4) | 18.4 GiB | authorized MLX weights; 3.9 GiB free was too low to operate safely and to pull the next target | not a campaign model | 22 GiB |
+| during M1 | `unsloth/Qwen3.6-27B-GGUF` (Hugging Face cache, one Q4_K_M GGUF) | 15.7 GiB | macOS swap grew on the same volume during the batch (free space fell from 20 to 12 GiB); clearly model data, re-downloadable, redundant with the Ollama `qwen3.6:27b` target | not a campaign model (outside Ollama) | 27 GiB |
+| after M1's receipt | `qwen3.5:9b` (Ollama, campaign target M1) | 6.1 GiB | M1 complete and frozen; disk needed for M2 with headroom | receipt `M1-qwen3.5-9b.json` frozen with 120 accepted runs, re-validated complete | 34 GiB |
 
 ## 4. Campaign configuration (frozen)
 
@@ -106,7 +108,27 @@ recorded with `classify-model --phase Mx --status LOCAL_RESOURCE_LIMIT|LOCAL_RUN
 
 ## 6. Per-model results
 
-_Filled in as each model completes._
+### M1 — Qwen 3.5 9B (`qwen3.5:9b`) — COMPLETE, ranked
+
+| | |
+|---|---|
+| Identity | digest `6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7` = the pin, at submission and acceptance of all 24 cells; qwen35, 9.7B, Q4_K_M; 6.59 GB; Ollama 0.31.1 (server default context length for this model: 262144) |
+| Install | already installed: reused, not downloaded |
+| Smoke | the first attempt was halted by a tooling defect (the smoke's own scratch plan demanded a prior smoke; fixed, recorded in the ledger as `halted`); the second attempt passed operationally: 4 evaluations, 1/4 passed, 2 timeouts |
+| Full batch | 24 fresh evaluations, 120 runs, 2026-09-27 20:55 → 22:50 UTC (1 h 55 min) |
+| Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
+| Scores | **40/120 passed — pass rate 0.333, Wilson 95% [0.255, 0.422]**; mean final score 0.481; 30 timeouts (19 ran the full 180 s request timeout; each time the model answered the one-token probe afterwards, so they are model behaviour); 0 agent errors |
+| Receipt | `reports/phase0-modern-local/receipts/M1-qwen3.5-9b.json` (+ `.md`), sha256 `5924d5768149…`, recorded in the ledger |
+| Weights | removed after the receipt (6.1 GiB reclaimed); `validate --phase M1` re-run **without the model installed: COMPLETE** — model weights ≠ benchmark evidence |
+
+Per task (passes / 5): escape-html 5, fix-binary-search 4, fix-list-dedup 4, fix-roman-numerals 4,
+sanitize-filename 4, grid-paths 3, mask-secrets 3, merge-intervals 3, two-sum-indices 3, async-timeout 2, paginator 2,
+query-builder 1, refactor-order-validation 1, top-k-frequent 1, and 0 on async-batched, async-first-success,
+async-gather-bounded, async-retry, expression-evaluator, fix-path-traversal, implement-lru-cache, result-type,
+toposort, validate-redirect-url.
+
+Disclosure: independent test agents ran the tooling's test suite on this machine during part of M1's batch (extra
+CPU load); from M2 on, tests ran only between batches.
 
 ## 7. Final cohort, leaderboard and integrity
 
