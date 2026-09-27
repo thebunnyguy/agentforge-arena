@@ -120,6 +120,17 @@ def cmd_remove_model(args) -> int:
     return 0 if record["outcome"] == "removed" else 1
 
 
+def cmd_remove_weights(args) -> int:
+    from .lifecycle import remove_weights
+
+    manifest = _manifest(args)
+    if args.confirm != manifest.campaign_id:
+        print(f"remove-weights deletes model files. Re-run with --confirm {manifest.campaign_id} to proceed.")
+        return 2
+    record = remove_weights(manifest, args.path, args.reason, log=_log)
+    return 0 if record["outcome"] == "removed" else 1
+
+
 def cmd_classify_model(args) -> int:
     from .lifecycle import classify_model
 
@@ -426,6 +437,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--confirm", default="")
     p.add_argument("--api")
     p.set_defaults(func=cmd_remove_model)
+
+    p = sub.add_parser("remove-weights", help="remove ONE Hugging Face / LM Studio model directory (recorded first)")
+    p.add_argument("--path", required=True)
+    p.add_argument("--reason", required=True)
+    p.add_argument("--confirm", default="")
+    p.set_defaults(func=cmd_remove_weights)
 
     p = sub.add_parser("classify-model", help="record a model as not benchmarked locally (reason + evidence)")
     p.add_argument("--phase", required=True)

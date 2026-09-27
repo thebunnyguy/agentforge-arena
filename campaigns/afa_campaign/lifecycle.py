@@ -81,7 +81,10 @@ def _dir_bytes(path: Path) -> int:
 
 
 def disk_free(path: Path | None = None) -> dict:
-    usage = shutil.disk_usage(path or ollama_models_dir())
+    target = Path(path or ollama_models_dir())
+    while not target.exists() and target != target.parent:
+        target = target.parent  # the volume the directory lives (or will live) on
+    usage = shutil.disk_usage(target)
     return {"total_bytes": usage.total, "used_bytes": usage.used, "free_bytes": usage.free}
 
 
@@ -502,6 +505,80 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         log(f"removed {model}: {record['outcome']}, reclaimed {record['reclaimed_bytes'] / GIB:.1f} GiB "
             f"({evidence_status})")
         return record
+
+
+WEIGHT_SUFFIXES = (".gguf", ".safetensors", ".bin", ".npz", ".pt", ".pth")
+
+
+def _weight_roots() -> list[tuple[str, Path, int]]:
+    """(runtime, root, depth of a model directory below root) of the non-Ollama
+    model-weight stores whose entries may be removed."""
+    home = Path.home()
+    return [("huggingface-cache", home / ".cache" / "huggingface" / "hub", 1),
+            ("lm-studio", home / ".lmstudio" / "models", 2)]
+
+
+def remove_weights(manifest: Manifest, path: str, reason: str, *, log=print) -> dict:
+    """Remove ONE model directory of a Hugging Face hub cache or LM Studio store,
+    recorded BEFORE the removal. Refused unless the directory sits exactly at a
+    model entry of such a store (no symlink escape) and is at least 90% weight
+    files: never user data, never anything else."""
+    if not (reason and reason.strip()):
+        raise LedgerError("removing model weights requires a written reason")
+    _require_campaign_plan(manifest, "remove-weights")
+    target = Path(path).expanduser()
+    if target.is_symlink():
+        raise CampaignStop(f"{path} is a symlink; only a real model directory is ever removed")
+    real = target.resolve()
+    match = None
+    for runtime, root, depth in _weight_roots():
+        root_real = root.resolve() if root.exists() else root
+        try:
+            rel = real.relative_to(root_real)
+        except ValueError:
+            continue
+        if len(rel.parts) == depth and (runtime != "huggingface-cache" or rel.parts[0].startswith("models--")):
+            match = (runtime, rel)
+    if match is None or not real.is_dir():
+        raise CampaignStop(f"{path} is not a model directory of a Hugging Face hub cache (models--*) or an LM Studio "
+                           "store; nothing else is ever removed")
+    total, weights = 0, 0
+    for root_dir, _dirs, files in os.walk(real, followlinks=False):
+        for name in files:
+            full = os.path.join(root_dir, name)
+            if os.path.islink(full):
+                continue
+            size = os.lstat(full).st_size
+            total += size
+            weights += size if name.lower().endswith(WEIGHT_SUFFIXES) or "/blobs/" in full else 0
+    if total == 0 or weights < 0.9 * total:
+        raise CampaignStop(f"{path} is not (almost) only model weight files ({weights}/{total} bytes); refused")
+    free_before = disk_free()["free_bytes"]
+    record = {"action": "remove-weights", "runtime": match[0], "path": _home(real), "model": str(match[1]),
+              "kind": _weight_kind(real), "bytes": total, "reason": reason.strip(),
+              "evidence_status": "not a campaign model (model weights outside Ollama; no campaign evidence depends "
+                                 "on them)", "free_bytes_before": free_before, "requested_at": utc_now(),
+              "outcome": "requested"}
+    storage_log(manifest, record)  # recorded BEFORE the removal
+    shutil.rmtree(real)
+    record.update(outcome="removed" if not real.exists() else "STILL PRESENT",
+                  free_bytes_after=disk_free()["free_bytes"], completed_at=utc_now())
+    record["reclaimed_bytes"] = record["free_bytes_after"] - free_before
+    storage_log(manifest, {**record, "action": "remove-weights-result"})
+    if manifest.ledger_path().exists():
+        try:
+            with ledger_lock(manifest.ledger_path()):
+                ledger = _existing_ledger(manifest)
+                ledger.record("model_deletions", {k: v for k, v in record.items() if k != "action"})
+                ledger.save()
+        except LedgerError as exc:
+            # a running launcher holds the ledger; these weights are not campaign
+            # evidence, and the storage log already holds the full record
+            storage_log(manifest, {"action": "remove-weights-note", "path": record["path"],
+                                   "note": f"not copied into the ledger: {exc}", "at": utc_now()})
+    log(f"removed {record['model']} ({record['runtime']}): {record['outcome']}, reclaimed "
+        f"{record['reclaimed_bytes'] / GIB:.1f} GiB")
+    return record
 
 
 def classify_model(manifest: Manifest, phase: str, status: str, reason: str, evidence: str, *,
