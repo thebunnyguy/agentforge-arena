@@ -25,7 +25,7 @@ def campaign_status(manifest: Manifest, phase: str = "all") -> dict:
     from .launcher import reference_digests, reference_ollama_version
     from .validate import assess_cell
 
-    reference = reference_digests(ledger) if ledger else {}
+    reference = reference_digests(ledger, manifest) if (ledger or manifest.is_sequential) else {}
     reference_version = reference_ollama_version(ledger) if ledger else None
     db_path = manifest.db_path()
     conn = cohort.open_readonly(db_path) if db_path.exists() else None
@@ -104,6 +104,7 @@ def campaign_status(manifest: Manifest, phase: str = "all") -> dict:
             conn.close()
     totals["remaining_runs"] = totals["planned_runs"] - totals["completed_runs"]
     cells_complete = sum(1 for r in rows if r["state"] == SUCCEEDED and conn is not None)
+    models = _model_progress(manifest, ledger, rows) if manifest.is_sequential else None
     return {
         "campaign_id": manifest.campaign_id,
         "scope": phase,
@@ -120,8 +121,36 @@ def campaign_status(manifest: Manifest, phase: str = "all") -> dict:
         "failed_states": sorted({h["state"] for h in halted if h["state"] in (FAILED, CANCELED, REJECTED, NEEDS_ATTENTION)}),
         "superseded_entries": superseded,
         "per_model": per_model,
+        **({"models": models} if models is not None else {}),
         "cells_detail": rows,
     }
+
+
+def _model_progress(manifest: Manifest, ledger, rows: list[dict]) -> dict:
+    """Per model of a sequential-local campaign: state, accepted runs, receipt,
+    whether its weights were removed."""
+    status = (ledger.data.get("model_status") or {}) if ledger else {}
+    receipts = (ledger.data.get("receipts") or {}) if ledger else {}
+    removed = {d["model"] for d in (ledger.data.get("model_deletions") or []) if d.get("outcome") == "removed"} \
+        if ledger else set()
+    out = {}
+    for entry in manifest.data["roster"]:
+        mine = [r for r in rows if r["phase"] == entry["phase"]]
+        done = sum(1 for r in mine if r["state"] == SUCCEEDED)
+        if entry["phase"] in status:
+            state = status[entry["phase"]]["status"]
+        elif mine and done == len(mine):
+            state = "COMPLETE"
+        elif any(r["state"] != "not_started" for r in mine):
+            state = "IN_PROGRESS"
+        else:
+            state = "NOT_STARTED"
+        out[entry["phase"]] = {"model": entry["model"], "logical_name": entry["logical_name"],
+                               "optional": entry["optional"], "state": state, "cells_complete": done,
+                               "cells": len(mine), "accepted_runs": sum(r["completed"] for r in mine),
+                               "receipt": receipts.get(entry["phase"], {}).get("path"),
+                               "weights_removed": entry["model"] in removed}
+    return out
 
 
 def render(status: dict) -> str:
@@ -149,6 +178,19 @@ def render(status: dict) -> str:
             f"{s['completed_runs']:4d}/{s['planned_runs']:<4d} passed {s['passed']:4d} "
             f"failed {s['failed']:4d} voided {s['voided']}"
         )
+    models = status.get("models")
+    if models:
+        expected = [m for m in models.values() if not m["optional"]]
+        lines.append(f"  models planned {len(expected)} + {len(models) - len(expected)} optional   completed "
+                     f"{sum(1 for m in models.values() if m['state'] == 'COMPLETE')}   classified "
+                     f"{sum(1 for m in models.values() if m['state'] not in ('COMPLETE', 'IN_PROGRESS', 'NOT_STARTED'))}"
+                     f"   accepted real runs {sum(m['accepted_runs'] for m in models.values())}")
+        for phase_name, m in models.items():
+            extra = "; receipt frozen" if m["receipt"] else ""
+            extra += "; weights removed" if m["weights_removed"] else ""
+            lines.append(f"    {phase_name} {m['logical_name']:22s} {m['model']:22s} {m['state']:26s} "
+                         f"{m['cells_complete']:2d}/{m['cells']} cells, {m['accepted_runs']} runs{extra}"
+                         f"{' (optional)' if m['optional'] else ''}")
     for run in status["evaluations_running"]:
         lines.append(f"  running: {run['cell']} {run['evaluation_id']} {run['status']} ({run['completed']} done)")
     for halt in status["evaluations_halted"]:

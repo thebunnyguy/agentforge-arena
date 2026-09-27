@@ -22,6 +22,7 @@ TASK_MANIFEST = TASKS_DIR / "manifest.json"
 REMEDIATION_MANIFEST = REPO / "integrity" / "pack-audit" / "remediation-manifest.json"
 EVIDENCE_DB = REPO / "reports" / "runs.sqlite"
 DEFAULT_MANIFEST = REPO / "campaigns" / "phase0-post-integrity" / "manifest.json"
+MODERN_MANIFEST = REPO / "campaigns" / "phase0-modern-local-v1" / "manifest.json"
 
 # Paths whose content IS the executed benchmark runtime. The launcher refuses to
 # run when they differ from the campaign's pinned release.

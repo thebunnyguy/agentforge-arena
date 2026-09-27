@@ -27,6 +27,15 @@ Entry states::
     superseded   an operator replaced this entry (reason recorded); inactive
 
 Exactly one ACTIVE (non-superseded) entry may exist per cell.
+
+A sequential-local campaign (one model per phase) also records its model
+lifecycle here: ``model_status`` (a model classified LOCAL_RESOURCE_LIMIT /
+LOCAL_RUNTIME_UNSUPPORTED / NOT_BENCHMARKED, with its evidence), ``smokes``,
+``receipts`` (a model's frozen 120-run receipt, required BEFORE its weights may
+be removed), ``model_pulls`` and ``model_deletions`` (what was removed, why,
+and the evidence status at that moment). Removing model weights never touches
+campaign evidence: the database and this ledger are independent of the model
+files.
 """
 
 from __future__ import annotations
@@ -198,6 +207,9 @@ class Ledger:
         return None
 
     _ENTRY_KEYS = ("cell", "model", "task_id", "phase", "evaluation_name", "state")
+    # optional lifecycle records of a sequential-local campaign: (field, container type)
+    _LIFECYCLE = (("model_status", dict), ("smokes", list), ("receipts", dict), ("model_pulls", list),
+                  ("model_deletions", list))
 
     def _check_invariants(self) -> None:
         data = self.data
@@ -206,6 +218,15 @@ class Ledger:
                 raise LedgerError(f"ledger field {key!r} must be a {kind.__name__}")
         if not isinstance(data.setdefault("disowned", []), list):
             raise LedgerError("ledger field 'disowned' must be a list")
+        for name, container in self._LIFECYCLE:
+            value = data.get(name)
+            if value is None:
+                continue
+            if not isinstance(value, container):
+                raise LedgerError(f"ledger field {name!r} must be a {container.__name__}")
+            records = value.values() if isinstance(value, dict) else value
+            if not all(isinstance(r, dict) for r in records):
+                raise LedgerError(f"ledger field {name!r} holds a malformed record")
         for position, entry in enumerate(data["entries"]):
             if not isinstance(entry, dict):
                 raise LedgerError(f"ledger entry #{position} is not an object")
@@ -289,6 +310,32 @@ class Ledger:
         entry.update(fields)
         entry["updated_at"] = utc_now()
         return entry
+
+    # ------------------------------------------------ model lifecycle (sequential)
+    def model_status(self) -> dict:
+        return self.data.setdefault("model_status", {})
+
+    def classify_model(self, *, phase: str, model: str, status: str, reason: str, evidence: str) -> dict:
+        from .manifest import MODEL_CLASSIFICATIONS
+
+        if status not in MODEL_CLASSIFICATIONS:
+            raise LedgerError(f"unknown model classification {status!r}; one of {MODEL_CLASSIFICATIONS}")
+        if not (reason and reason.strip() and evidence and evidence.strip()):
+            raise LedgerError("classifying a model requires a written reason AND supporting evidence")
+        if phase in self.model_status():
+            raise LedgerError(f"{model} ({phase}) is already classified {self.model_status()[phase]['status']}")
+        record = {"phase": phase, "model": model, "status": status, "reason": reason.strip(),
+                  "evidence": evidence.strip(), "at": utc_now()}
+        self.model_status()[phase] = record
+        self.event("model_classified", phase=phase, model=model, status=status, reason=reason.strip())
+        return record
+
+    def record(self, field: str, record: dict) -> dict:
+        """Append a lifecycle record (smokes, model_pulls, model_deletions)."""
+        self.data.setdefault(field, []).append(record)
+        self.event(field.rstrip("s"), **{k: v for k, v in record.items()
+                                         if isinstance(v, (str, int, float, bool)) and k not in ("at", "type")})
+        return record
 
     def disowned_ids(self) -> set[str]:
         return {r["evaluation_id"] for r in self.data.get("disowned", [])}

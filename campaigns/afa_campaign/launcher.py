@@ -144,8 +144,13 @@ def same_path(a: str | Path, b: str | Path) -> bool:
     return Path(a).expanduser().resolve() == Path(b).expanduser().resolve()
 
 
-def reference_digests(ledger: Ledger | None) -> dict[str, str]:
-    """The campaign's model identities: digests recorded by its FIRST launch."""
+def reference_digests(ledger: Ledger | None, manifest: Manifest | None = None) -> dict[str, str]:
+    """The campaign's model identities. A sequential-local plan PINS each model's
+    registry digest in the frozen manifest (models are installed one at a time,
+    so no single launch sees them all); otherwise the digests recorded by the
+    campaign's FIRST launch."""
+    if manifest is not None and manifest.is_sequential:
+        return manifest.pinned_digests()
     for launch in (ledger.data["launches"] if ledger else []):
         if launch.get("inventory"):
             return {m: d for m, d in ollama.digests(launch["inventory"]).items() if d}
@@ -218,6 +223,7 @@ def preflight(
     ledger: Ledger | None = None,
     check_code: bool = True,
     require_models: bool = True,
+    phase: str | None = None,
 ) -> Preflight:
     pf = Preflight()
     pf.facts["checked_at"] = utc_now()
@@ -309,7 +315,9 @@ def preflight(
             if not snap.get("ollama_version"):
                 pf.problems.append("Ollama did not report its server version (/api/version); the campaign pins it "
                                    "as part of every cell's identity")
-            if require_models and snap["missing"]:
+            if manifest.is_sequential:
+                _sequential_target_checks(manifest, snap, ledger, phase, pf)
+            elif require_models and snap["missing"]:
                 pf.problems.append(
                     "roster model(s) missing from Ollama (never substituted): "
                     + ", ".join(snap["missing"])
@@ -329,6 +337,39 @@ def preflight(
                                 f"({was[:12]} -> {digest[:12]}); the campaign's model identity moved"
                             )
     return pf
+
+
+def _sequential_target_checks(manifest: Manifest, snap: dict, ledger: Ledger | None, phase: str | None,
+                              pf: Preflight) -> None:
+    """One model at a time: only the phase's target must be installed, with
+    EXACTLY its pinned registry digest (never a substitute)."""
+    if phase is None:
+        pf.problems.append(f"a sequential campaign is checked and launched one model at a time: name the phase "
+                           f"({', '.join(manifest.phases)})")
+        return
+    try:
+        entry = manifest.phase_entry(phase)
+    except KeyError:
+        pf.problems.append(f"unknown phase {phase!r}; this plan's phases are {manifest.phases}")
+        return
+    model = entry["model"]
+    pf.facts["target"] = {"phase": phase, "model": model, "logical_name": entry["logical_name"]}
+    status = (ledger.data.get("model_status") or {}).get(phase) if ledger else None
+    if status:
+        pf.problems.append(f"{model} ({phase}) is classified {status['status']}: it is not benchmarked")
+    present = (snap["models"].get(model) or {}).get("present")
+    pinned = manifest.pinned_digests()[model]
+    if not present:
+        pf.problems.append(f"target {model} ({phase}) is not installed (pull-model --phase {phase}); nothing "
+                           "is ever substituted for it")
+    else:
+        digest = ollama.digests(snap).get(model)
+        if digest != pinned:
+            pf.problems.append(f"STOP - {model} is installed with digest {digest}, the frozen plan pins {pinned}: "
+                               "ambiguous model identity, never benchmarked as the target")
+    others = [m for m in manifest.models if m != model and (snap["models"].get(m) or {}).get("present")]
+    if others:
+        pf.warnings.append(f"other campaign targets are installed too ({', '.join(others)}); only {model} runs now")
 
 
 # --------------------------------------------------------------------------- #
@@ -403,7 +444,11 @@ class Launcher:
             # The ledger (which freezes the manifest hash) is created only after a
             # passing preflight: a refused launch leaves nothing behind.
             existing = self._load_ledger() if ledger_path.exists() else None
-            pf = preflight(self.manifest, self.client, ledger=existing, check_code=check_code)
+            if self.manifest.is_sequential and phase not in self.manifest.phases:
+                raise CampaignStop(f"a sequential campaign launches one model's phase at a time "
+                                   f"({', '.join(self.manifest.phases)}), not {phase!r}")
+            pf = preflight(self.manifest, self.client, ledger=existing, check_code=check_code,
+                           phase=phase if self.manifest.is_sequential else None)
             if not pf.ok:
                 if existing is not None:
                     existing.event("preflight_failed", problems=pf.problems)
@@ -435,11 +480,12 @@ class Launcher:
                 "check_code": bool(check_code and (pf.facts.get("code") or {}).get("head")),
                 "warmup": self.warmup,
                 "outcome": "running",
+                **({"model": self.manifest.phase_entry(phase)["model"]} if self.manifest.is_sequential else {}),
             }
             self.ledger.data["launches"].append(self._launch)
             self.ledger.event("launch", phase=phase, max_evaluations=max_evaluations)
             self._save()
-            self._reference = reference_digests(self.ledger)
+            self._reference = reference_digests(self.ledger, self.manifest)
             self._reference_version = reference_ollama_version(self.ledger)
             self._check_untracked_campaign_evaluations()
             counts = {"drained": 0, "skipped": 0, "succeeded": 0}
@@ -739,9 +785,16 @@ class Launcher:
                 positions=list(range(self.manifest.repetitions)),
             )
         assert self._launch is not None
+        task = self.manifest.task_by_id[cell.task_id]
         self.ledger.update(entry, model_digest_at_submit=digest, ollama_version_at_submit=version,
                            warmed_up_at_submit=warmed, code_check_at_submit=self._launch["check_code"],
-                           submitted_by_launch=self._launch["started_at"])
+                           submitted_by_launch=self._launch["started_at"],
+                           campaign_id=self.manifest.campaign_id,
+                           logical_name=(self.manifest.roster_entry(cell.model)["logical_name"]
+                                         if self.manifest.is_sequential else cell.model),
+                           task_version=task["task_version"], task_digest=task["task_digest"],
+                           backend_kind=self.manifest.backend["kind"], generation=self.manifest.generation,
+                           expected_runs=self.manifest.repetitions)
         self._save()  # written BEFORE the POST: a crash is reconciled by name
         body = self.manifest.job_body(cell)
         try:
@@ -1102,7 +1155,7 @@ def resume_cell(manifest: Manifest, client: api_mod.AgentForgeApi, key: str, *, 
             base = manifest.backend["base_url"]
             try:
                 now = ollama.inventory(base, [entry["model"]])
-                reference = reference_digests(ledger).get(entry["model"])
+                reference = reference_digests(ledger, manifest).get(entry["model"])
                 reference_version = reference_ollama_version(ledger)
                 digest = ollama.digests(now).get(entry["model"])
                 if not now["models"][entry["model"]]["present"]:
@@ -1176,7 +1229,8 @@ def supersede_cell(manifest: Manifest, key: str, reason: str) -> dict:
             if cell is not None:
                 conn = cohort.open_readonly(manifest.db_path())
                 try:
-                    verdict = validate_mod.assess_cell(conn, manifest, cell, entry, reference_digests(ledger),
+                    verdict = validate_mod.assess_cell(conn, manifest, cell, entry,
+                                                       reference_digests(ledger, manifest),
                                                        reference_ollama_version(ledger))
                 finally:
                     conn.close()

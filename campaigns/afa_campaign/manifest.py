@@ -8,6 +8,13 @@ fixes the plan: one cell per (model, task), each executed as ONE fresh evaluatio
 with ``repetitions`` positions, split into Phase A (cells that passed at least
 once on a task version ORACLE later strengthened) and Phase B (everything else).
 
+Two kinds of plan exist. ``historical-replication`` (the original six-model
+``phase0-post-integrity-v1`` plan, now cancelled) splits cells into Phase A / B by
+historical prior passes. ``sequential-local`` (``phase0-modern-local-v1``) runs
+one MODEL per phase (M1, M2, ...), in order, under tight local storage: each
+roster entry pins the model's exact registry identity (manifest digest,
+family, parameter size, quantization, download size) and may be optional.
+
 The manifest is immutable once a campaign has launched: the ledger records its
 sha256 and every tool refuses a manifest whose hash no longer matches.
 """
@@ -35,6 +42,57 @@ ROSTER = (
 )
 REAL_BACKENDS = ("ollama", "openai_compat")
 PHASES = ("A", "B")
+KIND_HISTORICAL = "historical-replication"
+KIND_SEQUENTIAL = "sequential-local"
+
+MODERN_CAMPAIGN_ID = "phase0-modern-local-v1"
+# The modern local cohort, in benchmark order (increasing local resource cost).
+# Identities were resolved from the Ollama registry BEFORE any download
+# (registry manifest sha256 = the digest Ollama reports locally; layer sizes;
+# the config blob's family / parameter size / quantization). Never substituted:
+# a pulled model whose digest differs from its pin is refused.
+MODERN_LOCAL_ROSTER = (
+    {"phase": "M1", "model": "qwen3.5:9b", "logical_name": "Qwen 3.5 9B", "optional": False,
+     "expected_identity": {"digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+                           "download_bytes": 6594474236, "format": "gguf", "family": "qwen35",
+                           "parameter_size": "9.7B", "quantization": "Q4_K_M"}},
+    {"phase": "M2", "model": "gpt-oss:20b", "logical_name": "gpt-oss 20B", "optional": False,
+     "expected_identity": {"digest": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+                           "download_bytes": 13793440755, "format": "gguf", "family": "gptoss",
+                           "parameter_size": "20.9B", "quantization": "MXFP4"}},
+    {"phase": "M3", "model": "devstral-small-2:24b", "logical_name": "Devstral Small 2 24B", "optional": False,
+     "expected_identity": {"digest": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+                           "download_bytes": 15177373679, "format": "gguf", "family": "mistral3",
+                           "parameter_size": "24.0B", "quantization": "Q4_K_M"}},
+    {"phase": "M4", "model": "qwen3-coder:30b", "logical_name": "Qwen3-Coder 30B-A3B", "optional": False,
+     "expected_identity": {"digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+                           "download_bytes": 18556700222, "format": "gguf", "family": "qwen3moe",
+                           "parameter_size": "30.5B", "quantization": "Q4_K_M"}},
+    {"phase": "M5", "model": "qwen3.6:27b", "logical_name": "Qwen3.6 27B", "optional": True,
+     "expected_identity": {"digest": "9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3",
+                           "download_bytes": 17769076719, "format": "gguf", "family": "qwen35",
+                           "parameter_size": "27.3B", "quantization": "Q4_K_M"}},
+)
+# Classifications that take a roster model OUT of the expected cohort (it is
+# listed separately and never ranked, never counted as a zero-score model).
+MODEL_CLASSIFICATIONS = ("LOCAL_RESOURCE_LIMIT", "LOCAL_RUNTIME_UNSUPPORTED", "NOT_BENCHMARKED")
+
+
+def plan_kind(data: dict) -> str:
+    return data.get("kind") or KIND_HISTORICAL
+
+
+def phases_of(data: dict) -> list[str]:
+    if plan_kind(data) == KIND_SEQUENTIAL:
+        return [entry["phase"] for entry in data.get("roster") or []]
+    return list(PHASES)
+
+
+def normalize_digest(value) -> str | None:
+    """Ollama reports digests as plain hex; accept an optional 'sha256:' prefix."""
+    if not isinstance(value, str) or not value:
+        return None
+    return value.split(":", 1)[1] if value.startswith("sha256:") else value
 
 
 # What the repository DOCUMENTS about how the historical runs were generated
@@ -350,8 +408,160 @@ def build_manifest(
     return data
 
 
+def _pinned_tasks() -> list[dict]:
+    """Every task of the checked-out pack, pinned to its current version and
+    content digest exactly as an evaluation snapshot records them."""
+    from afa_api import jobs, store_load
+
+    task_manifest = json.loads(paths.TASK_MANIFEST.read_text())
+    _, current_versions, _, _, _ = store_load._build_manifest_meta(paths.TASK_MANIFEST)
+    problems, tasks = [], []
+    for item in task_manifest:
+        task_id = item["id"]
+        snap = jobs.task_snapshot(task_id)
+        spec = json.loads((paths.TASKS_DIR / task_id / "task.json").read_text())
+        if snap["task_version"] != current_versions[task_id]:
+            problems.append(f"{task_id}: task.json version {snap['task_version']} != projection "
+                            f"current version {current_versions[task_id]}")
+        tasks.append({
+            "task_id": task_id,
+            "task_version": snap["task_version"],
+            "task_digest": snap["task_digest"],
+            "domains": [[str(d), float(w)] for d, w in item.get("domains", [])],
+            "activity": item.get("activity"),
+            "timeout_s": spec.get("timeout_s"),
+        })
+    if problems:
+        raise ManifestError("inconsistent task pack:\n  " + "\n  ".join(problems))
+    return tasks
+
+
+def build_modern_manifest(
+    *,
+    created_at: str,
+    runtime_tag: str,
+    runtime_commit: str,
+    campaign_id: str = MODERN_CAMPAIGN_ID,
+    roster: tuple[dict, ...] | list[dict] = MODERN_LOCAL_ROSTER,
+    repetitions: int = 5,
+    temperature: float = 0.8,
+    base_seed: int = 42,
+    request_timeout_s: int = 180,
+    backend_base_url: str = "http://127.0.0.1:11434",
+    campaign_db: str = "reports/phase0-modern-local.sqlite",
+    runtime_dir: str = "reports/phase0-modern-local",
+    api_url: str = "http://127.0.0.1:8000",
+) -> dict:
+    """The sequential-by-model local campaign: one phase per roster model, every
+    model x every task x ``repetitions``, with one frozen task pack and one
+    generation setting for all models."""
+    roster = [copy.deepcopy(entry) for entry in roster]
+    tasks = _pinned_tasks()
+    models = [entry["model"] for entry in roster]
+    cells = [{"model": entry["model"], "task_id": task["task_id"], "phase": entry["phase"]}
+             for entry in roster for task in tasks]
+    data = {
+        "schema_version": SCHEMA_VERSION,
+        "kind": KIND_SEQUENTIAL,
+        "campaign_id": campaign_id,
+        "title": "AgentForge Modern Local Benchmark: sequential local cohort",
+        "created_at": created_at,
+        "purpose": (
+            "A new post-Phase-0 baseline of modern, locally runnable, zero-cost coding models, "
+            "benchmarked ONE MODEL AT A TIME under tight local storage (install or reuse one "
+            "target, smoke it, run its 24 tasks x 5 fresh repetitions, validate and freeze its "
+            "receipt, then its weights may be removed). Evidence lives in the campaign database "
+            "and ledger, never in the model files. Not directly comparable with the historical "
+            "pre-Phase-0 runs in reports/runs.sqlite (older task versions, other runtime)."
+        ),
+        "code": {
+            "runtime_release_tag": runtime_tag,
+            "runtime_release_commit": runtime_commit,
+            "runtime_paths": list(paths.RUNTIME_PATHS),
+            "rule": ("the launcher refuses to run when the runtime paths differ from the release tag "
+                     "or have uncommitted changes"),
+        },
+        "historical_evidence": {
+            "path": "reports/runs.sqlite",
+            "sha256": evidence_sha256(paths.EVIDENCE_DB),
+            "role": "PRE-Phase-0 baseline; read-only; never a campaign write target; not compared as "
+                    "the same experiment",
+        },
+        "backend": {"kind": "ollama", "base_url": backend_base_url},
+        "mode": "fresh",
+        "repetitions": repetitions,
+        "generation": {
+            "temperature": temperature,
+            "base_seed": base_seed,
+            "request_timeout_s": request_timeout_s,
+            "seed_policy": (
+                "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx "
+                "(0..repetitions-1) before each trial (set_run_seed), so position idx of every "
+                "(model, task) cell uses the same seed and a resumed position re-uses its original seed"
+            ),
+            "request": ("the Phase-0 runtime's OllamaAgent calls /api/generate with only temperature and "
+                        "seed; every other inference setting (context length, thinking) is the Ollama "
+                        "server's default for that model, identical for every model of the campaign"),
+        },
+        "evaluation_granularity": (
+            "one fresh evaluation per (model, task) cell: tasks=[task_id], repeats=repetitions, "
+            "name=<evaluation_name_prefix>:<phase>:<model>|<task_id>; phase = the model's roster phase"
+        ),
+        "evaluation_name_prefix": f"campaign:{campaign_id}",
+        "evidence_scope": "real",
+        "execution": {
+            "order": [entry["phase"] for entry in roster],
+            "one_model_at_a_time": True,
+            "storage_policy": (
+                "reuse an installed target; otherwise free space by removing authorized model weights "
+                "(a completed target whose receipt is accepted first, then unused Ollama models, then "
+                "MLX weights) and pull ONLY that target; never delete campaign evidence"
+            ),
+            "smoke": {"tasks": ["fix-binary-search", "async-batched", "sanitize-filename",
+                                "refactor-order-validation"], "repetitions": 1},
+        },
+        "roster": roster,
+        "models": models,
+        "tasks": tasks,
+        "cells": cells,
+        "runtime": {
+            "campaign_db": campaign_db,
+            "db_strategy": "clean",
+            "runtime_dir": runtime_dir,
+            "ledger": f"{runtime_dir}/ledger.json",
+            "outputs": f"{runtime_dir}/outputs",
+            "receipts": f"{runtime_dir}/receipts",
+            "inventories": f"{runtime_dir}/inventories",
+            "smoke_dir": f"{runtime_dir}/smoke",
+            "api_url": api_url,
+        },
+    }
+    data["expected"] = expected_counts(data)
+    validate(data)
+    return data
+
+
 def expected_counts(data: dict) -> dict:
     reps = int(data["repetitions"])
+    if plan_kind(data) == KIND_SEQUENTIAL:
+        roster = data.get("roster") or []
+        per_model = len(data["tasks"]) * reps
+        required = [e for e in roster if not e.get("optional")]
+        return {
+            "models": len(data["models"]),
+            "required_models": len(required),
+            "optional_models": len(roster) - len(required),
+            "tasks": len(data["tasks"]),
+            "cells": len(data["cells"]),
+            "runs_per_cell": reps,
+            "runs_per_model": per_model,
+            "total_runs": len(data["cells"]) * reps,
+            "minimum_runs": len(required) * per_model,
+            "phases": {e["phase"]: {"model": e["model"],
+                                     "cells": sum(1 for c in data["cells"] if c["phase"] == e["phase"]),
+                                     "runs": sum(1 for c in data["cells"] if c["phase"] == e["phase"]) * reps}
+                       for e in roster},
+        }
     by_phase = {p: [c for c in data["cells"] if c["phase"] == p] for p in PHASES}
     return {
         "models": len(data["models"]),
@@ -398,8 +608,14 @@ def derive_subset(
     derived["models"] = [m for m in data["models"] if m in models]
     derived["tasks"] = [t for t in data["tasks"] if t["task_id"] in task_ids]
     derived["repetitions"] = repetitions
+    sequential = plan_kind(data) == KIND_SEQUENTIAL
+    if sequential:
+        # a sequential plan keeps each model's phase (one model per phase)
+        derived["roster"] = [e for e in data["roster"] if e["model"] in models]
+        derived["execution"] = {**data.get("execution", {}),
+                                "order": [e["phase"] for e in derived["roster"]]}
     derived["cells"] = [
-        {**cell, "phase": "A"}
+        {**cell, "phase": cell["phase"] if sequential else "A"}
         for cell in data["cells"]
         if cell["model"] in models and cell["task_id"] in task_ids
     ]
@@ -413,6 +629,8 @@ def derive_subset(
         "runtime_dir": runtime_dir,
         "ledger": f"{runtime_dir}/ledger.json",
         "outputs": f"{runtime_dir}/outputs",
+        **({"receipts": f"{runtime_dir}/receipts", "inventories": f"{runtime_dir}/inventories",
+            "smoke_dir": f"{runtime_dir}/smoke"} if sequential else {}),
         **({"api_url": api_url} if api_url else {}),
     }
     derived["expected"] = expected_counts(derived)
@@ -468,7 +686,33 @@ def validate(data: dict) -> None:
     need(len(keys) == len(set(keys)), "duplicate cells")
     need(set(keys) == {(m, t) for m in models for t in task_ids},
          "cells must cover exactly models x tasks")
-    need(all(c.get("phase") in PHASES for c in cells), "cell phase must be A or B")
+    need(plan_kind(data) in (KIND_HISTORICAL, KIND_SEQUENTIAL), f"unknown manifest kind {plan_kind(data)!r}")
+    if plan_kind(data) == KIND_SEQUENTIAL:
+        roster = data.get("roster") or []
+        need(isinstance(roster, list) and roster and all(isinstance(e, dict) for e in roster),
+             "a sequential plan needs a roster")
+        roster = [e for e in roster if isinstance(e, dict)] if isinstance(roster, list) else []
+        phases = [e.get("phase") for e in roster]
+        need([e.get("model") for e in roster] == models, "roster models must equal models, in order")
+        need(len(phases) == len(set(phases)) and all(isinstance(p, str) and p for p in phases),
+             "every roster model needs its own phase")
+        need(any(not e.get("optional") for e in roster), "at least one roster model must be required")
+        for entry in roster:
+            ident = entry.get("expected_identity") or {}
+            digest = normalize_digest(ident.get("digest"))
+            need(isinstance(digest, str) and len(digest) == 64 and all(ch in "0123456789abcdef" for ch in digest),
+                 f"{entry.get('model')}: expected_identity.digest must be a 64-hex sha256")
+            need(isinstance(ident.get("download_bytes"), int) and ident.get("download_bytes", 0) > 0,
+                 f"{entry.get('model')}: expected_identity.download_bytes missing")
+            need(isinstance(entry.get("logical_name"), str) and entry.get("logical_name"),
+                 f"{entry.get('model')}: logical_name missing")
+            need(isinstance(entry.get("optional"), bool), f"{entry.get('model')}: optional must be a bool")
+        phase_of = {e.get("model"): e.get("phase") for e in roster}
+        need(all(c.get("phase") == phase_of.get(c.get("model")) for c in cells),
+             "every cell's phase must be its model's roster phase")
+        need(backend.get("kind") == "ollama", "a sequential local plan runs on the local ollama backend")
+    else:
+        need(all(c.get("phase") in PHASES for c in cells), "cell phase must be A or B")
     for name in ("campaign_db", "ledger", "outputs", "runtime_dir"):
         need(isinstance((data.get("runtime") or {}).get(name), str), f"runtime.{name} missing")
     db_path = str((data.get("runtime") or {}).get("campaign_db", ""))
@@ -526,6 +770,38 @@ class Manifest:
     @property
     def expected(self) -> dict:
         return expected_counts(self.data)
+
+    @property
+    def kind(self) -> str:
+        return plan_kind(self.data)
+
+    @property
+    def is_sequential(self) -> bool:
+        return self.kind == KIND_SEQUENTIAL
+
+    @property
+    def phases(self) -> list[str]:
+        return phases_of(self.data)
+
+    def roster_entry(self, model: str) -> dict:
+        for entry in self.data.get("roster") or []:
+            if entry["model"] == model:
+                return entry
+        raise KeyError(model)
+
+    def phase_entry(self, phase: str) -> dict:
+        for entry in self.data.get("roster") or []:
+            if entry["phase"] == phase:
+                return entry
+        raise KeyError(phase)
+
+    def pinned_digests(self) -> dict[str, str]:
+        """{model: expected digest} of a sequential plan (empty otherwise)."""
+        return {e["model"]: normalize_digest(e["expected_identity"]["digest"])
+                for e in self.data.get("roster") or []}
+
+    def runtime_subdir(self, name: str) -> Path:
+        return paths.resolve(self.data["runtime"].get(name) or f"{self.data['runtime']['runtime_dir']}/{name}")
 
     # runtime locations
     def db_path(self) -> Path:

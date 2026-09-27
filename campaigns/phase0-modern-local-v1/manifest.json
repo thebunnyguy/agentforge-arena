@@ -1,0 +1,1156 @@
+{
+  "schema_version": 1,
+  "kind": "sequential-local",
+  "campaign_id": "phase0-modern-local-v1",
+  "title": "AgentForge Modern Local Benchmark: sequential local cohort",
+  "created_at": "2026-09-27T20:04:38Z",
+  "purpose": "A new post-Phase-0 baseline of modern, locally runnable, zero-cost coding models, benchmarked ONE MODEL AT A TIME under tight local storage (install or reuse one target, smoke it, run its 24 tasks x 5 fresh repetitions, validate and freeze its receipt, then its weights may be removed). Evidence lives in the campaign database and ledger, never in the model files. Not directly comparable with the historical pre-Phase-0 runs in reports/runs.sqlite (older task versions, other runtime).",
+  "code": {
+    "runtime_release_tag": "phase0-integrity-v1",
+    "runtime_release_commit": "7369e67e1ceb4b2a566986f247961f8a63f99567",
+    "runtime_paths": [
+      "afa_api",
+      "runner",
+      "kernel",
+      "tasks"
+    ],
+    "rule": "the launcher refuses to run when the runtime paths differ from the release tag or have uncommitted changes"
+  },
+  "historical_evidence": {
+    "path": "reports/runs.sqlite",
+    "sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced",
+    "role": "PRE-Phase-0 baseline; read-only; never a campaign write target; not compared as the same experiment"
+  },
+  "backend": {
+    "kind": "ollama",
+    "base_url": "http://127.0.0.1:11434"
+  },
+  "mode": "fresh",
+  "repetitions": 5,
+  "generation": {
+    "temperature": 0.8,
+    "base_seed": 42,
+    "request_timeout_s": 180,
+    "seed_policy": "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx (0..repetitions-1) before each trial (set_run_seed), so position idx of every (model, task) cell uses the same seed and a resumed position re-uses its original seed",
+    "request": "the Phase-0 runtime's OllamaAgent calls /api/generate with only temperature and seed; every other inference setting (context length, thinking) is the Ollama server's default for that model, identical for every model of the campaign"
+  },
+  "evaluation_granularity": "one fresh evaluation per (model, task) cell: tasks=[task_id], repeats=repetitions, name=<evaluation_name_prefix>:<phase>:<model>|<task_id>; phase = the model's roster phase",
+  "evaluation_name_prefix": "campaign:phase0-modern-local-v1",
+  "evidence_scope": "real",
+  "execution": {
+    "order": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5"
+    ],
+    "one_model_at_a_time": true,
+    "storage_policy": "reuse an installed target; otherwise free space by removing authorized model weights (a completed target whose receipt is accepted first, then unused Ollama models, then MLX weights) and pull ONLY that target; never delete campaign evidence",
+    "smoke": {
+      "tasks": [
+        "fix-binary-search",
+        "async-batched",
+        "sanitize-filename",
+        "refactor-order-validation"
+      ],
+      "repetitions": 1
+    }
+  },
+  "roster": [
+    {
+      "phase": "M1",
+      "model": "qwen3.5:9b",
+      "logical_name": "Qwen 3.5 9B",
+      "optional": false,
+      "expected_identity": {
+        "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+        "download_bytes": 6594474236,
+        "format": "gguf",
+        "family": "qwen35",
+        "parameter_size": "9.7B",
+        "quantization": "Q4_K_M"
+      }
+    },
+    {
+      "phase": "M2",
+      "model": "gpt-oss:20b",
+      "logical_name": "gpt-oss 20B",
+      "optional": false,
+      "expected_identity": {
+        "digest": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+        "download_bytes": 13793440755,
+        "format": "gguf",
+        "family": "gptoss",
+        "parameter_size": "20.9B",
+        "quantization": "MXFP4"
+      }
+    },
+    {
+      "phase": "M3",
+      "model": "devstral-small-2:24b",
+      "logical_name": "Devstral Small 2 24B",
+      "optional": false,
+      "expected_identity": {
+        "digest": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+        "download_bytes": 15177373679,
+        "format": "gguf",
+        "family": "mistral3",
+        "parameter_size": "24.0B",
+        "quantization": "Q4_K_M"
+      }
+    },
+    {
+      "phase": "M4",
+      "model": "qwen3-coder:30b",
+      "logical_name": "Qwen3-Coder 30B-A3B",
+      "optional": false,
+      "expected_identity": {
+        "digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+        "download_bytes": 18556700222,
+        "format": "gguf",
+        "family": "qwen3moe",
+        "parameter_size": "30.5B",
+        "quantization": "Q4_K_M"
+      }
+    },
+    {
+      "phase": "M5",
+      "model": "qwen3.6:27b",
+      "logical_name": "Qwen3.6 27B",
+      "optional": true,
+      "expected_identity": {
+        "digest": "9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3",
+        "download_bytes": 17769076719,
+        "format": "gguf",
+        "family": "qwen35",
+        "parameter_size": "27.3B",
+        "quantization": "Q4_K_M"
+      }
+    }
+  ],
+  "models": [
+    "qwen3.5:9b",
+    "gpt-oss:20b",
+    "devstral-small-2:24b",
+    "qwen3-coder:30b",
+    "qwen3.6:27b"
+  ],
+  "tasks": [
+    {
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:1bfcf38552c595e2f45f0b3e0bf9aecb47846d9d155e36fad71bd552ba265525",
+      "domains": [
+        [
+          "security",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:97d42f89f91ca3ba10ee968ac43ec0281bd986ece26f76f6a7bdaef7c13484ce",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:b8050c0f63f569c72738fdc8ae02ec19f5f52a23373788e1cffec4df0515f38b",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "async-retry",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:743f10eb2959463740a4c615a60af402fc9e9c650507bccdb0bba67dc4053897",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "async-timeout",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:e2d6c2616c55f1910282e2862a5b7e49709d8d4231f5c97c92bc4c40e7f104fd",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:e58739216d5cced5e441df27d4a629acf69890dddfa111e391a54e4c0ac384e6",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:711a4313f541efaaad7d782730f16ac5bdc09f86babf03e59cb27e4a6ac4cc19",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ],
+        [
+          "api-design",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "mask-secrets",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:be4619e8f0d6da8b484bc30d130eb1ad95838edb5068c206cd4d66a847293b3d",
+      "domains": [
+        [
+          "security",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "merge-intervals",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:413356d815870ac64bc74876b6f2a29006554e56c5d72d043bd69d154be5ab70",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ],
+        [
+          "performance",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "paginator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:8455df342ed6e853cadda163e970fb098fa916472fdfe2f9353d5648c75ef4db",
+      "domains": [
+        [
+          "api-design",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "result-type",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:34098c06cd150ab3166f3c221b8c8ff4685eea2f7cdea204c90fbbd719e820a1",
+      "domains": [
+        [
+          "api-design",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:4546131c33d455d531d3388e629ee3257a973c58b15f81ff5ec44ab99d150574",
+      "domains": [
+        [
+          "security",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:663be68e47533cb829a8c5add006bb24dc838d460190dccf231c4105b2520439",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ],
+        [
+          "performance",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "async-first-success",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:d2371fcc477cbf55f47b364925a3719a7122b525cf8ad352aa6bc560cd5e3de6",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:bdcf2f0d8fc40260fba5672b6b1017d0da70d47a099e761178bbb2221a97dc54",
+      "domains": [
+        [
+          "async-concurrency",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:048d526e856035d29278fcc443c99439cacc6aed3e94a28e50c7dbdb0857d8c2",
+      "domains": [
+        [
+          "security",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "grid-paths",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:8bd8923b24f8f5aa16b3cace88b8139c9ae23a69cbad95f5428f679439ae9276",
+      "domains": [
+        [
+          "performance",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20
+    },
+    {
+      "task_id": "query-builder",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:fe812df540da8bdacbc65432fabbc8f6bf3ae63d4e6ad2abebf0246a544858c6",
+      "domains": [
+        [
+          "api-design",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:3e2ffe535ab5f3f0ac992e376637a5289a1683ce8e0292b8193b26e2308e3972",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ],
+        [
+          "api-design",
+          0.5
+        ]
+      ],
+      "activity": "refactoring",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:c4fb17f874fa701173602d5e8acf50578c7622ad9473baaef1ec5d2e70936d3c",
+      "domains": [
+        [
+          "performance",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20
+    },
+    {
+      "task_id": "toposort",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:00858816e5473d96413cc1048ca43e569e378c063aa90c419b7871e1ea219251",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120
+    },
+    {
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:c7005cb3b399ea7dd1f762352921e5f3588bd28e5fdfbe08515af96db63e4c7d",
+      "domains": [
+        [
+          "performance",
+          1.0
+        ],
+        [
+          "backend",
+          0.5
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20
+    },
+    {
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:c7d40bc86203bac8765553e9a2da5f72aad730a2f102cdc36ee0b215aebbac07",
+      "domains": [
+        [
+          "security",
+          1.0
+        ]
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60
+    },
+    {
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:164d48bd040cf2c0c16865284fccd4f8b2b9358fc45e65139cf69dd4dc9cfee3",
+      "domains": [
+        [
+          "backend",
+          1.0
+        ]
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120
+    }
+  ],
+  "cells": [
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "escape-html",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-binary-search",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-list-dedup",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-retry",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-timeout",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-roman-numerals",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "implement-lru-cache",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "mask-secrets",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "merge-intervals",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "paginator",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "result-type",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "sanitize-filename",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-batched",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-first-success",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "async-gather-bounded",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "fix-path-traversal",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "grid-paths",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "query-builder",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "refactor-order-validation",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "top-k-frequent",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "toposort",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "two-sum-indices",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "validate-redirect-url",
+      "phase": "M1"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "expression-evaluator",
+      "phase": "M1"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "escape-html",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "fix-binary-search",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "fix-list-dedup",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "async-retry",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "async-timeout",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "fix-roman-numerals",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "implement-lru-cache",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "mask-secrets",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "merge-intervals",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "paginator",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "result-type",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "sanitize-filename",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "async-batched",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "async-first-success",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "async-gather-bounded",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "fix-path-traversal",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "grid-paths",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "query-builder",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "refactor-order-validation",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "top-k-frequent",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "toposort",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "two-sum-indices",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "validate-redirect-url",
+      "phase": "M2"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "task_id": "expression-evaluator",
+      "phase": "M2"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "escape-html",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "fix-binary-search",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "fix-list-dedup",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "async-retry",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "async-timeout",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "fix-roman-numerals",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "implement-lru-cache",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "mask-secrets",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "merge-intervals",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "paginator",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "result-type",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "sanitize-filename",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "async-batched",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "async-first-success",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "async-gather-bounded",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "fix-path-traversal",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "grid-paths",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "query-builder",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "refactor-order-validation",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "top-k-frequent",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "toposort",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "two-sum-indices",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "validate-redirect-url",
+      "phase": "M3"
+    },
+    {
+      "model": "devstral-small-2:24b",
+      "task_id": "expression-evaluator",
+      "phase": "M3"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "escape-html",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "fix-binary-search",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "fix-list-dedup",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "async-retry",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "async-timeout",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "fix-roman-numerals",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "implement-lru-cache",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "mask-secrets",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "merge-intervals",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "paginator",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "result-type",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "sanitize-filename",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "async-batched",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "async-first-success",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "async-gather-bounded",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "fix-path-traversal",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "grid-paths",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "query-builder",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "refactor-order-validation",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "top-k-frequent",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "toposort",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "two-sum-indices",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "validate-redirect-url",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "task_id": "expression-evaluator",
+      "phase": "M4"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "escape-html",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "fix-binary-search",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "fix-list-dedup",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "async-retry",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "async-timeout",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "fix-roman-numerals",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "implement-lru-cache",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "mask-secrets",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "merge-intervals",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "paginator",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "result-type",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "sanitize-filename",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "async-batched",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "async-first-success",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "async-gather-bounded",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "fix-path-traversal",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "grid-paths",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "query-builder",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "refactor-order-validation",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "top-k-frequent",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "toposort",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "two-sum-indices",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "validate-redirect-url",
+      "phase": "M5"
+    },
+    {
+      "model": "qwen3.6:27b",
+      "task_id": "expression-evaluator",
+      "phase": "M5"
+    }
+  ],
+  "runtime": {
+    "campaign_db": "reports/phase0-modern-local.sqlite",
+    "db_strategy": "clean",
+    "runtime_dir": "reports/phase0-modern-local",
+    "ledger": "reports/phase0-modern-local/ledger.json",
+    "outputs": "reports/phase0-modern-local/outputs",
+    "receipts": "reports/phase0-modern-local/receipts",
+    "inventories": "reports/phase0-modern-local/inventories",
+    "smoke_dir": "reports/phase0-modern-local/smoke",
+    "api_url": "http://127.0.0.1:8000"
+  },
+  "expected": {
+    "models": 5,
+    "required_models": 4,
+    "optional_models": 1,
+    "tasks": 24,
+    "cells": 120,
+    "runs_per_cell": 5,
+    "runs_per_model": 120,
+    "total_runs": 600,
+    "minimum_runs": 480,
+    "phases": {
+      "M1": {
+        "model": "qwen3.5:9b",
+        "cells": 24,
+        "runs": 120
+      },
+      "M2": {
+        "model": "gpt-oss:20b",
+        "cells": 24,
+        "runs": 120
+      },
+      "M3": {
+        "model": "devstral-small-2:24b",
+        "cells": 24,
+        "runs": 120
+      },
+      "M4": {
+        "model": "qwen3-coder:30b",
+        "cells": 24,
+        "runs": 120
+      },
+      "M5": {
+        "model": "qwen3.6:27b",
+        "cells": 24,
+        "runs": 120
+      }
+    }
+  }
+}

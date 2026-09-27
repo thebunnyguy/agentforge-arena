@@ -122,8 +122,8 @@ def assess_cell(conn, manifest: Manifest, cell, entry: dict | None, reference: d
     return out
 
 
-def _scope_expectations(manifest: Manifest, phase: str) -> dict:
-    cells = manifest.cells(phase)
+def _scope_expectations(manifest: Manifest, phase: str, excluded_phases: set[str] | None = None) -> dict:
+    cells = [c for c in manifest.cells(phase) if c.phase not in (excluded_phases or set())]
     reps = manifest.repetitions
     models = sorted({c.model for c in cells}, key=manifest.models.index)
     tasks_per_model = {m: sum(1 for c in cells if c.model == m) for m in models}
@@ -148,7 +148,6 @@ def validate_campaign(
 
     problems: list[str] = []
     warnings: list[str] = []
-    expected = _scope_expectations(manifest, phase)
     ledger_path = manifest.ledger_path()
     try:
         ledger: Ledger | None = Ledger.load(
@@ -157,8 +156,17 @@ def validate_campaign(
     except LedgerError as exc:
         ledger = None
         problems.append(f"ledger: {exc}")
+    # A sequential-local campaign may end with fewer models than its roster: a
+    # model explicitly CLASSIFIED (local resource limit, unsupported runtime, not
+    # benchmarked) leaves the expected cohort - listed apart, never ranked and
+    # never counted as a zero-score model.
+    classified = dict((ledger.data.get("model_status") or {}) if (ledger and manifest.is_sequential) else {})
+    if phase != "all" and phase in classified:
+        problems.append(f"{manifest.phase_entry(phase)['model']} ({phase}) is classified "
+                        f"{classified[phase]['status']}: it is not benchmarked")
+    expected = _scope_expectations(manifest, phase, set(classified) if phase == "all" else None)
 
-    reference = reference_digests(ledger) if ledger else {}
+    reference = reference_digests(ledger, manifest) if (ledger or manifest.is_sequential) else {}
     reference_version = reference_ollama_version(ledger) if ledger else None
     identity_required = manifest.backend["kind"] == "ollama"
     db_path = manifest.db_path()
@@ -181,7 +189,7 @@ def validate_campaign(
     missing_cells: list[str] = []
     missing_positions = 0
     try:
-        for cell in manifest.cells(phase):
+        for cell in [c for c in manifest.cells(phase) if not (phase == "all" and c.phase in classified)]:
             entries = ledger.entries_for(cell.key) if ledger else []
             active = [e for e in entries if e["state"] != SUPERSEDED]
             row = {
@@ -281,6 +289,7 @@ def validate_campaign(
     )
     complete = (not problems and complete_cells == expected["cells"] and present_runs == expected["runs"]
                 and valid_runs == expected["runs"])
+    cohort_info = _cohort_summary(manifest, phase, per_model, classified) if manifest.is_sequential else None
     return {
         "receipt_version": RECEIPT_VERSION,
         "campaign_id": manifest.campaign_id,
@@ -313,10 +322,47 @@ def validate_campaign(
         "evidence_classes": classes,
         "voided_positions": voided_total,
         "per_model": per_model,
+        **({"cohort": cohort_info} if cohort_info is not None else {}),
         "cells": cells_out,
         "problems": problems,
         "warnings": warnings,
         "complete": complete,
+    }
+
+
+def _cohort_summary(manifest: Manifest, phase: str, per_model: dict, classified: dict) -> dict:
+    """Per-model state of a sequential-local campaign: COMPLETE (every cell
+    accepted), a classification (not benchmarked, never ranked), NOT_STARTED or
+    INCOMPLETE (never ranked beside complete models)."""
+    models = {}
+    for entry in manifest.data["roster"]:
+        if phase not in ("all", entry["phase"]):
+            continue
+        stats = per_model.get(entry["model"])
+        record = classified.get(entry["phase"])
+        if record:
+            state = record["status"]
+        elif stats and stats["cells_complete"] == stats["cells_expected"] and stats["cells_expected"]:
+            state = "COMPLETE"
+        elif stats and (stats["cells_complete"] or stats["runs"]):
+            state = "INCOMPLETE"
+        else:
+            state = "NOT_STARTED"
+        models[entry["phase"]] = {
+            "model": entry["model"], "logical_name": entry["logical_name"], "optional": entry["optional"],
+            "state": state, "accepted_cells": (stats or {}).get("cells_complete", 0),
+            "accepted_runs": (stats or {}).get("runs", 0) if state == "COMPLETE" else 0,
+            "classification": record,
+        }
+    complete = [m for m in models.values() if m["state"] == "COMPLETE"]
+    required = [m for m in models.values() if not m["optional"]]
+    return {
+        "models": models,
+        "ranked_models": [m["model"] for m in complete],
+        "accepted_runs_of_complete_models": sum(m["accepted_runs"] for m in complete),
+        "required_models_complete": sum(1 for m in required if m["state"] == "COMPLETE"),
+        "required_models": len(required),
+        "minimum_runs": manifest.expected.get("minimum_runs"),
     }
 
 
@@ -338,6 +384,14 @@ def render(receipt: dict) -> str:
             f"    {model:22s} cells {stats['cells_complete']:3d}/{stats['cells_expected']:<3d} "
             f"runs {stats['runs']:4d}  passed {stats['passed']:4d}/{stats['valid']:<4d} voided {stats['voided']}"
         )
+    cohort = receipt.get("cohort")
+    if cohort:
+        lines.append(f"  cohort  : ranked {cohort['ranked_models'] or '[]'}; required models complete "
+                     f"{cohort['required_models_complete']}/{cohort['required_models']}; accepted runs "
+                     f"{cohort['accepted_runs_of_complete_models']} (minimum {cohort['minimum_runs']})")
+        for phase_name, info in cohort["models"].items():
+            lines.append(f"    {phase_name} {info['model']:22s} {info['state']:26s} "
+                         f"{info['accepted_runs']} accepted runs{' (optional)' if info['optional'] else ''}")
     for problem in receipt["problems"][:40]:
         lines.append(f"  PROBLEM: {problem}")
     if len(receipt["problems"]) > 40:

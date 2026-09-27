@@ -263,7 +263,7 @@ def load_cohort(manifest: Manifest) -> Cohort:
               if ledger_path.exists() else None)
     from .launcher import reference_digests, reference_ollama_version
 
-    reference = reference_digests(ledger) if ledger else {}
+    reference = reference_digests(ledger, manifest) if (ledger or manifest.is_sequential) else {}
     reference_version = reference_ollama_version(ledger) if ledger else None
     db_path = manifest.db_path()
     conn = cohort.open_readonly(db_path) if db_path.exists() else None
@@ -339,7 +339,14 @@ def phase_a_status(historical: dict, fresh: dict | None, repetitions: int) -> tu
     return STABLE, STATUS_LABELS[STABLE]
 
 
+def _refuse_sequential(manifest: Manifest, what: str) -> None:
+    if manifest.is_sequential:
+        raise AnalysisError(f"{what} does not apply to a sequential-local campaign: it is a NEW baseline on the "
+                            "current task pack, not a replication of the historical pre-Phase-0 runs")
+
+
 def phase_a_comparison(manifest: Manifest) -> dict:
+    _refuse_sequential(manifest, "the Phase-A early-warning comparison")
     co = load_cohort(manifest)
     reps = manifest.repetitions
     rows: list[dict] = []
@@ -531,6 +538,7 @@ def execution_stack(manifest: Manifest, ledger: Ledger | None, historical_facts:
 
 
 def baseline_comparison(manifest: Manifest) -> dict:
+    _refuse_sequential(manifest, "the pre- vs post-Phase-0 comparison")
     co = load_cohort(manifest)
     rows: list[dict] = []
     hist_ids: list[int] = []
@@ -611,7 +619,15 @@ def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> 
         return None
     co = load_cohort(manifest)
     valid = co.valid()
-    if complete and len(valid) != len(co.cells):
+    model_states = (receipt.get("cohort") or {}).get("models") or {}
+    if manifest.is_sequential:
+        # Only models whose FULL batch is accepted are ranked; a partial, classified
+        # or not-started model is listed apart, never beside complete ones.
+        ranked = set(receipt["cohort"]["ranked_models"])
+        valid = [c for c in valid if c.cell.model in ranked]
+        if len(valid) != sum(1 for c in co.cells.values() if c.cell.model in ranked):
+            raise AnalysisError("a model the validator reports COMPLETE is missing accepted cells in the cohort")
+    elif complete and len(valid) != len(co.cells):
         raise AnalysisError("completeness receipt says complete but the cohort is missing cells")
     records = [r for c in valid for r in c.records]
     used = {int(r.run_id) for r in records}
@@ -641,6 +657,11 @@ def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> 
                    "domains": task["domains"], "cells": {}}
             for model in manifest.models:
                 cc = co.cells.get(f"{model}|{task_id}")
+                if manifest.is_sequential and model not in {e.agent for e in board}:
+                    row["cells"][model] = {"evidence": None, "note": "not ranked (" + (
+                        (next((v["state"] for v in model_states.values() if v["model"] == model), "NOT COMPLETE"))
+                    ) + ")"}
+                    continue
                 if cc is None or not cc.ok:
                     state = cc.state if cc is not None else "not_started"
                     note = NO_FRESH if state == "not_started" else f"no valid evidence ({state}; excluded)"
@@ -697,17 +718,22 @@ def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> 
         },
         "historical_evidence": {**_historical_meta(manifest), "role": "not used by this report"},
     }
+    sequential = manifest.is_sequential
     return {
-        "report": "post-phase0-baseline",
+        "report": "modern-local-leaderboard" if sequential else "post-phase0-baseline",
         "campaign_id": manifest.campaign_id,
         "manifest_sha256": manifest.sha256,
         "generated_at": utc_now(),
         "official": complete,
-        "label": "OFFICIAL post-Phase-0 baseline" if complete else "PROVISIONAL - campaign incomplete",
+        "label": (("OFFICIAL modern local leaderboard" if complete else "PROVISIONAL - campaign incomplete")
+                  if sequential else
+                  ("OFFICIAL post-Phase-0 baseline" if complete else "PROVISIONAL - campaign incomplete")),
+        **({"model_states": model_states, "cohort": receipt.get("cohort")} if sequential else {}),
         "missing_cells": list(receipt["missing"]["cells"]),
         "evidence_scope": EVIDENCE_SCOPE,
         "leaderboard": leaderboard_rows,
         "models_without_evidence": [m for m in manifest.models if m not in with_evidence],
+        "roster": manifest.data.get("roster"),
         "task_matrix": matrix,
         "domain_profiles": domains,
         "provenance": provenance,
@@ -856,8 +882,19 @@ def render_official_baseline(result: dict) -> str:
     lines = [f"# {result['label']} - {result['campaign_id']}", ""]
     if not result["official"]:
         missing = result["missing_cells"]
-        lines += [f"> **PROVISIONAL - campaign incomplete.** This is NOT the official post-Phase-0 baseline. "
+        what = "modern local leaderboard" if result.get("model_states") else "post-Phase-0 baseline"
+        lines += [f"> **PROVISIONAL - campaign incomplete.** This is NOT the official {what}. "
                   f"{len(missing)} cell(s) lack valid campaign-owned evidence: " + ", ".join(missing), ""]
+    if result.get("model_states"):
+        lines += ["Only models whose full 24 tasks x 5 repetitions batch is accepted are ranked; every other "
+                  "roster model is listed below with its state and is never ranked beside complete models.", "",
+                  "## Roster", "", *_head("phase", "model", "logical model", "state", "accepted runs", "note")]
+        for phase_name, info in result["model_states"].items():
+            note = (info["classification"] or {}).get("reason", "") if info.get("classification") else (
+                "optional" if info["optional"] else "")
+            lines.append(_row(phase_name, info["model"], info["logical_name"], info["state"], info["accepted_runs"],
+                              note))
+        lines.append("")
     scope = result["evidence_scope"]
     lines += [
         f"- Evidence scope: `{scope['class']}`, {scope['ownership']}.",
@@ -878,6 +915,8 @@ def render_official_baseline(result: dict) -> str:
                           f"{cov['cells_with_fresh_evidence']}/{cov['manifest_tasks']}", e["voided_runs"],
                           "yes" if e["provisional"] else "no"))
     for m in result["models_without_evidence"]:
+        if result.get("model_states"):
+            continue  # listed in the roster table above; never ranked
         lines.append(_row("-", m, 0, "-", "-", f"0/{len(result['task_matrix'])}", 0, NO_FRESH))
     models = list(result["task_matrix"][0]["cells"]) if result["task_matrix"] else []
     lines += ["", "## Task matrix (passes/valid, Wilson 95%)", "", *_head("task (version)", *models)]
@@ -923,7 +962,9 @@ def render_official_baseline(result: dict) -> str:
     for e in prov["disowned_evaluations"]:
         lines.append(f"- Disowned (never counted): evaluation {e['evaluation_id']} - {e['reason']}")
     for model, digest in prov["model_identity"]["reference_digests"].items():
-        lines.append(f"- Model identity (external Ollama inventory, first launch): {model} `{digest}`")
+        source = ("pinned registry digest in the frozen manifest" if result.get("model_states")
+                  else "external Ollama inventory, first launch")
+        lines.append(f"- Model identity ({source}): {model} `{digest}`")
     lines += ["", *_head("task", "version", "digest")]
     lines += [_row(t["task_id"], t["task_version"], f"`{t['task_digest']}`") for t in prov["tasks"]]
     lines += ["", *_head("cell", "evaluation")]
