@@ -104,7 +104,11 @@ def campaign_status(manifest: Manifest, phase: str = "all") -> dict:
             conn.close()
     totals["remaining_runs"] = totals["planned_runs"] - totals["completed_runs"]
     cells_complete = sum(1 for r in rows if r["state"] == SUCCEEDED and conn is not None)
-    models = _model_progress(manifest, ledger, rows) if manifest.is_sequential else None
+    models = None
+    if manifest.is_sequential:
+        # every model's progress, whatever the scope asked for
+        models = (_model_progress(manifest, ledger, rows) if phase == "all"
+                  else campaign_status(manifest, "all").get("models"))
     return {
         "campaign_id": manifest.campaign_id,
         "scope": phase,

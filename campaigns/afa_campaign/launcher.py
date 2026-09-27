@@ -394,7 +394,7 @@ def _sequential_target_checks(manifest: Manifest, snap: dict, ledger: Ledger | N
                                "first")
     smokes = [s for s in (ledger.data.get("smokes") or [] if ledger else [])
               if s.get("phase") == phase and s.get("operational_ok") and normalize_digest(s.get("digest")) == pinned]
-    if not smokes:
+    if not smokes and not manifest.data.get("derived_from"):  # a smoke's own scratch plan needs no smoke
         pf.problems.append(f"no passing smoke of {model} with its pinned digest is recorded: run "
                            f"smoke --phase {phase} first (4 tasks x 1 repetition in a scratch database)")
     alive = live_smoke_apps(manifest)

@@ -256,6 +256,16 @@ class Cohort:
         }
 
 
+def _evidence_of(co: "Cohort", cells: list) -> dict:
+    """The evidence a report USED: exactly the given (ranked) cells."""
+    full = co.evidence()
+    keys = {c.cell.key for c in cells}
+    return {**full,
+            "evaluation_ids": sorted(c.evaluation_id for c in cells),
+            "run_ids": sorted(r for c in cells for r in c.run_ids),
+            "by_cell": {k: v for k, v in full["by_cell"].items() if k in keys}}
+
+
 def load_cohort(manifest: Manifest) -> Cohort:
     """The campaign-owned cohort, cell by cell (read-only)."""
     ledger_path = manifest.ledger_path()
@@ -739,7 +749,7 @@ def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> 
         "task_matrix": matrix,
         "domain_profiles": domains,
         "provenance": provenance,
-        "evidence": {**co.evidence(), "runs_verified_owned": len(used)},
+        "evidence": {**_evidence_of(co, valid), "runs_verified_owned": len(used)},
     }
 
 

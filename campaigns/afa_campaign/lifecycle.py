@@ -205,13 +205,13 @@ def pinned_ollama_version(manifest: Manifest) -> str | None:
 
 
 def _require_campaign_plan(manifest: Manifest, what: str) -> None:
-    """Model files are only ever managed under the campaign's OWN sequential plan
-    (never the historical plan, never a derived smoke/rehearsal plan, whose rosters
-    do not list every campaign target)."""
-    if not manifest.is_sequential or manifest.data.get("derived_from"):
-        raise CampaignStop(f"{what} applies only to a sequential-local campaign's own plan (pass --manifest "
+    """Model files are only ever managed under a sequential-local plan - never the
+    historical plan (no roster) and never a smoke's scratch plan (its roster lists
+    only the smoked model, so every other campaign target would look unowned)."""
+    if not manifest.is_sequential or manifest.data.get("smoke_of"):
+        raise CampaignStop(f"{what} applies only to a sequential-local campaign plan (pass --manifest "
                            "campaigns/phase0-modern-local-v1/manifest.json); this plan is "
-                           f"{'derived' if manifest.data.get('derived_from') else manifest.kind}")
+                           f"{'a smoke plan' if manifest.data.get('smoke_of') else manifest.kind}")
 
 
 def _check_server_version(manifest: Manifest, what: str) -> str | None:
@@ -337,8 +337,8 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
     pinned = normalize_digest(entry["expected_identity"]["digest"])
     _check_server_version(manifest, "pull-model")
     with ledger_lock(manifest.ledger_path()):
-        ledger = _ledger(manifest)
-        if phase in (ledger.data.get("model_status") or {}):
+        ledger = _existing_ledger(manifest)  # created only when a pull or reuse is recorded
+        if ledger is not None and phase in (ledger.data.get("model_status") or {}):
             raise CampaignStop(f"{model} ({phase}) is classified; it is not installed for the campaign")
         installed = {m["name"]: m for m in ollama_models(base)}
         if model in installed:
@@ -346,6 +346,7 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
             if digest != pinned:
                 raise CampaignStop(f"STOP - {model} is installed with digest {digest}, the frozen plan pins "
                                    f"{pinned}: ambiguous identity (never benchmarked, never overwritten blindly)")
+            ledger = ledger or _ledger(manifest)
             record = ledger.record("model_pulls", {"phase": phase, "model": model, "outcome": "reused",
                                                    "digest": digest, "bytes": installed[model]["size_bytes"],
                                                    "at": utc_now()})
@@ -357,11 +358,11 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
         unfinished = [e["model"] for e in manifest.data["roster"]
                       if e["phase"] != phase and e["model"] in installed
                       and normalize_digest(installed[e["model"]]["digest"]) == manifest.pinned_digests()[e["model"]]
-                      and not phase_finished(manifest, ledger, e["phase"])]
+                      and not (ledger is not None and phase_finished(manifest, ledger, e["phase"]))]
         if unfinished:
             raise CampaignStop(f"one target at a time: {', '.join(unfinished)} is installed and its batch is not "
                                "finished (no frozen receipt, no classification)")
-        busy = _active_evaluations(manifest, ledger, client)
+        busy = _active_evaluations(manifest, ledger, client) if ledger else _db_busy(manifest, client)
         if busy:
             raise CampaignStop(f"evaluations are active ({busy}); never pull while a benchmark runs")
         need = entry["expected_identity"]["download_bytes"] + margin_bytes
@@ -375,6 +376,7 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
                 f"GiB + {margin_bytes / GIB:.0f} GiB margin); only {free_before / GIB:.1f} GiB is free. Remove authorized "
                 "model weights first (remove-model), then pull again")
         started = utc_now()
+        ledger = ledger or _ledger(manifest)
         storage_log(manifest, {"action": "pull-model", "phase": phase, "model": model, "pinned_digest": pinned,
                                "download_bytes": entry["expected_identity"]["download_bytes"],
                                "free_bytes_before": free_before, "at": started})
@@ -727,6 +729,7 @@ def run_smoke(manifest: Manifest, phase: str, *, port: int = 8792, log=print, ta
                          campaign_db=paths.display(folder / "smoke.sqlite"), runtime_dir=paths.display(folder),
                          api_url=f"http://127.0.0.1:{port}",
                          purpose=f"operational smoke of {model} (NOT campaign evidence)")
+    data["smoke_of"] = manifest.campaign_id
     version = _check_server_version(manifest, "smoke")
     if live_smoke_apps(manifest):
         raise CampaignStop(f"a smoke app is still running ({live_smoke_apps(manifest)}); stop it first")
