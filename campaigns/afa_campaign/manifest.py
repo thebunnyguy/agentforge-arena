@@ -725,7 +725,9 @@ def validate(data: dict) -> None:
         execution = data.get("execution") or {}
         need(execution.get("ollama_server_version") is None or isinstance(execution.get("ollama_server_version"), str),
              "execution.ollama_server_version must be a string")
-        need(isinstance(execution.get("minimum_ranked_models", 1), int), "execution.minimum_ranked_models must be an int")
+        floor = execution.get("minimum_ranked_models", 1)
+        need(isinstance(floor, int) and not isinstance(floor, bool) and floor >= 1,
+             "execution.minimum_ranked_models must be an int >= 1")
     else:
         need(all(c.get("phase") in PHASES for c in cells), "cell phase must be A or B")
     for name in ("campaign_db", "ledger", "outputs", "runtime_dir"):

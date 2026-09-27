@@ -365,6 +365,9 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
         busy = _active_evaluations(manifest, ledger, client) if ledger else _db_busy(manifest, client)
         if busy:
             raise CampaignStop(f"evaluations are active ({busy}); never pull while a benchmark runs")
+        alive = live_smoke_apps(manifest)
+        if alive:
+            raise CampaignStop(f"a smoke app is still running (process groups {alive}); never pull beside it")
         need = entry["expected_identity"]["download_bytes"] + margin_bytes
         if not ollama_models_dir().exists():
             raise CampaignStop(f"Ollama models directory {_home(ollama_models_dir())} does not exist (set OLLAMA_MODELS "
@@ -505,9 +508,15 @@ def classify_model(manifest: Manifest, phase: str, status: str, reason: str, evi
                    after_results: bool = False) -> dict:
     _require_campaign_plan(manifest, "classify-model")
     entry = manifest.phase_entry(phase)
+    from .manifest import MODEL_CLASSIFICATIONS
+
+    if status not in MODEL_CLASSIFICATIONS:
+        raise LedgerError(f"unknown model classification {status!r}; one of {MODEL_CLASSIFICATIONS}")
+    if not (reason and reason.strip() and evidence and evidence.strip()):
+        raise LedgerError("classifying a model requires a written reason AND supporting evidence")
     with ledger_lock(manifest.ledger_path()):
-        ledger = _ledger(manifest)
-        in_flight = [e["cell"] for e in ledger.active_entries()
+        ledger = _existing_ledger(manifest)  # created only when the classification is recorded
+        in_flight = [e["cell"] for e in (ledger.active_entries() if ledger else [])
                      if e["phase"] == phase and e["state"] in (SUBMITTED, SUBMITTING)]
         if in_flight:
             raise CampaignStop(f"{entry['model']} has evaluations in flight ({in_flight}); finish or halt them first")
@@ -519,6 +528,7 @@ def classify_model(manifest: Manifest, phase: str, status: str, reason: str, evi
             raise CampaignStop(f"{entry['model']} ({phase}) already has {accepted} accepted cell(s): classifying it now "
                                "excludes evidence after results were visible. Pass --after-results to do it anyway; "
                                "it is disclosed in the leaderboard")
+        ledger = ledger or _ledger(manifest)
         record = ledger.classify_model(phase=phase, model=entry["model"], status=status, reason=reason,
                                        evidence=evidence)
         record["accepted_cells_at_classification"] = accepted
@@ -641,11 +651,16 @@ def model_receipt(manifest: Manifest, phase: str, *, reissue: bool = False) -> t
             if not reissue:
                 raise CampaignStop(f"{paths.display(target)} is already frozen; pass --reissue to issue a new version "
                                    "(the previous one is kept)")
-            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            n = 0
+            while any(target.with_name(f"{target.stem}.superseded-{stamp}{'-' + str(n) if n else ''}{sfx}").exists()
+                      for sfx in (".json", ".md")):
+                n += 1
+            tag = f"{stamp}{'-' + str(n) if n else ''}"
             for suffix in (".json", ".md"):
                 old = target.with_suffix(suffix)
                 if old.exists():
-                    old.rename(old.with_name(f"{old.stem}.superseded-{stamp}{suffix}"))
+                    old.rename(old.with_name(f"{old.stem}.superseded-{tag}{suffix}"))
             result["supersedes"] = (ledger.data.get("receipts") or {}).get(phase)
         target.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
         (folder / f"{phase}-{_slug(model)}.md").write_text(render_model_receipt(result))

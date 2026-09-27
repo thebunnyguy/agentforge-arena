@@ -1482,12 +1482,6 @@ def test_classification_requires_a_known_status_a_reason_and_evidence(modern, tm
     assert ledger.data["events"][-1]["type"] == "model_classified"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: classify_model opens the ledger with Ledger.open_or_create (lifecycle._ledger) BEFORE any "
-    "refusal check, so a REFUSED classification (here: a blank --reason, which argparse accepts) creates the "
-    "campaign ledger and freezes the plan's manifest hash although nothing was recorded - the defect fixed for "
-    "pull-model in cfa9025 ('a refused pull creates no ledger'); a plan corrected afterwards is then refused "
-    "with 'manifest changed after the ledger was created'"))
 def test_a_refused_classification_leaves_no_ledger_behind(modern, tmp_path, server, capsys):
     m = make_modern(modern, tmp_path, server)
     run_cli = cli_runner(m, tmp_path, capsys)
@@ -2202,12 +2196,6 @@ def test_a_live_smoke_app_blocks_preflight_removal_and_another_smoke(modern, tmp
     assert remove_model(m, OTHER, "free space")["outcome"] == "removed"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: pull_model never calls live_smoke_apps (preflight, remove_model and run_smoke do): while a "
-    "smoke app is still alive - e.g. the smoke CLI was SIGKILLed and its app, started in its own session, keeps "
-    "serving and generating on the shared Ollama - pull-model downloads a multi-GB target beside it, although "
-    "pull refuses 'while a benchmark runs' (the smoke's evaluations live in its scratch database, which the "
-    "pull's activity check never looks at)"))
 def test_a_pull_is_refused_while_a_smoke_app_is_alive(modern, tmp_path, server):
     m = make_modern(modern, tmp_path, server)
     server.serve(m, "M1")
@@ -2323,11 +2311,6 @@ def test_a_frozen_receipt_is_reissued_only_on_request_and_the_previous_version_i
     assert [e["type"] for e in load_ledger(m).data["events"]].count("model_receipt") == 3
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: model_receipt(reissue=True) renames the previous receipt to "
-    "<phase>-<model>.superseded-<stamp>.json/.md with a SECOND-resolution UTC stamp using Path.rename, which "
-    "silently replaces an existing file on POSIX: two reissues within the same second overwrite the first "
-    "superseded copy, destroying the originally frozen receipt"))
 def test_two_reissues_within_one_second_never_destroy_a_frozen_receipt(modern, tmp_path, server, monkeypatch):
     m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
     complete(m, server, "M1")
