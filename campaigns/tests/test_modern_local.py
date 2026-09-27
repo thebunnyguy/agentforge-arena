@@ -6,23 +6,29 @@ benchmarked one at a time under tight local storage: install or reuse the target
 -> remove-model -> next model; or the model is CLASSIFIED and leaves the expected
 cohort (never ranked).
 
-Every campaign here is a small derived subset of the COMMITTED modern manifest
-(at most 2 roster models x 2 tasks x 2 repetitions) in the test's tmp directory,
-executed end to end through the REAL app (``create_app()`` under a TestClient,
-bound to a clean campaign database) with the declared-ollama reference-overlay
-agent of ``test_campaign_launcher``.
+Almost every campaign here is a small derived subset of the COMMITTED modern
+manifest (at most 2 roster models x 2 tasks x 2 repetitions) in the test's tmp
+directory, executed end to end through the REAL app (``create_app()`` under a
+TestClient, bound to a clean campaign database) with the declared-ollama
+reference-overlay agent of ``test_campaign_launcher``. A derived plan inherits the
+frozen plan's pins (model digests, Ollama SERVER version, cohort floor
+``minimum_ranked_models`` = 3) and needs no recorded smoke; the tests of the
+campaign's OWN plan kind (not derived: a smoke is required before a launch) build
+one with ``build_modern_manifest`` into the tmp directory (``own_plan``).
 
 Ollama is a LOCAL FAKE HTTP SERVER (127.0.0.1, ephemeral port) started by the
 test (``FakeOllamaServer``): the launcher's inventory / warm-up path and the
 lifecycle's tags / ps / pull / delete path talk to the SAME fake state, so a
-model removed by ``remove_model`` really is gone for the next preflight. Every
-manifest's ``backend.base_url`` is rewritten to the fake, and an autouse guard
-refuses any Ollama call (``ollama._call``, ``lifecycle._ollama_call``,
+model removed by ``remove_model`` really is gone for the next preflight; it
+reports the Ollama server version the frozen plan pins unless a test is about a
+mismatch. Every manifest's ``backend.base_url`` is rewritten to the fake, and an
+autouse guard refuses any Ollama call (``ollama._call``, ``lifecycle._ollama_call``,
 ``lifecycle._pull_stream``) to anything but a fake server started here, so no
 test can pull or delete a real model; ``lifecycle._start_app`` (the real
 ``afa_app.py`` subprocess) is disabled. Free disk space is faked
 (``lifecycle.disk_free``); ``OLLAMA_MODELS`` and, where an inventory walks it,
-``HOME`` point into the tmp directory.
+``HOME`` point into the tmp directory. A "live smoke app" is a harmless sleeping
+child process started by the test in its own session (never this process).
 
 Tests asserting behaviour the product does not have are marked
 ``xfail(strict=True, reason="PRODUCT BUG: ...")``.
@@ -31,11 +37,17 @@ Tests asserting behaviour the product does not have are marked
 from __future__ import annotations
 
 import copy
+import datetime
 import json
 import re
+import signal
 import socket
+import subprocess
+import sys
 import threading
-from contextlib import closing
+import types
+import urllib.error
+from contextlib import closing, contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -47,7 +59,7 @@ from afa_campaign import status as status_mod
 from afa_campaign import validate as validate_mod
 from afa_campaign.analysis import AnalysisError
 from afa_campaign.launcher import CampaignStop
-from afa_campaign.ledger import REJECTED, SUCCEEDED, Ledger, LedgerError
+from afa_campaign.ledger import FAILED, REJECTED, SUCCEEDED, Ledger, LedgerError
 from afa_campaign.lifecycle import (
     GIB, PULL_MARGIN_BYTES, classify_model, model_receipt, pull_model, remove_model, run_smoke, storage_inventory,
 )
@@ -62,13 +74,16 @@ from afa_api.main import create_app
 
 from test_campaign_launcher import (  # noqa: F401 - ``base`` and the autouse ``code_check`` are fixtures
     HISTORICAL_SHA256, FakeOllama, base, code_check, create_directly, declared_factory, evaluation_ids,
-    hooked_app, load_ledger, make_campaign, make_launcher, running_app,
+    failing_factory, hooked_app, load_ledger, make_campaign, make_launcher, running_app,
 )
 
 M1, M2, M5 = "qwen3.5:9b", "gpt-oss:20b", "qwen3.6:27b"
 OTHER = "llama3.2:latest"  # an Ollama model outside the modern roster
 TASK, TASK2 = "two-sum-indices", "grid-paths"
 STALE = "0" * 64  # a build of the same tag with other weights (never the pin)
+# the Ollama SERVER version the frozen plan pins (a fake reports it unless a test is about a mismatch)
+PINNED_VERSION = json.loads(paths.MODERN_MANIFEST.read_text())["execution"]["ollama_server_version"]
+OTHER_VERSION = "0.12.3-fake"  # any other server build
 
 
 # --------------------------------------------------------------------------- #
@@ -102,7 +117,7 @@ class FakeOllamaServer:
     def __init__(self, disk: FakeDisk) -> None:
         self.disk = disk
         self.lock = threading.RLock()
-        self.version = "0.12.3-fake"
+        self.version = PINNED_VERSION
         self.models: dict[str, dict] = {}
         self.registry: dict[str, dict] = {}  # what a pull of that tag installs
         self.loaded: set[str] = set()
@@ -294,7 +309,9 @@ def _hermetic(monkeypatch, tmp_path):
     monkeypatch.setattr(ollama, "_call", ollama_call)
     monkeypatch.setattr(lifecycle, "_start_app", no_real_app)
     monkeypatch.setattr(lifecycle, "_memory_snapshot", lambda: {"note": "not measured in tests"})
-    monkeypatch.setenv("OLLAMA_MODELS", str(tmp_path / "ollama-models"))
+    models_dir = tmp_path / "ollama-models"
+    models_dir.mkdir()  # pull-model refuses a models directory that does not exist
+    monkeypatch.setenv("OLLAMA_MODELS", str(models_dir))
 
 
 @pytest.fixture(autouse=True)
@@ -365,14 +382,21 @@ class ReachedApp(Exception):
 
 def make_modern(modern: Manifest, tmp_path: Path, server: FakeOllamaServer, models=(M1, M2),
                 tasks=(TASK, TASK2), reps: int = 2, *, name: str = "c", campaign_id: str = "t-modern",
-                init: bool = True) -> Manifest:
+                init: bool = True, minimum_ranked: int | None = None,
+                server_version: str | None = None) -> Manifest:
     """A small sequential campaign derived from the committed modern plan, its
-    backend rewritten to the fake Ollama."""
+    backend rewritten to the fake Ollama. It inherits the committed cohort floor
+    (3 complete models) and server-version pin unless ``minimum_ranked`` /
+    ``server_version`` set them (part of the frozen plan: set before the ledger)."""
     data = derive_subset(modern.data, campaign_id=campaign_id, models=list(models), task_ids=list(tasks),
                          repetitions=reps, campaign_db=str(tmp_path / f"{name}.sqlite"),
                          runtime_dir=str(tmp_path / f"{name}-rt"),
                          purpose="test of the sequential-local tooling (NOT campaign evidence)")
     data["backend"] = {**data["backend"], "base_url": server.url}
+    if minimum_ranked is not None:
+        data["execution"] = {**data["execution"], "minimum_ranked_models": minimum_ranked}
+    if server_version is not None:
+        data["execution"] = {**data["execution"], "ollama_server_version": server_version}
     manifest = Manifest(data)
     if init:
         launcher.init_db(manifest)
@@ -479,6 +503,79 @@ def leaderboard_section(markdown: str) -> str:
     return markdown.split("## Leaderboard", 1)[1].split("## Task matrix", 1)[0]
 
 
+def own_plan(modern: Manifest, tmp_path: Path, server: FakeOllamaServer, *, name: str = "own") -> Manifest:
+    """The campaign's OWN plan kind, built exactly like the committed plan (all 5
+    roster models, all 24 tasks, 5 repetitions, the real campaign id) - NOT a
+    derived subset, so a passing smoke is required before any launch - with its
+    database, runtime directory, app URL and Ollama in the test's hands."""
+    code = modern.data["code"]
+    data = build_modern_manifest(created_at=modern.data["created_at"], runtime_tag=code["runtime_release_tag"],
+                                 runtime_commit=code["runtime_release_commit"], backend_base_url=server.url,
+                                 campaign_db=str(tmp_path / f"{name}.sqlite"), runtime_dir=str(tmp_path / f"{name}-rt"),
+                                 api_url=closed_api())
+    assert "derived_from" not in data and "smoke_of" not in data
+    manifest = Manifest(data)
+    launcher.init_db(manifest)
+    return manifest
+
+
+def sleeper() -> subprocess.Popen:
+    """A harmless child process in its OWN session (its pid is its process group)."""
+    return subprocess.Popen([sys.executable, "-c", "import time; time.sleep(300)"], start_new_session=True,
+                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def reap(proc: subprocess.Popen) -> None:
+    if proc.poll() is None:
+        proc.kill()
+    proc.wait(30)
+
+
+@contextmanager
+def live_smoke_app(manifest: Manifest, folder: str = "M1-20260928T000000Z"):
+    """A smoke app still alive: its pidfile under smoke_dir names a live process group."""
+    proc = sleeper()
+    try:
+        target = manifest.runtime_subdir("smoke_dir") / folder
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "app.pgid").write_text(str(proc.pid))
+        yield proc
+    finally:
+        reap(proc)
+
+
+def record_smoke(manifest: Manifest, **fields) -> None:
+    """A smoke record in the main ledger (what run_smoke leaves behind)."""
+    ledger = Ledger.open_or_create(manifest.ledger_path(), campaign_id=manifest.campaign_id,
+                                   manifest_sha256=manifest.sha256, manifest_path="")
+    ledger.record("smokes", {"model": manifest.phase_entry(fields["phase"])["model"], **fields})
+    ledger.save()
+
+
+def freeze_lifecycle_clock(monkeypatch, *instants: datetime.datetime) -> None:
+    """``lifecycle._dt`` whose ``datetime.now`` returns ``instants`` in turn (the last one repeats)."""
+    queue = list(instants)
+
+    class Frozen(datetime.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return queue.pop(0) if len(queue) > 1 else queue[0]
+
+    monkeypatch.setattr(lifecycle, "_dt", types.SimpleNamespace(datetime=Frozen, timezone=datetime.timezone))
+
+
+def cli_runner(manifest: Manifest, tmp_path: Path, capsys, name: str = "manifest.json"):
+    manifest_file = tmp_path / name
+    dump(manifest.data, manifest_file)
+
+    def run_cli(*argv) -> tuple[int, str, str]:
+        rc = cli.main(["--manifest", str(manifest_file), *argv])
+        captured = capsys.readouterr()
+        return rc, captured.out, captured.err
+
+    return run_cli
+
+
 # =========================================================================== #
 # the frozen plan
 # =========================================================================== #
@@ -521,6 +618,32 @@ def test_build_modern_manifest_reproduces_the_committed_plan_from_the_checked_ou
                                     runtime_commit=data["code"]["runtime_release_commit"])
     assert rebuilt == data
     assert canonical_sha256(rebuilt) == modern.sha256
+
+
+def test_the_frozen_plan_pins_the_ollama_server_version_and_a_cohort_floor(modern, tmp_path):
+    execution = modern.data["execution"]
+    assert execution["ollama_server_version"] == "0.31.1" == PINNED_VERSION
+    assert execution["minimum_ranked_models"] == 3
+    assert "at least minimum_ranked_models models are COMPLETE" in execution["official_rule"]
+    # every derived plan (rehearsal, smoke, the tests' campaigns) carries the same pins
+    derived = derive_subset(modern.data, campaign_id="t-pins", models=[M2], task_ids=[TASK], repetitions=1,
+                            campaign_db=str(tmp_path / "p.sqlite"), runtime_dir=str(tmp_path / "p-rt"), purpose="test")
+    assert derived["execution"]["ollama_server_version"] == PINNED_VERSION
+    assert derived["execution"]["minimum_ranked_models"] == 3
+    # the validator refuses ill-typed pins
+    for key, value, message in (("ollama_server_version", 31, "execution.ollama_server_version must be a string"),
+                                ("minimum_ranked_models", "3", "execution.minimum_ranked_models must be an int")):
+        data = copy.deepcopy(modern.data)
+        data["execution"][key] = value
+        with pytest.raises(ManifestError, match=re.escape(message)):
+            validate_plan(data)
+    # the builder writes exactly what it is given
+    code = modern.data["code"]
+    other = build_modern_manifest(created_at=modern.data["created_at"], runtime_tag=code["runtime_release_tag"],
+                                  runtime_commit=code["runtime_release_commit"], ollama_server_version="0.40.0",
+                                  minimum_ranked_models=4)
+    assert (other["execution"]["ollama_server_version"], other["execution"]["minimum_ranked_models"]) == ("0.40.0", 4)
+    assert canonical_sha256(other) != modern.sha256
 
 
 BAD_PLANS = [
@@ -661,7 +784,7 @@ def test_launch_runs_only_the_named_models_phase_one_model_at_a_time(modern, tmp
         assert entry["backend_kind"] == "ollama" and entry["generation"] == m.generation
         assert entry["expected_runs"] == 2
         assert entry["model_digest_at_submit"] == entry["model_digest_at_finalize"] == pin(m, "M1")
-        assert entry["ollama_version_at_submit"] == entry["ollama_version_at_finalize"] == server.version
+        assert entry["ollama_version_at_submit"] == entry["ollama_version_at_finalize"] == PINNED_VERSION
     assert all(ledger.active_entry(c.key) is None for c in m2_cells)
     with closing(cohort.open_readonly(m.db_path())) as conn:
         assert [r[0] for r in conn.execute("SELECT DISTINCT agent FROM runs")] == [M1]
@@ -677,6 +800,9 @@ def test_launch_runs_only_the_named_models_phase_one_model_at_a_time(modern, tmp
                                                                                   "M2": "NOT_STARTED"}
     assert everything["cohort"]["ranked_models"] == [M1]
     assert everything["cohort"]["minimum_runs"] == 8
+    assert [(p, s["ranked"]) for p, s in everything["cohort"]["models"].items()] == [("M1", True), ("M2", False)]
+    # the derived plan inherits the committed cohort floor: 1 complete model < 3
+    assert everything["cohort"]["minimum_ranked_models"] == 3 and everything["cohort"]["meets_minimum"] is False
     assert {p: s["state"] for p, s in status_mod.campaign_status(m)["models"].items()} == {
         "M1": "COMPLETE", "M2": "NOT_STARTED"}
 
@@ -763,16 +889,15 @@ def test_the_validator_measures_identity_against_the_pin_not_the_first_launch(mo
         model_receipt(m, "M1")
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: for a sequential-local plan the model identity is the frozen PIN (reference_digests), but "
-    "launcher.preflight still compares EVERY roster model's current digest with the campaign's FIRST launch "
-    "inventory. A non-target model that happened to be installed with another build when M1 first launched "
-    "(only a warning then) permanently blocks its own phase: after the stale build is replaced by the pinned "
-    "one, preflight --phase M2 fails with 'digest changed since the first launch' forever"))
 def test_a_stale_build_seen_at_the_first_launch_never_blocks_the_pinned_target_later(modern, tmp_path, server):
+    # was a PRODUCT BUG (fixed in 4432f3f): a sequential plan compared every roster model's digest with the
+    # campaign's FIRST launch; its reference is the frozen PIN, so the first-launch digest loop no longer applies
     m = make_modern(modern, tmp_path, server)
     server.install_pinned(m, "M1")
     server.install_pinned(m, "M2", digest=STALE)  # an older gpt-oss:20b build the operator had installed
+    pf = launcher.preflight(m, None, check_code=False, phase="M1")
+    assert pf.ok, pf.problems
+    assert any(f"gpt-oss:20b is installed with a NON-PINNED digest {STALE}" in w for w in pf.warnings)
     with running_app(m.db_path(), declared_factory()) as (_app, api):
         assert launch(m, api, "M1", max_evaluations=0)["paused"] is True
     assert load_ledger(m).data["launches"][0]["inventory"]["models"][M2]["digest"] == STALE
@@ -988,20 +1113,56 @@ def test_a_pulled_digest_other_than_the_pin_is_an_identity_mismatch_stop(modern,
     assert server.pulls == [M1]
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: pull_model opens the ledger with Ledger.open_or_create BEFORE any refusal check, so a REFUSED "
-    "pull (here: not enough free space; likewise another unfinished target installed, evaluations active) "
-    "creates the campaign ledger and freezes the manifest hash although nothing was pulled - contrary to the "
-    "documented design (storage_log: 'the ledger, created by the first smoke or launch, freezes the plan'; "
-    "remove_model: 'never created by a removal'; Launcher.run: 'a refused launch leaves nothing behind')"))
-def test_a_refused_pull_leaves_no_ledger_behind(modern, tmp_path, server, disk):
+def test_a_refused_pull_leaves_no_ledger_behind(modern, tmp_path, server, disk, monkeypatch):
+    # was a PRODUCT BUG (fixed in cfa9025): a refused pull created the ledger (froze the plan)
     m = make_modern(modern, tmp_path, server)
     server.serve(m, "M1")
+    refusals = []
+
+    def refused(match: str, **kw) -> None:
+        with pytest.raises(CampaignStop, match=match):
+            pull_model(m, "M1", **kw)
+        refusals.append(match)
+        assert server.pulls == [] and storage_log_lines(m) == []
+        assert not m.ledger_path().exists(), f"refused ({match}) but the ledger was created"
+
     disk.free = GIB
-    with pytest.raises(CampaignStop, match="needs"):
+    refused(r"qwen3.5:9b needs 10\.1 GiB free")
+    disk.free = 400 * GIB
+    server.install_pinned(m, "M2")  # another unfinished target, with its pinned weights
+    refused(r"one target at a time: gpt-oss:20b is installed")
+    server.remove(M2)
+    refused(r"evaluations are active \(\['e-running'\]\)", client=BusyApp([{"id": "e-running", "status": "running"}]))
+    missing = tmp_path / "no-such-models-dir"
+    monkeypatch.setenv("OLLAMA_MODELS", str(missing))
+    refused(r"Ollama models directory .*no-such-models-dir does not exist")
+    assert not missing.exists()
+    monkeypatch.setenv("OLLAMA_MODELS", str(tmp_path / "ollama-models"))
+    busy = foreign_evaluation(m, m.cells("M2")[0])
+    refused(rf"evaluations are active \(\['{busy}'\]\)")
+    server.version = OTHER_VERSION
+    refused(rf"Ollama server version is '{OTHER_VERSION}', the frozen plan pins '{PINNED_VERSION}': pull-model refused")
+    server.version = PINNED_VERSION
+    server.stop()
+    refused(r"Ollama is not reachable .*pull-model needs it")
+    assert len(refusals) == 7
+
+
+def test_a_failed_download_is_recorded_and_refused(modern, tmp_path, server, disk):
+    m = make_modern(modern, tmp_path, server)
+    free = disk.free  # the registry does not serve the tag: the stream reports an error
+    with pytest.raises(CampaignStop, match=r"pull of qwen3.5:9b failed: .*file does not exist"):
         pull_model(m, "M1")
-    assert server.pulls == []
-    assert not m.ledger_path().exists()
+    assert server.pulls == [M1] and M1 not in server.models and disk.free == free
+    pulls = load_ledger(m).data["model_pulls"]
+    assert [(p["phase"], p["model"], p["outcome"]) for p in pulls] == [("M1", M1, "failed")]
+    assert "file does not exist" in pulls[0]["error"] and pulls[0]["free_bytes_after"] == free
+    lines = storage_log_lines(m)
+    assert [line["action"] for line in lines] == ["pull-model", "pull-model-result"]
+    assert lines[1]["outcome"] == "failed" and lines[1]["model"] == M1
+    # nothing was installed, so the launch is still refused in preflight
+    assert any("is not installed" in p for p in launcher.preflight(m, None, ledger=load_ledger(m), check_code=False,
+                                                                    phase="M1").problems)
 
 
 # =========================================================================== #
@@ -1082,12 +1243,37 @@ def test_remove_model_refusals_leave_everything_in_place(modern, tmp_path, serve
     assert not m.ledger_path().exists()
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: remove_model has no plan-kind check (pull-model and classify-model refuse a non-sequential "
-    "plan): on a historical-replication plan, which has no 'roster', every one of the plan's OWN models is "
-    "treated as 'not a campaign model (no campaign evidence depends on it)' and removed with that false "
-    "evidence status - and the CLI's default --manifest is still the historical plan"))
+def test_a_roster_model_with_non_pinned_weights_is_removable_and_never_blocks_the_next_pull(modern, tmp_path,
+                                                                                            server, disk):
+    m = make_modern(modern, tmp_path, server)
+    server.install_pinned(m, "M2", digest=STALE)  # the tag's weights are NOT the pinned identity
+    server.serve(m, "M1")
+    # those weights can never become campaign evidence: they are not an 'unfinished target'
+    assert pull_model(m, "M1")["outcome"] == "pulled" and server.pulls == [M1]
+    pf = launcher.preflight(m, None, ledger=load_ledger(m), check_code=False, phase="M1")
+    assert pf.ok, pf.problems
+    assert any(f"gpt-oss:20b is installed with a NON-PINNED digest {STALE}" in w for w in pf.warnings)
+    free = disk.free
+    record = remove_model(m, M2, "not the pinned build; pull the pinned one later")
+    assert record["outcome"] == "removed" and M2 not in server.models and server.deletes == [M2]
+    assert record["campaign_target"] == "M2" and record["digest"] == STALE
+    assert record["evidence_status"] == (f"campaign target M2 installed with NON-PINNED weights {STALE} (pin "
+                                         f"{pin(m, 'M2')}): never campaign evidence")
+    assert record["reclaimed_bytes"] == download_bytes(m, "M2") and disk.free == free + download_bytes(m, "M2")
+    assert [d["outcome"] for d in load_ledger(m).data["model_deletions"]] == ["removed"]
+    assert [line["action"] for line in storage_log_lines(m)] == [
+        "pull-model", "pull-model-result", "remove-model", "remove-model-result"]
+    assert storage_log_lines(m)[2]["evidence_status"] == record["evidence_status"]
+    # the PINNED target is different: unfinished, it is never removed (also spelled 'sha256:<pin>')
+    server.set_digest(M1, "sha256:" + pin(m, "M1"))
+    with pytest.raises(CampaignStop, match=r"qwen3.5:9b is campaign target M1 and its evidence is not frozen yet"):
+        remove_model(m, M1, "free space")
+    assert M1 in server.models and server.deletes == [M2]
+
+
 def test_remove_model_never_calls_a_historical_plans_own_model_a_non_campaign_model(base, tmp_path, server):
+    # was a PRODUCT BUG (fixed in 4432f3f): remove_model had no plan-kind check, so every model of a
+    # historical plan (no roster) was removed as 'not a campaign model'
     model = "qwen2.5-coder:3b"
     data = derive_subset(base.data, campaign_id="t-hist", models=[model], task_ids=[TASK], repetitions=1,
                          campaign_db=str(tmp_path / "h.sqlite"), runtime_dir=str(tmp_path / "h-rt"), purpose="test")
@@ -1095,12 +1281,40 @@ def test_remove_model_never_calls_a_historical_plans_own_model_a_non_campaign_mo
     m = Manifest(data)
     assert not m.is_sequential and model in m.models
     server.install(model, "3" * 64)
-    try:
-        record = remove_model(m, model, "free space")
-    except CampaignStop:
-        record = None
-    assert record is None, record["evidence_status"]
-    assert server.deletes == [] and model in server.models
+    with pytest.raises(CampaignStop, match="remove-model applies only to a sequential-local campaign plan .*this "
+                                           "plan is historical-replication"):
+        remove_model(m, model, "free space")
+    assert server.deletes == [] and model in server.models and server.requests == []
+    assert not m.ledger_path().exists() and storage_log_lines(m) == []
+
+
+def test_model_files_are_never_managed_under_a_smoke_plan(modern, tmp_path, server):
+    """A smoke's scratch plan lists only the smoked model: under it every other campaign target would look
+    like 'not a campaign model'. Derived test plans (no smoke_of) are allowed (every other test here)."""
+    m = make_modern(modern, tmp_path, server)
+    data = derive_subset(m.data, campaign_id="t-modern-smoke-M1", models=[M1], task_ids=[TASK], repetitions=1,
+                         campaign_db=str(tmp_path / "s.sqlite"), runtime_dir=str(tmp_path / "s-rt"),
+                         api_url=closed_api(), purpose="operational smoke (NOT campaign evidence)")
+    data["smoke_of"] = m.campaign_id
+    smoke = Manifest(data)
+    assert smoke.is_sequential and smoke.models == [M1]
+    server.install_pinned(m, "M1")
+    server.install_pinned(m, "M2")  # a campaign target the smoke plan does not list
+    server.serve(m, "M1")
+
+    def no_app(*_args):
+        raise AssertionError("no smoke of a smoke plan")
+
+    for what, action in (("pull-model", lambda: pull_model(smoke, "M1", pull=_never_pull)),
+                         ("remove-model", lambda: remove_model(smoke, M2, "free space")),
+                         ("classify-model", lambda: classify_model(smoke, "M1", "NOT_BENCHMARKED", "r", "e")),
+                         ("smoke", lambda: run_smoke(smoke, "M1", port=free_port(), tasks=[TASK], start_app=no_app))):
+        with pytest.raises(CampaignStop, match=rf"^{what} applies only to a sequential-local campaign plan .*this "
+                                               "plan is a smoke plan$"):
+            action()
+    assert server.pulls == [] and server.deletes == [] and set(server.models) == {M1, M2}
+    assert not smoke.ledger_path().exists() and not m.ledger_path().exists()
+    assert not smoke.runtime_subdir("smoke_dir").exists() and storage_log_lines(smoke) == []
 
 
 # =========================================================================== #
@@ -1109,7 +1323,7 @@ def test_remove_model_never_calls_a_historical_plans_own_model_a_non_campaign_mo
 
 
 def test_one_model_at_a_time_lifecycle_receipt_removal_and_next_model(modern, tmp_path, server, disk):
-    m = make_modern(modern, tmp_path, server)
+    m = make_modern(modern, tmp_path, server, minimum_ranked=2)
     server.serve(m, "M1")
     server.serve(m, "M2")
     assert pull_model(m, "M1")["outcome"] == "pulled" and server.pulls == [M1]
@@ -1171,6 +1385,8 @@ def test_one_model_at_a_time_lifecycle_receipt_removal_and_next_model(modern, tm
     everything = validate_mod.validate_campaign(m)
     assert everything["complete"] is True and everything["present"]["runs"] == 8
     assert everything["cohort"]["ranked_models"] == [M1, M2]
+    assert everything["cohort"]["minimum_ranked_models"] == 2 and everything["cohort"]["meets_minimum"] is True
+    assert all(info["ranked"] and info["accepted_runs"] == 4 for info in everything["cohort"]["models"].values())
     models = status_mod.campaign_status(m)["models"]
     assert models["M1"] == {"model": M1, "logical_name": "Qwen 3.5 9B", "optional": False, "state": "COMPLETE",
                             "cells_complete": 2, "cells": 2, "accepted_runs": 4,
@@ -1266,6 +1482,21 @@ def test_classification_requires_a_known_status_a_reason_and_evidence(modern, tm
     assert ledger.data["events"][-1]["type"] == "model_classified"
 
 
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
+    "PRODUCT BUG: classify_model opens the ledger with Ledger.open_or_create (lifecycle._ledger) BEFORE any "
+    "refusal check, so a REFUSED classification (here: a blank --reason, which argparse accepts) creates the "
+    "campaign ledger and freezes the plan's manifest hash although nothing was recorded - the defect fixed for "
+    "pull-model in cfa9025 ('a refused pull creates no ledger'); a plan corrected afterwards is then refused "
+    "with 'manifest changed after the ledger was created'"))
+def test_a_refused_classification_leaves_no_ledger_behind(modern, tmp_path, server, capsys):
+    m = make_modern(modern, tmp_path, server)
+    run_cli = cli_runner(m, tmp_path, capsys)
+    rc, _, err = run_cli("classify-model", "--phase", "M2", "--status", "LOCAL_RESOURCE_LIMIT", "--reason", " ",
+                         "--evidence", "inventories/start.json")
+    assert rc == 3 and "reason AND supporting evidence" in err
+    assert not m.ledger_path().exists(), "a refused classification created the ledger (froze the plan)"
+
+
 def test_a_classified_model_leaves_the_expected_cohort_and_is_never_launched_or_pulled(modern, tmp_path, server):
     m = make_modern(modern, tmp_path, server)
     complete(m, server, "M1")
@@ -1313,7 +1544,7 @@ def test_classifying_a_complete_or_in_flight_phase_is_refused(modern, tmp_path, 
 
 
 def test_an_optional_model_is_left_not_benchmarked_and_never_ranked(modern, tmp_path, server):
-    m = make_modern(modern, tmp_path, server, models=(M1, M5), tasks=(TASK,), reps=1)
+    m = make_modern(modern, tmp_path, server, models=(M1, M5), tasks=(TASK,), reps=1, minimum_ranked=1)
     assert m.expected["required_models"] == 1 and m.expected["optional_models"] == 1
     assert m.expected["minimum_runs"] == 1 and m.phases == ["M1", "M5"]
     complete(m, server, "M1")
@@ -1327,7 +1558,8 @@ def test_an_optional_model_is_left_not_benchmarked_and_never_ranked(modern, tmp_
     assert receipt["complete"] is True, receipt["problems"]
     info = receipt["cohort"]["models"]["M5"]
     assert info["state"] == "NOT_BENCHMARKED" and info["optional"] is True and info["accepted_runs"] == 0
-    assert receipt["cohort"]["ranked_models"] == [M1]
+    assert info["ranked"] is False and info["accepted_cells"] == 0
+    assert receipt["cohort"]["ranked_models"] == [M1] and receipt["cohort"]["meets_minimum"] is True
     board = analysis.official_baseline(m)
     assert board["official"] is True and [e["agent"] for e in board["leaderboard"]] == [M1]
     assert board["model_states"]["M5"]["state"] == "NOT_BENCHMARKED"
@@ -1343,8 +1575,9 @@ def test_an_optional_model_is_left_not_benchmarked_and_never_ranked(modern, tmp_
 
 
 def test_only_complete_models_are_ranked_partial_and_classified_ones_are_listed_apart(modern, tmp_path, server):
-    m = make_modern(modern, tmp_path, server)
+    m = make_modern(modern, tmp_path, server, minimum_ranked=1)
     complete(m, server, "M1")
+    model_receipt(m, "M1")  # one model at a time: M1 is finished before M2 starts
     server.install_pinned(m, "M2")
     with running_app(m.db_path(), declared_factory()) as (_app, api):
         assert launch(m, api, "M2", max_evaluations=1)["paused"] is True  # M2 stays PARTIAL
@@ -1361,7 +1594,8 @@ def test_only_complete_models_are_ranked_partial_and_classified_ones_are_listed_
     assert [e["agent"] for e in provisional["leaderboard"]] == [M1]
     assert provisional["model_states"]["M2"]["state"] == "INCOMPLETE"
     assert provisional["model_states"]["M2"]["accepted_cells"] == 1
-    assert provisional["model_states"]["M2"]["accepted_runs"] == 0
+    assert provisional["model_states"]["M2"]["accepted_runs"] == 2  # disclosed, never ranked
+    assert provisional["model_states"]["M2"]["ranked"] is False and provisional["model_states"]["M1"]["ranked"]
     assert set(provisional["provenance"]["evaluation_per_cell"].values()) == set(m1_ids)
     assert all(row["cells"][M2] == {"evidence": None, "note": "not ranked (INCOMPLETE)"}
                for row in provisional["task_matrix"])
@@ -1369,30 +1603,34 @@ def test_only_complete_models_are_ranked_partial_and_classified_ones_are_listed_
     markdown = analysis.render_official_baseline(provisional)
     assert "PROVISIONAL" in markdown and M2 not in leaderboard_section(markdown)
 
-    classify_model(m, "M2", "LOCAL_RUNTIME_UNSUPPORTED", "generation stalls after the first cell",
-                   "evaluation report of the first cell")
+    with pytest.raises(CampaignStop, match=r"already has 1 accepted cell\(s\)"):
+        classify_model(m, "M2", "LOCAL_RUNTIME_UNSUPPORTED", "generation stalls after the first cell",
+                       "evaluation report of the first cell")
+    record = classify_model(m, "M2", "LOCAL_RUNTIME_UNSUPPORTED", "generation stalls after the first cell",
+                            "evaluation report of the first cell", after_results=True)
+    assert (record["accepted_cells_at_classification"], record["accepted_runs_at_classification"]) == (1, 2)
     board = analysis.official_baseline(m)
     assert board["official"] is True and board["label"] == "OFFICIAL modern local leaderboard"
     assert board["report"] == "modern-local-leaderboard" and board["missing_cells"] == []
     assert [e["agent"] for e in board["leaderboard"]] == [M1]
     assert all(e["n"] > 0 for e in board["leaderboard"])  # never a zero-score entry
     assert board["model_states"]["M2"]["state"] == "LOCAL_RUNTIME_UNSUPPORTED"
+    assert (board["model_states"]["M2"]["accepted_cells"], board["model_states"]["M2"]["accepted_runs"]) == (1, 2)
+    assert board["model_states"]["M2"]["ranked"] is False
+    assert board["evidence"]["evaluation_ids"] == m1_ids  # the classified model's accepted cell is not used
     assert set(board["domain_profiles"]) == {M1}
     assert board["provenance"]["model_identity"]["reference_digests"] == m.pinned_digests()
     markdown = analysis.render_official_baseline(board)
     assert M2 not in leaderboard_section(markdown)
-    assert "LOCAL_RUNTIME_UNSUPPORTED | 0 | generation stalls after the first cell" in markdown
+    assert "LOCAL_RUNTIME_UNSUPPORTED | 2 | generation stalls after the first cell" in markdown
     assert "pinned registry digest in the frozen manifest" in markdown
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: official_baseline ranks only COMPLETE models, but its 'evidence' section is Cohort.evidence() "
-    "over EVERY accepted cell: the evaluation ids, run ids and by_cell of a PARTIAL (or classified) model's "
-    "accepted cells are listed as the report's evidence although they are not ranked (the markdown then says "
-    "'Evaluations used: 3; runs used (ownership verified): 2')"))
 def test_the_leaderboard_evidence_lists_only_the_ranked_models(modern, tmp_path, server):
+    # was a PRODUCT BUG (fixed in cfa9025): the report's evidence listed a PARTIAL model's accepted cells
     m = make_modern(modern, tmp_path, server, reps=1)
     complete(m, server, "M1")
+    model_receipt(m, "M1")
     server.install_pinned(m, "M2")
     with running_app(m.db_path(), declared_factory()) as (_app, api):
         assert launch(m, api, "M2", max_evaluations=1)["paused"] is True  # M2 stays PARTIAL
@@ -1404,6 +1642,7 @@ def test_the_leaderboard_evidence_lists_only_the_ranked_models(modern, tmp_path,
     assert evidence["evaluation_ids"] == m1_ids
     assert set(evidence["by_cell"]) == {c.key for c in m.cells("M1")}
     assert len(evidence["run_ids"]) == evidence["runs_verified_owned"] == 2
+    assert "Evaluations used: 2; runs used (ownership verified): 2" in analysis.render_official_baseline(provisional)
 
 
 def test_the_historical_comparisons_refuse_a_sequential_plan(modern, tmp_path, server, capsys):
@@ -1420,19 +1659,53 @@ def test_the_historical_comparisons_refuse_a_sequential_plan(modern, tmp_path, s
     assert not (tmp_path / "out").exists()
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: completeness is vacuous once every roster model is classified: validate --phase all expects "
-    "0 cells and reports COMPLETE (exit 0) with 0 accepted runs and no ranked model, and baseline-report writes "
-    "an 'OFFICIAL modern local leaderboard' with an empty leaderboard (minimum_runs is reported, never "
-    "required; at least one COMPLETE model should be required for an official result)"))
-def test_a_campaign_whose_every_model_is_classified_is_not_an_official_leaderboard(modern, tmp_path, server):
-    m = make_modern(modern, tmp_path, server)
+def test_a_campaign_whose_every_model_is_classified_is_not_an_official_leaderboard(modern, tmp_path, server,
+                                                                                    capsys):
+    # was a PRODUCT BUG (fixed in 4432f3f): an all-classified cohort produced an OFFICIAL empty leaderboard.
+    # The OFFICIAL gate is the plan's cohort floor (even a floor of 1 is never met by 0 complete models);
+    # the completeness receipt itself only says that nothing expected is missing.
+    m = make_modern(modern, tmp_path, server, minimum_ranked=1)
     for phase in m.phases:
         classify_model(m, phase, "LOCAL_RESOURCE_LIMIT", "does not fit on this machine", "storage inventory")
     receipt = validate_mod.validate_campaign(m)
     assert receipt["cohort"]["ranked_models"] == [] and receipt["present"]["runs"] == 0
-    assert receipt["complete"] is False
+    assert receipt["cohort"]["minimum_ranked_models"] == 1 and receipt["cohort"]["meets_minimum"] is False
+    assert not any(info["ranked"] for info in receipt["cohort"]["models"].values())
+    assert "cohort below its floor: 0 complete model(s) < 1" in validate_mod.render(receipt)
     assert analysis.official_baseline(m) is None
+    provisional = analysis.official_baseline(m, allow_incomplete=True)
+    assert provisional["official"] is False and provisional["leaderboard"] == []
+    assert provisional["label"] == "PROVISIONAL - campaign incomplete"
+    run_cli = cli_runner(m, tmp_path, capsys)
+    rc, out, _ = run_cli("baseline-report", "--out-dir", str(tmp_path / "board"))
+    assert rc == 1 and "OFFICIAL baseline is not produced" in out and not (tmp_path / "board").exists()
+
+
+def test_a_cohort_below_the_plans_floor_of_complete_models_is_never_official(modern, tmp_path, server, capsys):
+    m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
+    assert m.data["execution"]["minimum_ranked_models"] == 3  # inherited from the frozen plan
+    complete(m, server, "M1")
+    model_receipt(m, "M1")
+    complete(m, server, "M2")
+    receipt = validate_mod.validate_campaign(m)
+    assert receipt["complete"] is True, receipt["problems"]  # nothing expected is missing ...
+    cohort_info = receipt["cohort"]
+    assert cohort_info["ranked_models"] == [M1, M2] and all(i["ranked"] for i in cohort_info["models"].values())
+    assert cohort_info["minimum_ranked_models"] == 3 and cohort_info["meets_minimum"] is False  # ... but 2 < 3
+    assert "cohort below its floor: 2 complete model(s) < 3" in validate_mod.render(receipt)
+    assert analysis.official_baseline(m) is None
+    provisional = analysis.official_baseline(m, allow_incomplete=True)
+    assert provisional["official"] is False and provisional["label"] == "PROVISIONAL - campaign incomplete"
+    assert sorted(e["agent"] for e in provisional["leaderboard"]) == sorted([M1, M2])
+    assert provisional["cohort"]["meets_minimum"] is False
+    assert "PROVISIONAL" in analysis.render_official_baseline(provisional)
+    run_cli = cli_runner(m, tmp_path, capsys)
+    rc, _, _ = run_cli("validate", "--receipt", str(tmp_path / "receipt.json"))
+    assert rc == 0  # the completeness receipt; the leaderboard is what the floor gates
+    rc, out, _ = run_cli("baseline-report", "--out-dir", str(tmp_path / "board"))
+    assert rc == 1 and not (tmp_path / "board").exists()
+    rc, _, _ = run_cli("baseline-report", "--allow-incomplete", "--out-dir", str(tmp_path / "board"))
+    assert rc == 0 and (tmp_path / "board" / "post-phase0-baseline-PROVISIONAL.json").exists()
 
 
 # =========================================================================== #
@@ -1440,17 +1713,15 @@ def test_a_campaign_whose_every_model_is_classified_is_not_an_official_leaderboa
 # =========================================================================== #
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "PRODUCT BUG: status._model_progress only receives the rows of the requested scope, so 'status --phase M2' "
-    "reports every other roster model as NOT_STARTED (0 cells, 0 runs) even when it is COMPLETE with a frozen "
-    "receipt (validate's _cohort_summary skips out-of-scope models instead)"))
 def test_status_of_one_phase_never_misreports_the_other_models(modern, tmp_path, server):
+    # was a PRODUCT BUG (fixed in cfa9025): 'status --phase M2' reported a COMPLETE M1 as NOT_STARTED
     m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
     complete(m, server, "M1")
     model_receipt(m, "M1")
-    assert status_mod.campaign_status(m)["models"]["M1"]["state"] == "COMPLETE"
-    scoped = status_mod.campaign_status(m, "M2")["models"]
-    assert "M1" not in scoped or scoped["M1"]["state"] == "COMPLETE"
+    everything = status_mod.campaign_status(m)["models"]
+    assert everything["M1"]["state"] == "COMPLETE"
+    scoped = status_mod.campaign_status(m, "M2")
+    assert scoped["scope"] == "M2" and scoped["models"] == everything  # every model, whatever the scope
 
 
 # =========================================================================== #
@@ -1482,8 +1753,11 @@ def test_the_smoke_runs_in_a_scratch_database_and_is_only_recorded_in_the_main_l
     assert record["valid"] == 1 and record["smoke_problems"] == []
     assert record["smoke_campaign_id"].startswith(f"{m.campaign_id}-smoke-M1-")
     assert [p["name"] for p in record["ollama_ps"]] == [M1]
+    # what the campaign's own preflight needs from a smoke: the observed digest and the server version
+    assert record["digest"] == pin(m, "M1") and record["ollama_version"] == PINNED_VERSION
     scratch = paths.resolve(record["scratch"])
     assert scratch.parent == m.runtime_subdir("smoke_dir")
+    assert not (scratch / "app.pgid").exists() and lifecycle.live_smoke_apps(m) == []  # its app is gone
     # never campaign evidence: the campaign database is untouched and the main ledger owns nothing
     assert evaluation_ids(m) == set()
     ledger = load_ledger(m)
@@ -1491,6 +1765,7 @@ def test_the_smoke_runs_in_a_scratch_database_and_is_only_recorded_in_the_main_l
     assert ledger.data["smokes"] == [record]
     smoke = Manifest.load(scratch / "smoke.manifest.json")
     assert smoke.campaign_id == record["smoke_campaign_id"] and smoke.models == [M1]
+    assert smoke.data["smoke_of"] == m.campaign_id and smoke.data["derived_from"]["campaign_id"] == m.campaign_id
     assert smoke.task_ids == [TASK] and smoke.repetitions == 1 and smoke.phases == ["M1"]
     assert smoke.backend == m.backend and smoke.generation == m.generation
     assert smoke.db_path() == scratch / "smoke.sqlite" and smoke.ledger_path() == scratch / "ledger.json"
@@ -1516,12 +1791,20 @@ def test_a_smoke_never_runs_beside_active_campaign_evaluations(modern, tmp_path,
     assert not load_ledger(m).data.get("smokes")
 
 
-@pytest.mark.xfail(strict=True, raises=ManifestError, reason=(
-    "PRODUCT BUG: run_smoke derives the scratch plan with derive_subset(models=[target]); for the OPTIONAL "
-    "roster model (M5 qwen3.6:27b) that roster holds only an optional entry and manifest.validate refuses it "
-    "('at least one roster model must be required'), so 'smoke --phase M5' is always refused and the optional "
-    "model can never be smoked before its launch"))
+def test_a_smoke_plan_is_derived_and_validated_before_the_main_ledger_is_touched(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server)
+    server.install_pinned(m, "M1")
+
+    def start_app(*_args):
+        raise AssertionError("no smoke app for an invalid smoke plan")
+
+    with pytest.raises(ManifestError, match=r"unknown models \[\] / tasks \['no-such-task'\]"):
+        run_smoke(m, "M1", port=free_port(), tasks=["no-such-task"], start_app=start_app)
+    assert not m.ledger_path().exists() and not m.runtime_subdir("smoke_dir").exists()
+
+
 def test_the_optional_model_can_be_smoked(modern, tmp_path, server):
+    # was a PRODUCT BUG (fixed in 4432f3f): the smoke plan of the OPTIONAL model had no required model
     m = make_modern(modern, tmp_path, server, models=(M1, M5), tasks=(TASK,), reps=1)
     server.install_pinned(m, "M5")
 
@@ -1531,7 +1814,14 @@ def test_the_optional_model_can_be_smoked(modern, tmp_path, server):
     with pytest.raises(ReachedApp):
         run_smoke(m, "M5", port=free_port(), tasks=[TASK], start_app=start_app)
     folder = next(m.runtime_subdir("smoke_dir").glob("M5-*"))
-    assert Manifest.load(folder / "smoke.manifest.json").models == [M5]
+    smoke = Manifest.load(folder / "smoke.manifest.json")
+    assert smoke.models == [M5] and [e["optional"] for e in smoke.data["roster"]] == [False]
+    assert m.phase_entry("M5")["optional"] is True  # the campaign's own roster is unchanged
+    # the failed smoke is recorded in the main ledger all the same
+    [record] = load_ledger(m).data["smokes"]
+    assert (record["phase"], record["model"], record["outcome"]) == ("M5", M5, "error")
+    assert record["operational_ok"] is False and record["failure"].startswith("ReachedApp")
+    assert record["ollama_version"] == PINNED_VERSION and record["digest"] is None and record["finished_at"]
 
 
 # =========================================================================== #
@@ -1582,16 +1872,43 @@ def test_the_storage_inventory_reports_everything_and_changes_nothing(modern, tm
     assert [r["installed"] for r in unreachable["roster"]] == [False, False]
 
 
+BAD_LABELS = ["", "../escape", "a/b", "/abs", ".hidden", "-dash", "_under", "a b", "a..b", "..", "x" * 65, "é",
+              "tab\t", "new\nline", "before:M1"]
+
+
+def test_an_inventory_label_is_a_plain_name_and_an_inventory_is_never_overwritten(modern, tmp_path, server,
+                                                                                   monkeypatch, capsys):
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    m = make_modern(modern, tmp_path, server)
+    folder = m.runtime_subdir("inventories")
+    for label in BAD_LABELS:
+        with pytest.raises(CampaignStop, match="must be a plain name"):
+            storage_inventory(m, label)
+    assert server.requests == []  # refused before Ollama is asked anything
+    assert not folder.exists() and not (m.runtime_dir() / "escape.json").exists()
+    assert not (tmp_path / "escape.json").exists()
+    for label in ("before-M1_v2.0", "x" * 64, "9"):
+        _inventory, target = storage_inventory(m, label)
+        assert target == folder / f"{label}.json" and target.exists()
+    frozen = (folder / "before-M1_v2.0.json").read_bytes()
+    server.install(OTHER, "1" * 64)  # the next inventory would differ
+    with pytest.raises(CampaignStop, match="already exists; inventories are never overwritten"):
+        storage_inventory(m, "before-M1_v2.0")
+    assert (folder / "before-M1_v2.0.json").read_bytes() == frozen
+    assert sorted(p.name for p in folder.iterdir()) == sorted(["before-M1_v2.0.json", "x" * 64 + ".json", "9.json"])
+    run_cli = cli_runner(m, tmp_path, capsys)
+    for label in ("../escape", "before-M1_v2.0"):
+        rc, _, err = run_cli("storage-inventory", "--label", label)
+        assert rc == 3 and err.startswith("refused:")
+    assert (folder / "before-M1_v2.0.json").read_bytes() == frozen
+
+
 # =========================================================================== #
 # CLI
 # =========================================================================== #
 
-LIFECYCLE_KEYERROR = pytest.mark.xfail(strict=True, raises=KeyError, reason=(
-    "PRODUCT BUG: pull-model / classify-model / model-receipt / smoke look the phase up with "
-    "Manifest.phase_entry, which raises KeyError for an unknown phase; cli.main only turns CampaignStop / "
-    "LedgerError / ManifestError / FileNotFoundError / AnalysisError into 'refused:' (exit 3), so the operator "
-    "gets an uncaught KeyError traceback instead of 'refused: unknown phase'"))
-
+# the lifecycle commands (pull-model, classify-model, model-receipt, smoke) validate --phase too: was a
+# PRODUCT BUG (fixed in 4432f3f) - an uncaught KeyError traceback instead of 'refused: unknown phase'
 CLI_UNKNOWN_PHASES = [
     pytest.param(["launch", "--phase", "A", "--confirm", "{cid}"], id="launch-A"),
     pytest.param(["launch", "--phase", "all", "--confirm", "{cid}"], id="launch-all"),
@@ -1600,11 +1917,16 @@ CLI_UNKNOWN_PHASES = [
     pytest.param(["validate", "--phase", "M9"], id="validate-M9"),
     pytest.param(["status", "--phase", "A"], id="status-A"),
     pytest.param(["plan", "--phase", "B"], id="plan-B"),
-    pytest.param(["pull-model", "--phase", "M9", "--api", "{api}"], id="pull-model-M9", marks=LIFECYCLE_KEYERROR),
+    pytest.param(["pull-model", "--phase", "M9", "--api", "{api}"], id="pull-model-M9"),
+    pytest.param(["pull-model", "--phase", "all", "--api", "{api}"], id="pull-model-all"),
     pytest.param(["classify-model", "--phase", "M9", "--status", "NOT_BENCHMARKED", "--reason", "r",
-                  "--evidence", "e"], id="classify-model-M9", marks=LIFECYCLE_KEYERROR),
-    pytest.param(["model-receipt", "--phase", "M9"], id="model-receipt-M9", marks=LIFECYCLE_KEYERROR),
-    pytest.param(["smoke", "--phase", "M9", "--confirm", "{cid}"], id="smoke-M9", marks=LIFECYCLE_KEYERROR),
+                  "--evidence", "e"], id="classify-model-M9"),
+    pytest.param(["classify-model", "--phase", "A", "--status", "NOT_BENCHMARKED", "--reason", "r",
+                  "--evidence", "e", "--after-results"], id="classify-model-A"),
+    pytest.param(["model-receipt", "--phase", "M9"], id="model-receipt-M9"),
+    pytest.param(["model-receipt", "--phase", "all", "--reissue"], id="model-receipt-all"),
+    pytest.param(["smoke", "--phase", "M9", "--confirm", "{cid}"], id="smoke-M9"),
+    pytest.param(["smoke", "--phase", "all", "--confirm", "{cid}"], id="smoke-all"),
 ]
 
 
@@ -1655,7 +1977,12 @@ def test_the_cli_lifecycle_commands(modern, tmp_path, server, monkeypatch, capsy
     assert rc == 0 and json.loads(out.strip().splitlines()[-1])["outcome"] == "pulled"
     rc, _, err = run_cli("model-receipt", "--phase", "M1")
     assert rc == 3 and "refused:" in err and "does not validate complete" in err
-    rc, _, err = run_cli("remove-model", "--model", M1, "--reason", "free space", *api)
+    # remove-model deletes weights: it needs the exact campaign id, like launch and smoke
+    for confirm in ([], ["--confirm", "phase0-modern-local-v1"], ["--confirm", ""]):
+        rc, out, _ = run_cli("remove-model", "--model", M1, "--reason", "free space", *confirm, *api)
+        assert rc == 2 and f"Re-run with --confirm {m.campaign_id}" in out
+    assert M1 in server.models and not any(l["action"] == "remove-model" for l in storage_log_lines(m))
+    rc, _, err = run_cli("remove-model", "--model", M1, "--reason", "free space", "--confirm", m.campaign_id, *api)
     assert rc == 3 and "evidence is not frozen yet" in err and M1 in server.models
     rc, out, _ = run_cli("classify-model", "--phase", "M2", "--status", "LOCAL_RESOURCE_LIMIT", "--reason",
                          "does not fit", "--evidence", "inventories/start.json")
@@ -1670,10 +1997,474 @@ def test_the_cli_lifecycle_commands(modern, tmp_path, server, monkeypatch, capsy
     assert rc == 3 and "is classified" in err
     server.install(OTHER, "1" * 64)
     rc, out, _ = run_cli("remove-model", "--model", OTHER, "--reason", "free space", *api)
+    assert rc == 2 and OTHER in server.models
+    rc, out, _ = run_cli("remove-model", "--model", OTHER, "--reason", "free space", "--confirm", m.campaign_id,
+                         *api)
     assert rc == 0 and server.deletes == [OTHER]
     rc, out, _ = run_cli("smoke", "--phase", "M1")
     assert rc == 2 and f"--confirm {m.campaign_id}" in out and not m.runtime_subdir("smoke_dir").exists()
     assert server.pulls == [M1]
+    # an unreachable Ollama is an operator-facing refusal (exit 3), never a traceback
+    server.install(OTHER, "1" * 64)
+    server.stop()
+    for argv in (("remove-model", "--model", OTHER, "--reason", "free space", "--confirm", m.campaign_id, *api),
+                 ("pull-model", "--phase", "M1", *api),
+                 ("smoke", "--phase", "M1", "--confirm", m.campaign_id, "--port", str(free_port()))):
+        rc, _, err = run_cli(*argv)
+        assert rc == 3 and err.startswith("refused:"), (argv, err)
+    assert server.deletes == [OTHER] and server.pulls == [M1]
+
+
+# =========================================================================== #
+# 13. the red-team contract: server-version pin, smoke before launch, one model
+#     at a time, live smoke apps, classification after results, frozen receipts
+# =========================================================================== #
+
+
+def test_the_pinned_ollama_server_version_is_required_to_launch_pull_and_smoke(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server)
+    server.install_pinned(m, "M1")
+    server.serve(m, "M2")
+    server.version = OTHER_VERSION
+    mismatch = f"Ollama server version is '{OTHER_VERSION}', the frozen plan pins '{PINNED_VERSION}'"
+    pf = launcher.preflight(m, None, check_code=False, phase="M1")
+    assert pf.problems == [f"{mismatch}; one cohort never mixes inference engines"]
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        with pytest.raises(CampaignStop, match=re.escape(mismatch)):
+            launch(m, api, "M1")  # the FIRST launch: there is no earlier launch to compare with
+        assert api.posts == []
+
+    def no_app(*_args):
+        raise AssertionError("no smoke app on another server version")
+
+    for what, action in (("pull-model", lambda: pull_model(m, "M1", pull=_never_pull)),  # not even a reuse
+                         ("pull-model", lambda: pull_model(m, "M2")),
+                         ("smoke", lambda: run_smoke(m, "M1", port=free_port(), tasks=[TASK], start_app=no_app))):
+        with pytest.raises(CampaignStop, match=re.escape(f"{mismatch}: {what} refused")):
+            action()
+    assert server.pulls == [] and storage_log_lines(m) == []
+    assert not m.ledger_path().exists() and not m.runtime_subdir("smoke_dir").exists()
+    # a server that does not report its version is not the pinned one either
+    server.version = None
+    problems = launcher.preflight(m, None, check_code=False, phase="M1").problems
+    assert any("did not report its server version" in p for p in problems)
+    assert any(f"Ollama server version is None, the frozen plan pins '{PINNED_VERSION}'" in p for p in problems)
+    with pytest.raises(CampaignStop, match="Ollama server version is None"):
+        pull_model(m, "M1", pull=_never_pull)
+    # the pin is the PLAN's: a plan pinning the other build accepts it and refuses the committed one
+    other = make_modern(modern, tmp_path, server, name="o", campaign_id="t-other-server",
+                        server_version=OTHER_VERSION)
+    server.version = OTHER_VERSION
+    assert launcher.preflight(other, None, check_code=False, phase="M1").ok
+    assert pull_model(other, "M1", pull=_never_pull)["outcome"] == "reused"
+    server.version = PINNED_VERSION
+    assert any(f"the frozen plan pins '{OTHER_VERSION}'" in p
+               for p in launcher.preflight(other, None, check_code=False, phase="M1").problems)
+    with pytest.raises(CampaignStop, match=re.escape(f"the frozen plan pins '{OTHER_VERSION}': pull-model refused")):
+        pull_model(other, "M1", pull=_never_pull)
+    assert launcher.preflight(m, None, check_code=False, phase="M1").ok
+    assert not m.ledger_path().exists()
+
+
+def test_the_campaigns_own_plan_is_never_launched_without_a_passing_smoke_of_the_pinned_target(modern, tmp_path,
+                                                                                                server, monkeypatch):
+    m = own_plan(modern, tmp_path, server)
+    assert m.campaign_id == MODERN_CAMPAIGN_ID and m.phases == ["M1", "M2", "M3", "M4", "M5"]
+    assert m.data["execution"] == modern.data["execution"] and m.data["roster"] == modern.data["roster"]
+    server.install_pinned(m, "M1")
+
+    def no_smoke(phase: str) -> str:
+        return (f"no passing smoke of {m.phase_entry(phase)['model']} with its pinned digest is recorded: run "
+                f"smoke --phase {phase} first")
+
+    pf = launcher.preflight(m, None, check_code=False, phase="M1")
+    assert pf.problems == [no_smoke("M1") + " (4 tasks x 1 repetition in a scratch database)"]
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        with pytest.raises(CampaignStop, match=re.escape(no_smoke("M1"))):
+            launch(m, api, "M1")
+        assert api.posts == []
+    assert not m.ledger_path().exists()  # a refused launch leaves nothing behind
+
+    # recorded smokes that are NOT a passing smoke of the pinned target never unlock it
+    for fields in ({"phase": "M1", "operational_ok": False, "digest": pin(m, "M1")},  # failed
+                   {"phase": "M1", "operational_ok": True, "digest": STALE},  # other weights
+                   {"phase": "M1", "operational_ok": True, "digest": None},  # identity unknown
+                   {"phase": "M1", "operational_ok": True, "digest": sorted([pin(m, "M1"), STALE])},  # mixed
+                   {"phase": "M2", "operational_ok": True, "digest": pin(m, "M2")}):  # another model
+        record_smoke(m, **fields)
+        problems = launcher.preflight(m, None, ledger=load_ledger(m), check_code=False, phase="M1").problems
+        assert any(no_smoke("M1") in p for p in problems), fields
+
+    # a real smoke that fails is recorded and unlocks nothing; a passing one unlocks its own model only
+    started: list[ThreadedApp] = []
+
+    def start_app(db_path, port, _log_path):
+        app = ThreadedApp(Path(db_path), port, declared_factory())
+        started.append(app)
+        return app
+
+    server.remove(M1)  # the smoke's own launch halts in preflight: its target is not installed
+    # each smoke gets its own scratch folder (named by a second-resolution UTC stamp)
+    freeze_lifecycle_clock(monkeypatch, datetime.datetime(2026, 9, 28, 12, 0, 1, tzinfo=datetime.timezone.utc),
+                           datetime.datetime(2026, 9, 28, 12, 0, 2, tzinfo=datetime.timezone.utc))
+    try:
+        failed = run_smoke(m, "M1", port=free_port(), tasks=[TASK], start_app=start_app, log=lambda _m: None)
+        server.install_pinned(m, "M1")
+        passed = run_smoke(m, "M1", port=free_port(), tasks=[TASK], start_app=start_app, log=lambda _m: None)
+    finally:
+        for app in started:
+            app.stop()
+    assert (failed["outcome"], failed["operational_ok"], failed["digest"]) == ("halted", False, None)
+    assert "target qwen3.5:9b (M1) is not installed" in failed["failure"]
+    assert failed["ollama_version"] == PINNED_VERSION and failed["finished_at"]
+    assert (passed["outcome"], passed["operational_ok"], passed["digest"]) == ("ok", True, pin(m, "M1"))
+    ledger = load_ledger(m)
+    assert ledger.data["smokes"][-2:] == [failed, passed]
+    assert ledger.entries == [] and ledger.data["launches"] == [] and evaluation_ids(m) == set()  # never evidence
+    pf = launcher.preflight(m, None, ledger=ledger, check_code=False, phase="M1")
+    assert pf.ok, pf.problems
+    assert any(no_smoke("M3") in p for p in launcher.preflight(m, None, ledger=ledger, check_code=False,
+                                                               phase="M3").problems)
+    # the observed digest is normalized before it is compared with the pin
+    record_smoke(m, phase="M4", operational_ok=True, digest="sha256:" + pin(m, "M4"))
+    assert not any(no_smoke("M4") in p for p in launcher.preflight(m, None, ledger=load_ledger(m), check_code=False,
+                                                                   phase="M4").problems)
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        result = launch(m, api, "M1", max_evaluations=1)
+        assert result["submitted"] == 1 and result["paused"] is True
+        assert [p["name"] for p in api.posts] == [m.evaluation_name(m.cells("M1")[0])]
+    entry = load_ledger(m).active_entry(m.cells("M1")[0].key)
+    assert entry["state"] == SUCCEEDED and entry["expected_runs"] == 5
+
+
+def test_one_model_at_a_time_a_phase_starts_only_after_the_previous_one_is_finished(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server, reps=1)
+    server.install_pinned(m, "M1")
+    server.install_pinned(m, "M2")  # installed by hand: only preflight decides what runs
+    one_at_a_time = ("one model at a time: phase(s) ['M1'] have campaign evaluations but no frozen receipt and no "
+                     "classification")
+
+    def problems(phase: str) -> list[str]:
+        return launcher.preflight(m, None, ledger=load_ledger(m), check_code=False, phase=phase).problems
+
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        assert launch(m, api, "M1", max_evaluations=1)["paused"] is True
+        assert len(problems("M2")) == 1 and problems("M2")[0].startswith(one_at_a_time)
+        assert problems("M1") == []  # its own phase continues
+        with pytest.raises(CampaignStop, match=re.escape(one_at_a_time)):
+            launch(m, api, "M2")
+        assert launch(m, api, "M1")["submitted"] == 1  # M1 completes ...
+        assert validate_mod.validate_campaign(m, phase="M1")["complete"] is True
+        with pytest.raises(CampaignStop, match=re.escape(one_at_a_time)):
+            launch(m, api, "M2")  # ... but complete is not finished: its receipt is not frozen
+        assert [p["model"] for p in api.posts] == [M1, M1]
+        model_receipt(m, "M1")
+        assert problems("M2") == []
+        assert launch(m, api, "M2")["submitted"] == 2
+        # and now M1, with its receipt, is not blocked by the finished M2 either (a no-op launch)
+        model_receipt(m, "M2")
+        assert launch(m, api, "M1") == {"submitted": 0, "paused": False, "drained": 0, "skipped": 2, "succeeded": 0}
+    assert [p["model"] for p in api.posts] == [M1, M1, M2, M2]
+    assert [e["type"] for e in load_ledger(m).data["events"]].count("preflight_failed") == 2
+
+
+def test_a_live_smoke_app_blocks_preflight_removal_and_another_smoke(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server)
+    server.install_pinned(m, "M1")
+    server.install(OTHER, "1" * 64)
+
+    def no_app(*_args):
+        raise AssertionError("no second smoke app beside a live one")
+
+    with live_smoke_app(m) as proc:
+        assert lifecycle.live_smoke_apps(m) == [proc.pid]
+        running = f"a smoke app is still running (process groups [{proc.pid}])"
+        pf = launcher.preflight(m, None, check_code=False, phase="M1")
+        assert pf.problems == [f"{running}; it would share the model server with the campaign - stop it first"]
+        with running_app(m.db_path(), declared_factory()) as (_app, api):
+            with pytest.raises(CampaignStop, match=re.escape(running)):
+                launch(m, api, "M1")
+            assert api.posts == []
+        with pytest.raises(CampaignStop, match=re.escape(f"{running}; never remove a model then")):
+            remove_model(m, OTHER, "free space")
+        with pytest.raises(CampaignStop, match=re.escape(f"a smoke app is still running ([{proc.pid}]); stop it")):
+            run_smoke(m, "M1", port=free_port(), tasks=[TASK], start_app=no_app)
+        assert OTHER in server.models and server.deletes == [] and proc.poll() is None  # never signalled
+        assert not m.ledger_path().exists() and storage_log_lines(m) == []
+        assert [p.name for p in m.runtime_subdir("smoke_dir").iterdir()] == ["M1-20260928T000000Z"]
+    # a pidfile whose process group is gone (a crashed smoke) blocks nothing
+    assert lifecycle.live_smoke_apps(m) == []
+    assert launcher.preflight(m, None, check_code=False, phase="M1").ok
+    pidfile = m.runtime_subdir("smoke_dir") / "M1-20260928T000000Z" / "app.pgid"
+    for content in ("", "not-a-pid", "None"):
+        pidfile.write_text(content)
+        assert lifecycle.live_smoke_apps(m) == [], content
+    assert remove_model(m, OTHER, "free space")["outcome"] == "removed"
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
+    "PRODUCT BUG: pull_model never calls live_smoke_apps (preflight, remove_model and run_smoke do): while a "
+    "smoke app is still alive - e.g. the smoke CLI was SIGKILLed and its app, started in its own session, keeps "
+    "serving and generating on the shared Ollama - pull-model downloads a multi-GB target beside it, although "
+    "pull refuses 'while a benchmark runs' (the smoke's evaluations live in its scratch database, which the "
+    "pull's activity check never looks at)"))
+def test_a_pull_is_refused_while_a_smoke_app_is_alive(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server)
+    server.serve(m, "M1")
+    with live_smoke_app(m) as proc:
+        try:
+            pull_model(m, "M1")
+        except CampaignStop as exc:
+            refusal = str(exc)
+        else:
+            refusal = None
+        assert proc.poll() is None
+    assert refusal is not None and "smoke app is still running" in refusal, f"pulled {server.pulls} beside a smoke"
+    assert server.pulls == []
+
+
+def test_classifying_a_model_with_accepted_results_needs_after_results_and_is_disclosed(modern, tmp_path, server,
+                                                                                         capsys):
+    m = make_modern(modern, tmp_path, server, minimum_ranked=1)
+    server.install_pinned(m, "M1")
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        assert launch(m, api, "M1", max_evaluations=1)["paused"] is True
+    first = load_ledger(m).active_entry(m.cells("M1")[0].key)["evaluation_id"]
+    after_results = r"qwen3.5:9b \(M1\) already has 1 accepted cell\(s\): classifying it now excludes evidence " \
+                    r"after results were visible. Pass --after-results"
+    with pytest.raises(CampaignStop, match=after_results):
+        classify_model(m, "M1", "LOCAL_RESOURCE_LIMIT", "swaps heavily", "smoke memory pressure")
+    run_cli = cli_runner(m, tmp_path, capsys)
+    argv = ("classify-model", "--phase", "M1", "--status", "LOCAL_RESOURCE_LIMIT", "--reason", "swaps heavily",
+            "--evidence", "smoke memory pressure")
+    rc, _, err = run_cli(*argv)
+    assert rc == 3 and err.startswith("refused:") and "--after-results" in err
+    assert not load_ledger(m).data.get("model_status")
+    rc, out, _ = run_cli(*argv, "--after-results")
+    assert rc == 0 and "classified qwen3.5:9b (M1) LOCAL_RESOURCE_LIMIT: swaps heavily" in out
+    record = load_ledger(m).data["model_status"]["M1"]
+    assert (record["accepted_cells_at_classification"], record["accepted_runs_at_classification"]) == (1, 2)
+    assert (record["status"], record["reason"], record["evidence"]) == (
+        "LOCAL_RESOURCE_LIMIT", "swaps heavily", "smoke memory pressure")
+    receipt = validate_mod.validate_campaign(m)
+    info = receipt["cohort"]["models"]["M1"]
+    assert (info["state"], info["accepted_cells"], info["accepted_runs"], info["ranked"]) == (
+        "LOCAL_RESOURCE_LIMIT", 1, 2, False)
+    assert receipt["expected"]["cells"] == 2 and receipt["present"]["runs"] == 0  # M1 left the expected cohort
+    # the classified model is finished: the next one starts; it is never launched again
+    server.install_pinned(m, "M2")
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        with pytest.raises(CampaignStop, match="is classified LOCAL_RESOURCE_LIMIT"):
+            launch(m, api, "M1")
+        assert launch(m, api, "M2")["submitted"] == 2
+    board = analysis.official_baseline(m)
+    assert board["official"] is True and [e["agent"] for e in board["leaderboard"]] == [M2]
+    assert first not in board["evidence"]["evaluation_ids"] and len(board["evidence"]["evaluation_ids"]) == 2
+    assert all(row["cells"][M1] == {"evidence": None, "note": "not ranked (LOCAL_RESOURCE_LIMIT)"}
+               for row in board["task_matrix"])
+    assert "| M1 | qwen3.5:9b | Qwen 3.5 9B | LOCAL_RESOURCE_LIMIT | 2 | swaps heavily |" in \
+        analysis.render_official_baseline(board)
+
+
+def test_a_failed_cell_of_a_classified_model_is_never_resumed(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server, models=(M1,), tasks=(TASK,), reps=1)
+    server.install_pinned(m, "M1")
+    key = m.cells("M1")[0].key
+    with running_app(m.db_path(), failing_factory) as (app, api):
+        with pytest.raises(CampaignStop, match="resume it under the same id"):
+            launch(m, api, "M1")
+        entry = load_ledger(m).active_entry(key)
+        assert entry["state"] == FAILED
+        classify_model(m, "M1", "LOCAL_RUNTIME_UNSUPPORTED", "the runner fails to load it", "evaluation report")
+        app.state.agent_factory = declared_factory()  # even if the backend works now
+        with pytest.raises(CampaignStop, match=r"its model \(M1\) is classified LOCAL_RUNTIME_UNSUPPORTED; it is not "
+                                               r"benchmarked, so it is never resumed"):
+            launcher.resume_cell(m, api, key, check_code=False)
+        assert api.get_job(entry["evaluation_id"])["status"] == "failed"
+    ledger = load_ledger(m)
+    assert (ledger.active_entry(key)["state"], ledger.active_entry(key)["evaluation_id"]) == (
+        FAILED, entry["evaluation_id"])
+    assert not any(e["type"] == "resumed" for e in ledger.data["events"])
+
+
+def test_a_frozen_receipt_is_reissued_only_on_request_and_the_previous_version_is_kept(modern, tmp_path, server,
+                                                                                        monkeypatch, capsys):
+    m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
+    complete(m, server, "M1")
+    _first, target = model_receipt(m, "M1")
+    frozen, frozen_md = target.read_bytes(), target.with_suffix(".md").read_bytes()
+    record = copy.deepcopy(load_ledger(m).data["receipts"]["M1"])
+    with pytest.raises(CampaignStop, match=r"M1-qwen3.5-9b.json is already frozen; pass --reissue"):
+        model_receipt(m, "M1")
+    run_cli = cli_runner(m, tmp_path, capsys)
+    rc, _, err = run_cli("model-receipt", "--phase", "M1")
+    assert rc == 3 and "--reissue" in err
+    assert target.read_bytes() == frozen and target.with_suffix(".md").read_bytes() == frozen_md
+    assert load_ledger(m).data["receipts"]["M1"] == record
+    assert sorted(p.name for p in target.parent.iterdir()) == ["M1-qwen3.5-9b.json", "M1-qwen3.5-9b.md"]
+
+    freeze_lifecycle_clock(monkeypatch, datetime.datetime(2026, 9, 28, 12, 0, 1, tzinfo=datetime.timezone.utc),
+                           datetime.datetime(2026, 9, 28, 12, 0, 2, tzinfo=datetime.timezone.utc))
+    second, again = model_receipt(m, "M1", reissue=True)
+    assert again == target and second["supersedes"] == record
+    old_json = target.parent / "M1-qwen3.5-9b.superseded-20260928T120001Z.json"
+    old_md = target.parent / "M1-qwen3.5-9b.superseded-20260928T120001Z.md"
+    assert old_json.read_bytes() == frozen and old_md.read_bytes() == frozen_md
+    assert json.loads(target.read_text())["supersedes"] == record
+    ledger = load_ledger(m)
+    assert ledger.data["receipts"]["M1"]["sha256"] == file_sha256(target) != record["sha256"]
+    assert lifecycle.phase_finished(m, ledger, "M1")  # the new version still finishes the phase
+    reissued = target.read_bytes()
+    rc, out, _ = run_cli("model-receipt", "--phase", "M1", "--reissue")
+    assert rc == 0 and "1/1 accepted" in out
+    assert (target.parent / "M1-qwen3.5-9b.superseded-20260928T120002Z.json").read_bytes() == reissued
+    assert old_json.read_bytes() == frozen  # every earlier version is still there
+    assert len(list(target.parent.glob("*.json"))) == 3
+    assert [e["type"] for e in load_ledger(m).data["events"]].count("model_receipt") == 3
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
+    "PRODUCT BUG: model_receipt(reissue=True) renames the previous receipt to "
+    "<phase>-<model>.superseded-<stamp>.json/.md with a SECOND-resolution UTC stamp using Path.rename, which "
+    "silently replaces an existing file on POSIX: two reissues within the same second overwrite the first "
+    "superseded copy, destroying the originally frozen receipt"))
+def test_two_reissues_within_one_second_never_destroy_a_frozen_receipt(modern, tmp_path, server, monkeypatch):
+    m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
+    complete(m, server, "M1")
+    _first, target = model_receipt(m, "M1")
+    frozen = target.read_bytes()
+    freeze_lifecycle_clock(monkeypatch, datetime.datetime(2026, 9, 28, 12, 0, 0, tzinfo=datetime.timezone.utc))
+    model_receipt(m, "M1", reissue=True)
+    model_receipt(m, "M1", reissue=True)  # the same second
+    kept = [p.read_bytes() for p in target.parent.glob("*.json")]
+    assert frozen in kept, "the originally frozen receipt was overwritten"
+
+
+def test_a_receipt_naming_other_evaluations_than_the_ledger_does_not_finish_its_phase(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
+    complete(m, server, "M1")
+    result, target = model_receipt(m, "M1")
+    frozen = target.read_bytes()
+    assert lifecycle.phase_finished(m, load_ledger(m), "M1")
+    active = [load_ledger(m).active_entry(c.key)["evaluation_id"] for c in m.cells("M1")]
+    assert result["evaluation_ids"] == active
+
+    def forge(evaluation_ids) -> None:
+        """A receipt file whose recorded sha256 matches, but that names other evaluations."""
+        target.write_text(json.dumps({**result, "evaluation_ids": evaluation_ids}, indent=2) + "\n")
+        ledger = load_ledger(m)
+        ledger.data["receipts"]["M1"]["sha256"] = file_sha256(target)
+        ledger.save()
+
+    server.serve(m, "M2")
+    for forged in (["e-not-the-ledgers"], [], active + ["e-extra"]):
+        forge(forged)
+        ledger = load_ledger(m)
+        assert validate_mod.validate_campaign(m, phase="M1")["complete"] is True  # the evidence itself is fine
+        assert lifecycle.phase_finished(m, ledger, "M1") is None, forged
+        with pytest.raises(CampaignStop, match="evidence is not frozen yet"):
+            remove_model(m, M1, "free space")
+        with pytest.raises(CampaignStop, match="one target at a time: qwen3.5:9b"):
+            pull_model(m, "M2")
+        assert any(p.startswith("one model at a time: phase(s) ['M1']")
+                   for p in launcher.preflight(m, None, ledger=ledger, check_code=False, phase="M2").problems)
+    assert server.deletes == [] and server.pulls == [] and M1 in server.models
+    target.write_bytes(frozen)
+    ledger = load_ledger(m)
+    ledger.data["receipts"]["M1"]["sha256"] = file_sha256(target)
+    ledger.save()
+    assert lifecycle.phase_finished(m, load_ledger(m), "M1")
+    assert pull_model(m, "M2")["outcome"] == "pulled"
+
+
+def test_observed_digests_are_normalized_before_they_are_compared_with_the_pins(modern, tmp_path, server):
+    m = make_modern(modern, tmp_path, server, tasks=(TASK,), reps=1)
+    server.install_pinned(m, "M1", digest="sha256:" + pin(m, "M1"))  # Ollama spelling with the algorithm
+    pf = launcher.preflight(m, None, check_code=False, phase="M1")
+    assert pf.ok, pf.problems
+    record = pull_model(m, "M1", pull=_never_pull)
+    assert record["outcome"] == "reused" and record["digest"] == pin(m, "M1")
+    server.serve(m, "M2")
+    with pytest.raises(CampaignStop, match="one target at a time: qwen3.5:9b"):  # the pinned, unfinished target
+        pull_model(m, "M2")
+    with pytest.raises(CampaignStop, match="its evidence is not frozen yet"):  # never 'non-pinned weights'
+        remove_model(m, M1, "free space")
+    with running_app(m.db_path(), declared_factory()) as (_app, api):
+        assert launch(m, api, "M1")["succeeded"] == 1
+    receipt = validate_mod.validate_campaign(m, phase="M1")
+    assert receipt["complete"] is True, receipt["problems"]
+    result, _ = model_receipt(m, "M1")
+    assert result["observed_identity"]["digest_matches_pin"] is True
+    assert result["observed_identity"]["digests"] == [pin(m, "M1")]
+    assert remove_model(m, M1, "finished")["outcome"] == "removed"
+
+
+@pytest.mark.parametrize("signum", [signal.SIGTERM, signal.SIGHUP], ids=["SIGTERM", "SIGHUP"])
+def test_a_smoke_stopped_by_a_signal_stops_its_app_and_is_recorded(modern, tmp_path, server, monkeypatch, signum):
+    m = make_modern(modern, tmp_path, server)
+    server.install_pinned(m, "M1")
+    apps: list[subprocess.Popen] = []
+    seen: dict = {}
+    received: list[int] = []
+
+    def start_app(_db_path, _port, _log_path):
+        apps.append(sleeper())  # a real child process group, as the real app would be
+        return apps[-1]
+
+    def wait_healthy(_base, _limit):
+        seen["alive"] = lifecycle.live_smoke_apps(m)
+        seen["problems"] = launcher.preflight(m, None, check_code=False, phase="M1").problems
+        signal.raise_signal(signum)  # the operator's kill / a closed terminal
+        raise AssertionError("the signal did not interrupt the smoke")
+
+    monkeypatch.setattr(lifecycle, "_wait_healthy", wait_healthy)
+    saved = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGHUP)}
+
+    def recorder(sig, _frame):  # stands in for the default action (which would end the test run)
+        received.append(sig)
+
+    try:
+        for sig in saved:
+            signal.signal(sig, recorder)
+        with pytest.raises(KeyboardInterrupt, match=f"smoke interrupted by signal {int(signum)}"):
+            run_smoke(m, "M1", port=free_port(), tasks=[TASK], start_app=start_app)
+        restored = {sig: signal.getsignal(sig) for sig in saved}
+    finally:
+        for sig, handler in saved.items():
+            signal.signal(sig, handler)
+        for proc in apps:
+            reap(proc)
+    assert received == []  # the smoke's own handler took the signal
+    assert restored == {sig: recorder for sig in saved}  # and the previous handlers are back
+    assert len(apps) == 1 and apps[0].returncode == -signal.SIGTERM  # its app's process group was stopped
+    assert seen["alive"] == [apps[0].pid]
+    assert any(p.startswith(f"a smoke app is still running (process groups [{apps[0].pid}])")
+               for p in seen["problems"])
+    folder = next(m.runtime_subdir("smoke_dir").glob("M1-*"))
+    assert not (folder / "app.pgid").exists() and lifecycle.live_smoke_apps(m) == []
+    [record] = load_ledger(m).data["smokes"]
+    assert (record["phase"], record["outcome"], record["operational_ok"]) == ("M1", "error", False)
+    assert record["failure"] == f"KeyboardInterrupt: smoke interrupted by signal {int(signum)}"
+    assert record["finished_at"] and record["ollama_version"] == PINNED_VERSION
+
+
+@pytest.mark.parametrize("error", [ollama.OllamaError("GET /api/tags: connection refused"),
+                                   urllib.error.URLError("connection reset by peer")],
+                         ids=["OllamaError", "URLError"])
+def test_the_cli_turns_model_server_errors_into_refusals(modern, tmp_path, server, monkeypatch, capsys, error):
+    m = make_modern(modern, tmp_path, server)
+    run_cli = cli_runner(m, tmp_path, capsys)
+
+    def failing(*_args, **_kwargs):
+        raise error
+
+    for name in ("pull_model", "remove_model", "storage_inventory"):
+        monkeypatch.setattr(lifecycle, name, failing)
+    for argv in (("pull-model", "--phase", "M1", "--api", closed_api()),
+                 ("remove-model", "--model", OTHER, "--reason", "r", "--confirm", m.campaign_id, "--api", closed_api()),
+                 ("storage-inventory", "--label", "x")):
+        rc, _, err = run_cli(*argv)
+        assert rc == 3 and err.startswith("refused:") and str(error.args[0]) in err, (argv, err)
 
 
 # =========================================================================== #
@@ -1704,7 +2495,13 @@ def test_the_historical_plan_still_behaves_as_before(base, tmp_path, monkeypatch
     assert "models" not in status_mod.campaign_status(m)
     board = analysis.official_baseline(m)
     assert board["report"] == "post-phase0-baseline" and "model_states" not in board
-    with pytest.raises(CampaignStop, match="applies to a sequential-local campaign"):
-        pull_model(m, "A")
-    with pytest.raises(CampaignStop, match="applies to a sequential-local campaign"):
-        classify_model(m, "A", "NOT_BENCHMARKED", "r", "e")
+    # model files are only ever managed under a sequential-local plan (the historical plan has no roster)
+    for what, action in (("pull-model", lambda: pull_model(m, "A")),
+                         ("classify-model", lambda: classify_model(m, "A", "NOT_BENCHMARKED", "r", "e")),
+                         ("remove-model", lambda: remove_model(m, model, "free space")),
+                         ("smoke", lambda: run_smoke(m, "A", port=free_port(), tasks=[TASK]))):
+        with pytest.raises(CampaignStop, match=rf"^{what} applies only to a sequential-local campaign plan .*this "
+                                               "plan is historical-replication$"):
+            action()
+    assert lifecycle.live_smoke_apps(m) == [] and "smoke_dir" not in m.data["runtime"]
+    assert "model_status" not in load_ledger(m).data or not load_ledger(m).data["model_status"]
