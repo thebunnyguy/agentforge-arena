@@ -615,6 +615,8 @@ def baseline_comparison(manifest: Manifest) -> dict:
 def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> dict | None:
     receipt = validate_mod.validate_campaign(manifest, phase="all")
     complete = bool(receipt["complete"])
+    if manifest.is_sequential and not receipt["cohort"]["meets_minimum"]:
+        complete = False  # never OFFICIAL below the plan's minimum number of complete models
     if not complete and not allow_incomplete:
         return None
     co = load_cohort(manifest)

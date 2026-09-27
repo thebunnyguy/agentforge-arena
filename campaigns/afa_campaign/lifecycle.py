@@ -200,9 +200,50 @@ def _db_busy(manifest: Manifest, client: api_mod.AgentForgeApi | None) -> list[s
     return sorted(set(busy))
 
 
+def pinned_ollama_version(manifest: Manifest) -> str | None:
+    return (manifest.data.get("execution") or {}).get("ollama_server_version")
+
+
+def _require_campaign_plan(manifest: Manifest, what: str) -> None:
+    """Model files are only ever managed under the campaign's OWN sequential plan
+    (never the historical plan, never a derived smoke/rehearsal plan, whose rosters
+    do not list every campaign target)."""
+    if not manifest.is_sequential or manifest.data.get("derived_from"):
+        raise CampaignStop(f"{what} applies only to a sequential-local campaign's own plan (pass --manifest "
+                           "campaigns/phase0-modern-local-v1/manifest.json); this plan is "
+                           f"{'derived' if manifest.data.get('derived_from') else manifest.kind}")
+
+
+def _check_server_version(manifest: Manifest, what: str) -> str | None:
+    pinned = pinned_ollama_version(manifest)
+    try:
+        version = (_ollama_call(manifest.backend["base_url"], "GET", "/api/version") or {}).get("version")
+    except ollama.OllamaError as exc:
+        raise CampaignStop(f"Ollama is not reachable ({exc}); {what} needs it") from None
+    if pinned and version != pinned:
+        raise CampaignStop(f"Ollama server version is {version!r}, the frozen plan pins {pinned!r}: {what} refused "
+                           "(one cohort never mixes inference engines; a different server needs a new campaign id)")
+    return version
+
+
+def live_smoke_apps(manifest: Manifest) -> list[int]:
+    """Process groups of smoke apps still alive (pidfiles written by run_smoke)."""
+    alive = []
+    folder = manifest.runtime_subdir("smoke_dir") if manifest.is_sequential else None
+    for pidfile in (sorted(folder.glob("*/app.pgid")) if folder and folder.exists() else []):
+        try:
+            pgid = int(pidfile.read_text().strip())
+            os.killpg(pgid, 0)
+        except (ValueError, OSError):
+            continue
+        alive.append(pgid)
+    return alive
+
+
 def phase_finished(manifest: Manifest, ledger: Ledger, phase: str) -> str | None:
     """Why a phase's model weights are no longer needed: a frozen receipt that
-    still validates, or a classification. None = still needed."""
+    still validates (and names exactly the active evaluations), or a
+    classification. None = still needed."""
     status = (ledger.data.get("model_status") or {}).get(phase)
     if status:
         return f"classified {status['status']}"
@@ -211,6 +252,13 @@ def phase_finished(manifest: Manifest, ledger: Ledger, phase: str) -> str | None
         return None
     path = paths.resolve(record["path"])
     if not path.exists() or file_sha256(path) != record["sha256"]:
+        return None
+    try:
+        frozen = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+    active = [(ledger.active_entry(c.key) or {}).get("evaluation_id") for c in manifest.cells(phase)]
+    if frozen.get("evaluation_ids") != active:
         return None
     receipt = validate_mod.validate_campaign(manifest, phase=phase)
     if not receipt["complete"]:
@@ -225,6 +273,13 @@ def phase_finished(manifest: Manifest, ledger: Ledger, phase: str) -> str | None
 
 
 def storage_inventory(manifest: Manifest, label: str) -> tuple[dict, Path]:
+    import re
+
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", label or "") or ".." in label:
+        raise CampaignStop(f"inventory label {label!r} must be a plain name (letters, digits, '.', '_', '-')")
+    target = manifest.runtime_subdir("inventories") / f"{label}.json"
+    if target.exists():
+        raise CampaignStop(f"inventory {paths.display(target)} already exists; inventories are never overwritten")
     base = manifest.backend["base_url"]
     models_dir = ollama_models_dir()
     try:
@@ -262,7 +317,6 @@ def storage_inventory(manifest: Manifest, label: str) -> tuple[dict, Path]:
                     "download_bytes": e["expected_identity"]["download_bytes"]}
                    for e in manifest.data.get("roster") or []],
     }
-    target = manifest.runtime_subdir("inventories") / f"{label}.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(inventory, indent=2) + "\n")
     return inventory, target
@@ -277,11 +331,11 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
                log=print, margin_bytes: int = PULL_MARGIN_BYTES, pull=None) -> dict:
     """Install ONLY the phase's target (or reuse it). Never pulls a second
     unfinished target; the pulled digest must equal the frozen pin."""
-    if not manifest.is_sequential:
-        raise CampaignStop("pull-model applies to a sequential-local campaign")
+    _require_campaign_plan(manifest, "pull-model")
     entry = manifest.phase_entry(phase)
     model, base = entry["model"], manifest.backend["base_url"]
     pinned = normalize_digest(entry["expected_identity"]["digest"])
+    _check_server_version(manifest, "pull-model")
     with ledger_lock(manifest.ledger_path()):
         ledger = _ledger(manifest)
         if phase in (ledger.data.get("model_status") or {}):
@@ -298,8 +352,12 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
             ledger.save()
             log(f"{model} is already installed with the pinned digest: reused, not downloaded")
             return record
+        # an unfinished target = another roster model installed WITH its pinned digest
+        # whose batch is not finished (non-pinned weights can never become evidence)
         unfinished = [e["model"] for e in manifest.data["roster"]
-                      if e["phase"] != phase and e["model"] in installed and not phase_finished(manifest, ledger, e["phase"])]
+                      if e["phase"] != phase and e["model"] in installed
+                      and normalize_digest(installed[e["model"]]["digest"]) == manifest.pinned_digests()[e["model"]]
+                      and not phase_finished(manifest, ledger, e["phase"])]
         if unfinished:
             raise CampaignStop(f"one target at a time: {', '.join(unfinished)} is installed and its batch is not "
                                "finished (no frozen receipt, no classification)")
@@ -307,6 +365,9 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
         if busy:
             raise CampaignStop(f"evaluations are active ({busy}); never pull while a benchmark runs")
         need = entry["expected_identity"]["download_bytes"] + margin_bytes
+        if not ollama_models_dir().exists():
+            raise CampaignStop(f"Ollama models directory {_home(ollama_models_dir())} does not exist (set OLLAMA_MODELS "
+                               "to the server's models directory)")
         free_before = disk_free()["free_bytes"]
         if free_before < need:
             raise CampaignStop(
@@ -320,7 +381,15 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
         ledger.event("model_pull_started", phase=phase, model=model, free_bytes=free_before)
         ledger.save()
         log(f"pulling {model} ({entry['expected_identity']['download_bytes'] / 1e9:.2f} GB) ...")
-        (pull or _pull_stream)(base, model, log)
+        try:
+            (pull or _pull_stream)(base, model, log)
+        except (CampaignStop, ollama.OllamaError, urllib.error.URLError, OSError, ValueError) as exc:
+            failed = {"phase": phase, "model": model, "outcome": "failed", "error": str(exc)[:500],
+                      "started_at": started, "finished_at": utc_now(), "free_bytes_after": disk_free()["free_bytes"]}
+            ledger.record("model_pulls", failed)
+            ledger.save()
+            storage_log(manifest, {"action": "pull-model-result", **failed})
+            raise CampaignStop(f"pull of {model} failed: {exc}") from None
         after = {m["name"]: m for m in ollama_models(base)}
         got = after.get(model)
         digest = normalize_digest(got["digest"]) if got else None
@@ -370,6 +439,7 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
     classified; never the active target, never while anything runs."""
     if not (reason and reason.strip()):
         raise LedgerError("removing a model requires a written reason")
+    _require_campaign_plan(manifest, "remove-model")
     base = manifest.backend["base_url"]
     with ledger_lock(manifest.ledger_path()):
         ledger = _existing_ledger(manifest)  # never created by a removal
@@ -377,7 +447,12 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         if model not in installed:
             raise CampaignStop(f"{model} is not installed in Ollama; nothing to remove")
         roster = {e["model"]: e for e in manifest.data.get("roster") or []}
-        if model in roster:
+        if model in roster and normalize_digest(installed[model]["digest"]) != manifest.pinned_digests()[model]:
+            # weights that are NOT the pinned identity can never be campaign evidence
+            evidence_status = (f"campaign target {roster[model]['phase']} installed with NON-PINNED weights "
+                               f"{normalize_digest(installed[model]['digest'])} (pin "
+                               f"{manifest.pinned_digests()[model]}): never campaign evidence")
+        elif model in roster:
             finished = phase_finished(manifest, ledger, roster[model]["phase"]) if ledger else None
             if not finished:
                 raise CampaignStop(f"{model} is campaign target {roster[model]['phase']} and its evidence is not "
@@ -388,6 +463,9 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         busy = _active_evaluations(manifest, ledger, client) if ledger else _db_busy(manifest, client)
         if busy:
             raise CampaignStop(f"evaluations are active ({busy}); never remove a model while a benchmark runs")
+        alive = live_smoke_apps(manifest)
+        if alive:
+            raise CampaignStop(f"a smoke app is still running (process groups {alive}); never remove a model then")
         loaded = [m.get("name") for m in (_ollama_call(base, "GET", "/api/ps") or {}).get("models", [])]
         if model in loaded:
             _unload(base, model)
@@ -421,9 +499,9 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         return record
 
 
-def classify_model(manifest: Manifest, phase: str, status: str, reason: str, evidence: str) -> dict:
-    if not manifest.is_sequential:
-        raise CampaignStop("classify-model applies to a sequential-local campaign")
+def classify_model(manifest: Manifest, phase: str, status: str, reason: str, evidence: str, *,
+                   after_results: bool = False) -> dict:
+    _require_campaign_plan(manifest, "classify-model")
     entry = manifest.phase_entry(phase)
     with ledger_lock(manifest.ledger_path()):
         ledger = _ledger(manifest)
@@ -431,10 +509,18 @@ def classify_model(manifest: Manifest, phase: str, status: str, reason: str, evi
                      if e["phase"] == phase and e["state"] in (SUBMITTED, SUBMITTING)]
         if in_flight:
             raise CampaignStop(f"{entry['model']} has evaluations in flight ({in_flight}); finish or halt them first")
-        if validate_mod.validate_campaign(manifest, phase=phase)["complete"]:
+        receipt = validate_mod.validate_campaign(manifest, phase=phase)
+        if receipt["complete"]:
             raise CampaignStop(f"{entry['model']} ({phase}) completed its batch: it is ranked, not classified")
+        accepted = receipt["present"]["cells_complete"]
+        if accepted and not after_results:
+            raise CampaignStop(f"{entry['model']} ({phase}) already has {accepted} accepted cell(s): classifying it now "
+                               "excludes evidence after results were visible. Pass --after-results to do it anyway; "
+                               "it is disclosed in the leaderboard")
         record = ledger.classify_model(phase=phase, model=entry["model"], status=status, reason=reason,
                                        evidence=evidence)
+        record["accepted_cells_at_classification"] = accepted
+        record["accepted_runs_at_classification"] = receipt["present"]["runs"]
         ledger.save()
         return record
 
@@ -448,8 +534,10 @@ def _slug(model: str) -> str:
     return model.replace(":", "-").replace("/", "-")
 
 
-def model_receipt(manifest: Manifest, phase: str) -> tuple[dict, Path]:
-    """The frozen per-model receipt; refused unless the phase validates complete."""
+def model_receipt(manifest: Manifest, phase: str, *, reissue: bool = False) -> tuple[dict, Path]:
+    """The frozen per-model receipt; refused unless the phase validates complete.
+    A frozen receipt is never overwritten silently: ``reissue`` keeps the
+    previous version beside the new one."""
     import afa_runner as afa
     from afa_kernel.confidence import wilson_interval
 
@@ -547,6 +635,16 @@ def model_receipt(manifest: Manifest, phase: str) -> tuple[dict, Path]:
         folder = manifest.runtime_subdir("receipts")
         folder.mkdir(parents=True, exist_ok=True)
         target = folder / f"{phase}-{_slug(model)}.json"
+        if target.exists():
+            if not reissue:
+                raise CampaignStop(f"{paths.display(target)} is already frozen; pass --reissue to issue a new version "
+                                   "(the previous one is kept)")
+            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            for suffix in (".json", ".md"):
+                old = target.with_suffix(suffix)
+                if old.exists():
+                    old.rename(old.with_name(f"{old.stem}.superseded-{stamp}{suffix}"))
+            result["supersedes"] = (ledger.data.get("receipts") or {}).get(phase)
         target.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
         (folder / f"{phase}-{_slug(model)}.md").write_text(render_model_receipt(result))
         ledger.data.setdefault("receipts", {})[phase] = {
@@ -615,61 +713,93 @@ def run_smoke(manifest: Manifest, phase: str, *, port: int = 8792, log=print, ta
               start_app=None) -> dict:
     """4 tasks x 1 repetition of the phase's model through the real ATLAS
     lifecycle, in a SCRATCH database with its own campaign id, app and ledger.
-    Recorded in the main ledger; never campaign evidence."""
+    Recorded in the main ledger (also when it fails); never campaign evidence."""
+    _require_campaign_plan(manifest, "smoke")
     entry = manifest.phase_entry(phase)
     model = entry["model"]
     smoke_tasks = tasks or list(manifest.data["execution"]["smoke"]["tasks"])
     stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     folder = manifest.runtime_subdir("smoke_dir") / f"{phase}-{stamp}"
     smoke_id = f"{manifest.campaign_id}-smoke-{phase}-{stamp.lower()}"
+    # derive (and validate) the scratch plan BEFORE touching the main ledger
+    data = derive_subset(manifest.data, campaign_id=smoke_id, models=[model], task_ids=smoke_tasks,
+                         repetitions=int(manifest.data["execution"]["smoke"]["repetitions"]),
+                         campaign_db=paths.display(folder / "smoke.sqlite"), runtime_dir=paths.display(folder),
+                         api_url=f"http://127.0.0.1:{port}",
+                         purpose=f"operational smoke of {model} (NOT campaign evidence)")
+    version = _check_server_version(manifest, "smoke")
+    if live_smoke_apps(manifest):
+        raise CampaignStop(f"a smoke app is still running ({live_smoke_apps(manifest)}); stop it first")
     with ledger_lock(manifest.ledger_path()):
         ledger = _ledger(manifest)
         busy = _active_evaluations(manifest, ledger, None)
         if busy:
             raise CampaignStop(f"campaign evaluations are active ({busy}); a smoke never runs beside them")
-        data = derive_subset(manifest.data, campaign_id=smoke_id, models=[model], task_ids=smoke_tasks,
-                             repetitions=int(manifest.data["execution"]["smoke"]["repetitions"]),
-                             campaign_db=paths.display(folder / "smoke.sqlite"), runtime_dir=paths.display(folder),
-                             api_url=f"http://127.0.0.1:{port}",
-                             purpose=f"operational smoke of {model} (NOT campaign evidence)")
         dump(data, folder / "smoke.manifest.json")
         smoke = Manifest.load(folder / "smoke.manifest.json")
         init_db(smoke)
-        started, memory_before = utc_now(), _memory_snapshot()
-        app = (start_app or _start_app)(smoke.db_path(), port, folder / "app.log")
-        outcome, failure = "ok", None
+        record = {"phase": phase, "model": model, "smoke_campaign_id": smoke_id, "scratch": paths.display(folder),
+                  "tasks": smoke_tasks, "started_at": utc_now(), "ollama_version": version,
+                  "operational_ok": False, "outcome": "started", "failure": None,
+                  "memory_before": _memory_snapshot(),
+                  "note": "operational check only: a low score is not a smoke failure; never campaign evidence"}
+        app = None
+        previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGHUP)}
+
+        def _interrupted(signum, _frame):
+            raise KeyboardInterrupt(f"smoke interrupted by signal {signum}")
+
         try:
+            for sig in previous:
+                signal.signal(sig, _interrupted)
+            app = (start_app or _start_app)(smoke.db_path(), port, folder / "app.log")
+            (folder / "app.pgid").write_text(str(app.pid))
             _wait_healthy(f"http://127.0.0.1:{port}", 240)
             try:
                 Launcher(smoke, api_mod.AgentForgeApi(smoke.api_url), log=log, poll_s=2.0).run(phase)
+                record["outcome"] = "ok"
             except CampaignStop as exc:
-                outcome, failure = "halted", str(exc)[:2000]
-            ps = (_ollama_call(manifest.backend["base_url"], "GET", "/api/ps") or {}).get("models", [])
+                record["outcome"], record["failure"] = "halted", str(exc)[:2000]
+            try:
+                ps = (_ollama_call(manifest.backend["base_url"], "GET", "/api/ps") or {}).get("models", [])
+                record["ollama_ps"] = [{k: m.get(k) for k in ("name", "size", "size_vram", "digest")} for m in ps]
+            except ollama.OllamaError as exc:
+                record["ollama_ps"] = f"unavailable: {exc}"
+        except BaseException as exc:  # noqa: BLE001 - recorded, then re-raised
+            record["outcome"], record["failure"] = "error", f"{type(exc).__name__}: {exc}"[:2000]
+            raise
         finally:
-            _stop(app)
-        smoke_receipt = validate_mod.validate_campaign(smoke, phase=phase)
-        smoke_ledger = Ledger.load(smoke.ledger_path())
-        cells = []
-        for cell in smoke.cells(phase):
-            active = smoke_ledger.active_entry(cell.key) or {}
-            cells.append({"cell": cell.key, "state": active.get("state", "not_started"),
-                          "evaluation_id": active.get("evaluation_id"), "summary": active.get("summary"),
-                          "problems": active.get("problems")})
-        operational = outcome == "ok" and smoke_receipt["complete"]
-        record = {
-            "phase": phase, "model": model, "smoke_campaign_id": smoke_id, "scratch": paths.display(folder),
-            "tasks": smoke_tasks, "started_at": started, "finished_at": utc_now(),
-            "operational_ok": operational, "outcome": outcome, "failure": failure,
-            "cells": cells, "passed": sum((c["summary"] or {}).get("passed", 0) for c in cells),
-            "valid": sum((c["summary"] or {}).get("valid", 0) for c in cells),
-            "evidence_classes": smoke_receipt["evidence_classes"], "smoke_problems": smoke_receipt["problems"][:20],
-            "memory_before": memory_before, "memory_after": _memory_snapshot(),
-            "ollama_ps": [{k: m.get(k) for k in ("name", "size", "size_vram", "digest")} for m in ps],
-            "note": "operational check only: a low score is not a smoke failure; never campaign evidence",
-        }
-        ledger.record("smokes", record)
-        ledger.save()
+            if app is not None:
+                _stop(app)
+                (folder / "app.pgid").unlink(missing_ok=True)
+            for sig, handler in previous.items():
+                signal.signal(sig, handler)
+            _finish_smoke_record(record, smoke, phase)
+            ledger.record("smokes", record)
+            ledger.save()
         return record
+
+
+def _finish_smoke_record(record: dict, smoke: Manifest, phase: str) -> None:
+    receipt = validate_mod.validate_campaign(smoke, phase=phase)
+    smoke_ledger = Ledger.load(smoke.ledger_path()) if smoke.ledger_path().exists() else None
+    cells = []
+    for cell in smoke.cells(phase):
+        active = (smoke_ledger.active_entry(cell.key) if smoke_ledger else None) or {}
+        cells.append({"cell": cell.key, "state": active.get("state", "not_started"),
+                      "evaluation_id": active.get("evaluation_id"), "summary": active.get("summary"),
+                      "problems": active.get("problems")})
+    digests = {normalize_digest(e.get("model_digest_at_finalize") or e.get("model_digest_at_submit"))
+               for e in (smoke_ledger.active_entries() if smoke_ledger else [])} - {None}
+    record.update({
+        "finished_at": utc_now(), "cells": cells,
+        "digest": next(iter(digests)) if len(digests) == 1 else (sorted(digests) or None),
+        "passed": sum((c["summary"] or {}).get("passed", 0) for c in cells),
+        "valid": sum((c["summary"] or {}).get("valid", 0) for c in cells),
+        "evidence_classes": receipt["evidence_classes"], "smoke_problems": receipt["problems"][:20],
+        "memory_after": _memory_snapshot(),
+        "operational_ok": record["outcome"] == "ok" and receipt["complete"],
+    })
 
 
 def _start_app(db_path: Path, port: int, log_path: Path) -> subprocess.Popen:

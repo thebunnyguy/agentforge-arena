@@ -451,6 +451,8 @@ def build_modern_manifest(
     campaign_db: str = "reports/phase0-modern-local.sqlite",
     runtime_dir: str = "reports/phase0-modern-local",
     api_url: str = "http://127.0.0.1:8000",
+    ollama_server_version: str = "0.31.1",
+    minimum_ranked_models: int = 3,
 ) -> dict:
     """The sequential-by-model local campaign: one phase per roster model, every
     model x every task x ``repetitions``, with one frozen task pack and one
@@ -512,6 +514,11 @@ def build_modern_manifest(
         "execution": {
             "order": [entry["phase"] for entry in roster],
             "one_model_at_a_time": True,
+            "ollama_server_version": ollama_server_version,
+            "minimum_ranked_models": minimum_ranked_models,
+            "official_rule": (
+                "the leaderboard is OFFICIAL only when every roster model is either COMPLETE (24 cells, 120 "
+                "accepted runs) or explicitly classified, and at least minimum_ranked_models models are COMPLETE"),
             "storage_policy": (
                 "reuse an installed target; otherwise free space by removing authorized model weights "
                 "(a completed target whose receipt is accepted first, then unused Ollama models, then "
@@ -610,8 +617,12 @@ def derive_subset(
     derived["repetitions"] = repetitions
     sequential = plan_kind(data) == KIND_SEQUENTIAL
     if sequential:
-        # a sequential plan keeps each model's phase (one model per phase)
-        derived["roster"] = [e for e in data["roster"] if e["model"] in models]
+        # a sequential plan keeps each model's phase (one model per phase); a derived
+        # plan (smoke, rehearsal) of only optional models makes them required for itself
+        derived["roster"] = [copy.deepcopy(e) for e in data["roster"] if e["model"] in models]
+        if derived["roster"] and all(e.get("optional") for e in derived["roster"]):
+            for e in derived["roster"]:
+                e["optional"] = False
         derived["execution"] = {**data.get("execution", {}),
                                 "order": [e["phase"] for e in derived["roster"]]}
     derived["cells"] = [
@@ -711,6 +722,10 @@ def validate(data: dict) -> None:
         need(all(c.get("phase") == phase_of.get(c.get("model")) for c in cells),
              "every cell's phase must be its model's roster phase")
         need(backend.get("kind") == "ollama", "a sequential local plan runs on the local ollama backend")
+        execution = data.get("execution") or {}
+        need(execution.get("ollama_server_version") is None or isinstance(execution.get("ollama_server_version"), str),
+             "execution.ollama_server_version must be a string")
+        need(isinstance(execution.get("minimum_ranked_models", 1), int), "execution.minimum_ranked_models must be an int")
     else:
         need(all(c.get("phase") in PHASES for c in cells), "cell phase must be A or B")
     for name in ("campaign_db", "ledger", "outputs", "runtime_dir"):

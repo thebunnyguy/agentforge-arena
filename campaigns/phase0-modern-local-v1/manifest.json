@@ -46,6 +46,9 @@
       "M5"
     ],
     "one_model_at_a_time": true,
+    "ollama_server_version": "0.31.1",
+    "minimum_ranked_models": 3,
+    "official_rule": "the leaderboard is OFFICIAL only when every roster model is either COMPLETE (24 cells, 120 accepted runs) or explicitly classified, and at least minimum_ranked_models models are COMPLETE",
     "storage_policy": "reuse an installed target; otherwise free space by removing authorized model weights (a completed target whose receipt is accepted first, then unused Ollama models, then MLX weights) and pull ONLY that target; never delete campaign evidence",
     "smoke": {
       "tasks": [

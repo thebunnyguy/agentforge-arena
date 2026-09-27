@@ -18,7 +18,7 @@ from pathlib import Path
 
 from . import cohort, paths
 from .ledger import SUCCEEDED, SUPERSEDED, Ledger, LedgerError, utc_now
-from .manifest import Manifest, evidence_sha256, file_sha256
+from .manifest import Manifest, evidence_sha256, file_sha256, normalize_digest
 
 RECEIPT_VERSION = 1
 
@@ -103,6 +103,8 @@ def assess_cell(conn, manifest: Manifest, cell, entry: dict | None, reference: d
         ref = reference.get(cell.model)
         at_submit = entry.get("model_digest_at_submit")
         at_finalize = entry.get("model_digest_at_finalize")
+        if manifest.is_sequential:  # pins are bare hex; compare normalized digests
+            at_submit, at_finalize = normalize_digest(at_submit), normalize_digest(at_finalize)
         out["model_digest"] = at_finalize
         if not ref:
             problems.append("no first-launch model digest recorded for this model")
@@ -237,6 +239,19 @@ def validate_campaign(
             warnings += [f"{cell.key}: {w}" for w in row["warnings"]]
             cells_out.append(row)
 
+        # disclosure only: accepted evidence of CLASSIFIED models (excluded from the cohort)
+        classified_accepted: dict[str, dict] = {}
+        if phase == "all" and classified and conn is not None and ledger is not None:
+            for cell in manifest.cells():
+                if cell.phase not in classified:
+                    continue
+                active = [e for e in ledger.entries_for(cell.key) if e["state"] != SUPERSEDED]
+                if active and active[0]["state"] == SUCCEEDED:
+                    verdict = assess_cell(conn, manifest, cell, active[0], reference, reference_version)
+                    if verdict["accepted"]:
+                        slot = classified_accepted.setdefault(cell.phase, {"cells": 0, "runs": 0})
+                        slot["cells"] += 1
+                        slot["runs"] += verdict["check"].n_runs
         untracked: list[dict] = []
         disowned = sorted(ledger.disowned_ids()) if ledger else []
         if conn is not None:
@@ -289,7 +304,8 @@ def validate_campaign(
     )
     complete = (not problems and complete_cells == expected["cells"] and present_runs == expected["runs"]
                 and valid_runs == expected["runs"])
-    cohort_info = _cohort_summary(manifest, phase, per_model, classified) if manifest.is_sequential else None
+    cohort_info = (_cohort_summary(manifest, phase, per_model, classified, classified_accepted)
+                   if manifest.is_sequential else None)
     return {
         "receipt_version": RECEIPT_VERSION,
         "campaign_id": manifest.campaign_id,
@@ -330,7 +346,8 @@ def validate_campaign(
     }
 
 
-def _cohort_summary(manifest: Manifest, phase: str, per_model: dict, classified: dict) -> dict:
+def _cohort_summary(manifest: Manifest, phase: str, per_model: dict, classified: dict,
+                    classified_accepted: dict | None = None) -> dict:
     """Per-model state of a sequential-local campaign: COMPLETE (every cell
     accepted), a classification (not benchmarked, never ranked), NOT_STARTED or
     INCOMPLETE (never ranked beside complete models)."""
@@ -348,14 +365,18 @@ def _cohort_summary(manifest: Manifest, phase: str, per_model: dict, classified:
             state = "INCOMPLETE"
         else:
             state = "NOT_STARTED"
+        partial = (classified_accepted or {}).get(entry["phase"]) if record else None
         models[entry["phase"]] = {
             "model": entry["model"], "logical_name": entry["logical_name"], "optional": entry["optional"],
-            "state": state, "accepted_cells": (stats or {}).get("cells_complete", 0),
-            "accepted_runs": (stats or {}).get("runs", 0) if state == "COMPLETE" else 0,
+            "state": state,
+            "accepted_cells": (partial or {}).get("cells", 0) if record else (stats or {}).get("cells_complete", 0),
+            "accepted_runs": (partial or {}).get("runs", 0) if record else (stats or {}).get("runs", 0),
+            "ranked": state == "COMPLETE",
             "classification": record,
         }
     complete = [m for m in models.values() if m["state"] == "COMPLETE"]
     required = [m for m in models.values() if not m["optional"]]
+    floor = int((manifest.data.get("execution") or {}).get("minimum_ranked_models", 1))
     return {
         "models": models,
         "ranked_models": [m["model"] for m in complete],
@@ -363,6 +384,8 @@ def _cohort_summary(manifest: Manifest, phase: str, per_model: dict, classified:
         "required_models_complete": sum(1 for m in required if m["state"] == "COMPLETE"),
         "required_models": len(required),
         "minimum_runs": manifest.expected.get("minimum_runs"),
+        "minimum_ranked_models": floor,
+        "meets_minimum": len(complete) >= floor,
     }
 
 
@@ -391,7 +414,11 @@ def render(receipt: dict) -> str:
                      f"{cohort['accepted_runs_of_complete_models']} (minimum {cohort['minimum_runs']})")
         for phase_name, info in cohort["models"].items():
             lines.append(f"    {phase_name} {info['model']:22s} {info['state']:26s} "
-                         f"{info['accepted_runs']} accepted runs{' (optional)' if info['optional'] else ''}")
+                         f"{info['accepted_runs']} accepted runs{' (ranked)' if info['ranked'] else ' (not ranked)'}"
+                         f"{' (optional)' if info['optional'] else ''}")
+        if not cohort["meets_minimum"]:
+            lines.append(f"  cohort below its floor: {len(cohort['ranked_models'])} complete model(s) < "
+                         f"{cohort['minimum_ranked_models']}")
     for problem in receipt["problems"][:40]:
         lines.append(f"  PROBLEM: {problem}")
     if len(receipt["problems"]) > 40:

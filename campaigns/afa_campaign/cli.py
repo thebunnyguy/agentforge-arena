@@ -104,7 +104,7 @@ def cmd_pull_model(args) -> int:
     from .lifecycle import pull_model
 
     manifest = _manifest(args)
-    record = pull_model(manifest, args.phase, client=_client(args, manifest), log=_log)
+    record = pull_model(manifest, _phase(manifest, args.phase, allow_all=False), client=_client(args, manifest), log=_log)
     print(json.dumps({k: v for k, v in record.items() if k != "at"}))
     return 0
 
@@ -113,6 +113,9 @@ def cmd_remove_model(args) -> int:
     from .lifecycle import remove_model
 
     manifest = _manifest(args)
+    if args.confirm != manifest.campaign_id:
+        print(f"remove-model deletes model weights. Re-run with --confirm {manifest.campaign_id} to proceed.")
+        return 2
     record = remove_model(manifest, args.model, args.reason, client=_client(args, manifest), log=_log)
     return 0 if record["outcome"] == "removed" else 1
 
@@ -120,7 +123,9 @@ def cmd_remove_model(args) -> int:
 def cmd_classify_model(args) -> int:
     from .lifecycle import classify_model
 
-    record = classify_model(_manifest(args), args.phase, args.status, args.reason, args.evidence)
+    manifest = _manifest(args)
+    record = classify_model(manifest, _phase(manifest, args.phase, allow_all=False), args.status, args.reason,
+                            args.evidence, after_results=args.after_results)
     print(f"classified {record['model']} ({record['phase']}) {record['status']}: {record['reason']}")
     return 0
 
@@ -132,7 +137,7 @@ def cmd_smoke(args) -> int:
     if args.confirm != manifest.campaign_id:
         print(f"smoke runs REAL model evaluations. Re-run with --confirm {manifest.campaign_id} to proceed.")
         return 2
-    record = run_smoke(manifest, args.phase, port=args.port, log=_log)
+    record = run_smoke(manifest, _phase(manifest, args.phase, allow_all=False), port=args.port, log=_log)
     print(json.dumps({k: record[k] for k in ("phase", "model", "operational_ok", "outcome", "failure", "passed",
                                               "valid", "scratch")}, indent=2))
     return 0 if record["operational_ok"] else 1
@@ -141,7 +146,8 @@ def cmd_smoke(args) -> int:
 def cmd_model_receipt(args) -> int:
     from .lifecycle import model_receipt
 
-    result, target = model_receipt(_manifest(args), args.phase)
+    manifest = _manifest(args)
+    result, target = model_receipt(manifest, _phase(manifest, args.phase, allow_all=False), reissue=args.reissue)
     print(f"model receipt {paths.display(target)}: {result['accepted_runs']}/{result['expected_runs']} accepted, "
           f"{result['totals']['passed']}/{result['totals']['valid']} passed")
     return 0
@@ -417,6 +423,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("remove-model", help="remove Ollama model weights, recorded first (evidence is never touched)")
     p.add_argument("--model", required=True)
     p.add_argument("--reason", required=True)
+    p.add_argument("--confirm", default="")
     p.add_argument("--api")
     p.set_defaults(func=cmd_remove_model)
 
@@ -426,6 +433,8 @@ def build_parser() -> argparse.ArgumentParser:
                                                         "NOT_BENCHMARKED"])
     p.add_argument("--reason", required=True)
     p.add_argument("--evidence", required=True)
+    p.add_argument("--after-results", action="store_true",
+                   help="classify a model that already has accepted cells (disclosed in the leaderboard)")
     p.set_defaults(func=cmd_classify_model)
 
     p = sub.add_parser("smoke", help="4 tasks x 1 repetition in a SCRATCH database (never campaign evidence)")
@@ -436,6 +445,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("model-receipt", help="freeze a model's validated 120-run receipt")
     p.add_argument("--phase", required=True)
+    p.add_argument("--reissue", action="store_true", help="issue a new version; the previous one is kept")
     p.set_defaults(func=cmd_model_receipt)
 
     p = sub.add_parser("derive", help="derive a smaller campaign (dry runs) with identical pins")
@@ -532,14 +542,18 @@ def _analysis_error():
 
 
 def main(argv: list[str] | None = None) -> int:
+    import urllib.error
+
     from .launcher import CampaignStop
     from .ledger import LedgerError
     from .manifest import ManifestError
+    from .ollama import OllamaError
 
     args = build_parser().parse_args(argv)
     try:
         return int(args.func(args) or 0)
-    except (CampaignStop, LedgerError, ManifestError, FileNotFoundError, _analysis_error()) as exc:
+    except (CampaignStop, LedgerError, ManifestError, FileNotFoundError, OllamaError, urllib.error.URLError,
+            _analysis_error()) as exc:
         # Refusals are expected operator-facing outcomes, not crashes.
         print(f"refused: {exc}", file=sys.stderr)
         return 3

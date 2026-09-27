@@ -1,8 +1,9 @@
 # Post-Phase-0 trusted baseline campaign — runbook
 
-> **Status: PREPARED, NOT LAUNCHED.** The campaign has not been run; only the §15 rehearsal has been exercised
-> (scratch databases, derived campaign ids, never campaign evidence). The campaign starts only on an explicit
-> decision by the project owner, and only after every item in §3 "Before you launch" holds.
+> **Status: CANCELLED (2026-09-28).** The project owner cancelled this six-model historical replication campaign
+> before it was launched; it was never run and its frozen plan is kept unchanged for the record. It is superseded by
+> the AgentForge Modern Local Benchmark, [`phase0-modern-local-v1`](PHASE0_MODERN_LOCAL_CAMPAIGN.md). The tooling
+> described here is shared by both campaigns.
 
 Campaign id: **`phase0-post-integrity-v1`** · Plan: [`campaigns/phase0-post-integrity/manifest.json`](../../campaigns/phase0-post-integrity/manifest.json)
 · Tooling: `campaigns/afa_campaign` (`python3 -m afa_campaign <command>`). **Every terminal** that runs it must

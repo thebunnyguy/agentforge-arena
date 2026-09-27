@@ -47,7 +47,7 @@ from .ledger import (
     CANCELED, FAILED, HALTING, NEEDS_ATTENTION, REJECTED, SUBMITTED, SUBMITTING, SUCCEEDED,
     Ledger, LedgerError, ledger_lock, utc_now,
 )
-from .manifest import Cell, Manifest, evidence_sha256
+from .manifest import Cell, Manifest, evidence_sha256, normalize_digest
 
 from afa_api import db as app_db  # noqa: E402
 from afa_api import jobs  # noqa: E402
@@ -329,7 +329,9 @@ def preflight(
                         pf.problems.append(
                             f"Ollama server version is {snap.get('ollama_version')!r}, the campaign's first launch "
                             f"ran {first.get('ollama_version')!r}; one cohort never mixes inference engines")
-                    for model, digest in ollama.digests(snap).items():
+                    for model, digest in ({} if manifest.is_sequential else ollama.digests(snap)).items():
+                        # a sequential plan's reference is the PIN (checked for the target
+                        # in _sequential_target_checks), never another phase's first launch
                         was = ollama.digests(first).get(model)
                         if was and digest and was != digest:
                             pf.problems.append(
@@ -352,24 +354,53 @@ def _sequential_target_checks(manifest: Manifest, snap: dict, ledger: Ledger | N
     except KeyError:
         pf.problems.append(f"unknown phase {phase!r}; this plan's phases are {manifest.phases}")
         return
+    from .lifecycle import live_smoke_apps, phase_finished, pinned_ollama_version  # lifecycle imports this module
+
     model = entry["model"]
     pf.facts["target"] = {"phase": phase, "model": model, "logical_name": entry["logical_name"]}
     status = (ledger.data.get("model_status") or {}).get(phase) if ledger else None
     if status:
         pf.problems.append(f"{model} ({phase}) is classified {status['status']}: it is not benchmarked")
+    pinned_version = pinned_ollama_version(manifest)
+    if pinned_version and snap.get("ollama_version") != pinned_version:
+        pf.problems.append(f"Ollama server version is {snap.get('ollama_version')!r}, the frozen plan pins "
+                           f"{pinned_version!r}; one cohort never mixes inference engines")
     present = (snap["models"].get(model) or {}).get("present")
     pinned = manifest.pinned_digests()[model]
     if not present:
         pf.problems.append(f"target {model} ({phase}) is not installed (pull-model --phase {phase}); nothing "
                            "is ever substituted for it")
     else:
-        digest = ollama.digests(snap).get(model)
+        digest = normalize_digest(ollama.digests(snap).get(model))
         if digest != pinned:
             pf.problems.append(f"STOP - {model} is installed with digest {digest}, the frozen plan pins {pinned}: "
                                "ambiguous model identity, never benchmarked as the target")
     others = [m for m in manifest.models if m != model and (snap["models"].get(m) or {}).get("present")]
     if others:
         pf.warnings.append(f"other campaign targets are installed too ({', '.join(others)}); only {model} runs now")
+    for other in others:
+        observed = normalize_digest(ollama.digests(snap).get(other))
+        if observed != manifest.pinned_digests()[other]:
+            pf.warnings.append(f"{other} is installed with a NON-PINNED digest {observed}: it can never be "
+                               "benchmarked as its target (remove it, then pull the pinned one)")
+    if ledger is not None:
+        # one model at a time: another model's batch must be finished (frozen
+        # receipt) or classified before this one starts
+        unfinished = sorted({e["phase"] for e in ledger.active_entries() if e["phase"] != phase}
+                            - {p for p in manifest.phases if phase_finished(manifest, ledger, p)})
+        if unfinished:
+            pf.problems.append(f"one model at a time: phase(s) {unfinished} have campaign evaluations but no frozen "
+                               "receipt and no classification; finish (validate + model-receipt) or classify them "
+                               "first")
+    smokes = [s for s in (ledger.data.get("smokes") or [] if ledger else [])
+              if s.get("phase") == phase and s.get("operational_ok") and normalize_digest(s.get("digest")) == pinned]
+    if not smokes:
+        pf.problems.append(f"no passing smoke of {model} with its pinned digest is recorded: run "
+                           f"smoke --phase {phase} first (4 tasks x 1 repetition in a scratch database)")
+    alive = live_smoke_apps(manifest)
+    if alive:
+        pf.problems.append(f"a smoke app is still running (process groups {alive}); it would share the model "
+                           "server with the campaign - stop it first")
 
 
 # --------------------------------------------------------------------------- #
@@ -620,8 +651,12 @@ class Launcher:
                 continue
             if not now["models"][model]["present"]:
                 return None, now.get("ollama_version"), None
-            return ollama.digests(now).get(model), now.get("ollama_version"), None
+            return self._digest(ollama.digests(now).get(model)), now.get("ollama_version"), None
         return None, None, error
+
+    def _digest(self, value: str | None) -> str | None:
+        """Sequential plans compare normalized (bare-hex) digests with their pins."""
+        return normalize_digest(value) if self.manifest.is_sequential else value
 
     def _current_identity(self, model: str) -> tuple[str | None, str | None]:
         """Present-and-unchanged check of one roster model and of the server
@@ -634,7 +669,7 @@ class Launcher:
             self._halt(f"Ollama unreachable while checking {model}: {exc}")
         if not now["models"][model]["present"]:
             self._halt(f"{model} disappeared from Ollama")
-        digest = ollama.digests(now).get(model)
+        digest = self._digest(ollama.digests(now).get(model))
         version = now.get("ollama_version")
         reference = self._reference.get(model)
         if reference and digest != reference:
@@ -1102,6 +1137,10 @@ def resume_cell(manifest: Manifest, client: api_mod.AgentForgeApi, key: str, *, 
                 f"cell {key} is {entry['state'] if entry else 'not started'}; only failed or canceled "
                 "campaign evaluations are resumed (unverifiable / rejected ones are superseded)"
             )
+        classified = (ledger.data.get("model_status") or {}).get(entry.get("phase"))
+        if classified:
+            raise CampaignStop(f"cell {key}: its model ({entry.get('phase')}) is classified {classified['status']}; "
+                               "it is not benchmarked, so it is never resumed")
         tainted = [k for k in ("identity_violation", "concurrency_violation") if entry.get(k)]
         if tainted:
             raise CampaignStop(
