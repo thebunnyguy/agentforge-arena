@@ -142,6 +142,26 @@ def other_model_weights() -> list[dict]:
     return found
 
 
+def storage_log(manifest: Manifest, record: dict) -> Path:
+    """Append one record to the campaign's storage audit log (JSON lines, fsynced).
+    Every pull and removal is logged here BEFORE it happens, also before the
+    ledger exists (the ledger, created by the first smoke or launch, freezes the
+    plan)."""
+    target = manifest.runtime_subdir("inventories") / "storage-log.jsonl"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "a") as handle:
+        handle.write(json.dumps(record, sort_keys=True) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    return target
+
+
+def _existing_ledger(manifest: Manifest) -> Ledger | None:
+    if not manifest.ledger_path().exists():
+        return None
+    return Ledger.load(manifest.ledger_path(), campaign_id=manifest.campaign_id, manifest_sha256=manifest.sha256)
+
+
 def _ledger(manifest: Manifest) -> Ledger:
     return Ledger.open_or_create(
         manifest.ledger_path(), campaign_id=manifest.campaign_id, manifest_sha256=manifest.sha256,
@@ -161,6 +181,22 @@ def _active_evaluations(manifest: Manifest, ledger: Ledger, client: api_mod.Agen
             busy += [j.get("id") for j in client.list_jobs() if j.get("status") in ("queued", "running")]
         except api_mod.ApiError:
             pass  # the app is not running: nothing can be executing through it
+    return sorted(set(busy))
+
+
+def _db_busy(manifest: Manifest, client: api_mod.AgentForgeApi | None) -> list[str]:
+    busy: list[str] = []
+    if manifest.db_path().exists():
+        conn = cohort.open_readonly(manifest.db_path())
+        try:
+            busy += cohort.active_evaluations(conn)
+        finally:
+            conn.close()
+    if client is not None:
+        try:
+            busy += [j.get("id") for j in client.list_jobs() if j.get("status") in ("queued", "running")]
+        except api_mod.ApiError:
+            pass
     return sorted(set(busy))
 
 
@@ -278,6 +314,9 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
                 f"GiB + {margin_bytes / GIB:.0f} GiB margin); only {free_before / GIB:.1f} GiB is free. Remove authorized "
                 "model weights first (remove-model), then pull again")
         started = utc_now()
+        storage_log(manifest, {"action": "pull-model", "phase": phase, "model": model, "pinned_digest": pinned,
+                               "download_bytes": entry["expected_identity"]["download_bytes"],
+                               "free_bytes_before": free_before, "at": started})
         ledger.event("model_pull_started", phase=phase, model=model, free_bytes=free_before)
         ledger.save()
         log(f"pulling {model} ({entry['expected_identity']['download_bytes'] / 1e9:.2f} GB) ...")
@@ -292,6 +331,7 @@ def pull_model(manifest: Manifest, phase: str, *, client: api_mod.AgentForgeApi 
                   "ollama_version": (_ollama_call(base, "GET", "/api/version") or {}).get("version")}
         ledger.record("model_pulls", record)
         ledger.save()
+        storage_log(manifest, {"action": "pull-model-result", **record})
         if digest != pinned:
             raise CampaignStop(f"STOP - pulled {model} has digest {digest}, the frozen plan pins {pinned}: the tag "
                                "moved upstream; ambiguous identity, not benchmarked")
@@ -332,20 +372,20 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         raise LedgerError("removing a model requires a written reason")
     base = manifest.backend["base_url"]
     with ledger_lock(manifest.ledger_path()):
-        ledger = _ledger(manifest)
+        ledger = _existing_ledger(manifest)  # never created by a removal
         installed = {m["name"]: m for m in ollama_models(base)}
         if model not in installed:
             raise CampaignStop(f"{model} is not installed in Ollama; nothing to remove")
         roster = {e["model"]: e for e in manifest.data.get("roster") or []}
         if model in roster:
-            finished = phase_finished(manifest, ledger, roster[model]["phase"])
+            finished = phase_finished(manifest, ledger, roster[model]["phase"]) if ledger else None
             if not finished:
                 raise CampaignStop(f"{model} is campaign target {roster[model]['phase']} and its evidence is not "
                                    "frozen yet (validate, then model-receipt): its weights are still needed")
             evidence_status = finished
         else:
             evidence_status = "not a campaign model (no campaign evidence depends on it)"
-        busy = _active_evaluations(manifest, ledger, client)
+        busy = _active_evaluations(manifest, ledger, client) if ledger else _db_busy(manifest, client)
         if busy:
             raise CampaignStop(f"evaluations are active ({busy}); never remove a model while a benchmark runs")
         loaded = [m.get("name") for m in (_ollama_call(base, "GET", "/api/ps") or {}).get("models", [])]
@@ -354,16 +394,17 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
             if model in [m.get("name") for m in (_ollama_call(base, "GET", "/api/ps") or {}).get("models", [])]:
                 raise CampaignStop(f"{model} is still loaded in Ollama; try again when it is idle")
         db = manifest.db_path()
-        before = {"db_sha256": file_sha256(db) if db.exists() else None,
-                  "ledger_sha256": file_sha256(manifest.ledger_path())}
+        before = {"db_sha256": file_sha256(db) if db.exists() else None}
         free_before = disk_free()["free_bytes"]
         info = installed[model]
         record = {"model": model, "runtime": "ollama", "digest": info["digest"], "size_bytes": info["size_bytes"],
                   "format": info.get("format"), "reason": reason.strip(), "evidence_status": evidence_status,
                   "campaign_target": roster.get(model, {}).get("phase"), "free_bytes_before": free_before,
                   "requested_at": utc_now(), "outcome": "requested"}
-        ledger.record("model_deletions", record)
-        ledger.save()  # recorded BEFORE the weights are removed
+        storage_log(manifest, {"action": "remove-model", **record})
+        if ledger is not None:
+            ledger.record("model_deletions", record)
+            ledger.save()  # recorded BEFORE the weights are removed
         (delete or (lambda name: _ollama_call(base, "DELETE", "/api/delete", {"model": name, "name": name})))(model)
         remaining = {m["name"] for m in ollama_models(base)}
         record["outcome"] = "removed" if model not in remaining else "STILL PRESENT"
@@ -372,7 +413,9 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         record["completed_at"] = utc_now()
         if db.exists() and before["db_sha256"] and file_sha256(db) != before["db_sha256"]:
             record["note"] = "the campaign database changed during the removal (the app wrote to it)"
-        ledger.save()
+        storage_log(manifest, {"action": "remove-model-result", **record})
+        if ledger is not None:
+            ledger.save()
         log(f"removed {model}: {record['outcome']}, reclaimed {record['reclaimed_bytes'] / GIB:.1f} GiB "
             f"({evidence_status})")
         return record
