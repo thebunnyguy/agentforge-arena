@@ -474,11 +474,16 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         alive = live_smoke_apps(manifest)
         if alive:
             raise CampaignStop(f"a smoke app is still running (process groups {alive}); never remove a model then")
-        loaded = [m.get("name") for m in (_ollama_call(base, "GET", "/api/ps") or {}).get("models", [])]
-        if model in loaded:
-            _unload(base, model)
-            if model in [m.get("name") for m in (_ollama_call(base, "GET", "/api/ps") or {}).get("models", [])]:
-                raise CampaignStop(f"{model} is still loaded in Ollama; try again when it is idle")
+        def loaded() -> list:
+            return [m.get("name") for m in (_ollama_call(base, "GET", "/api/ps") or {}).get("models", [])]
+
+        if model in loaded():
+            _unload(base, model)  # Ollama unloads asynchronously: wait for it
+            deadline = time.monotonic() + 60
+            while model in loaded() and time.monotonic() < deadline:
+                time.sleep(1.0)
+            if model in loaded():
+                raise CampaignStop(f"{model} is still loaded in Ollama after 60 s; try again when it is idle")
         db = manifest.db_path()
         before = {"db_sha256": file_sha256(db) if db.exists() else None}
         free_before = disk_free()["free_bytes"]
@@ -728,7 +733,7 @@ def model_receipt(manifest: Manifest, phase: str, *, reissue: bool = False) -> t
             if not reissue:
                 raise CampaignStop(f"{paths.display(target)} is already frozen; pass --reissue to issue a new version "
                                    "(the previous one is kept)")
-            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")  # + a counter on collision
             n = 0
             while any(target.with_name(f"{target.stem}.superseded-{stamp}{'-' + str(n) if n else ''}{sfx}").exists()
                       for sfx in (".json", ".md")):
