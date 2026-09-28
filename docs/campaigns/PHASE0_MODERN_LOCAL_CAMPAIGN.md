@@ -57,6 +57,7 @@ status, free space before/after):
 | during M1 | `unsloth/Qwen3.6-27B-GGUF` (Hugging Face cache, one Q4_K_M GGUF) | 15.7 GiB | macOS swap grew on the same volume during the batch (free space fell from 20 to 12 GiB); clearly model data, re-downloadable, redundant with the Ollama `qwen3.6:27b` target | not a campaign model (outside Ollama) | 27 GiB |
 | after M1's receipt | `qwen3.5:9b` (Ollama, campaign target M1) | 6.1 GiB | M1 complete and frozen; disk needed for M2 with headroom | receipt `M1-qwen3.5-9b.json` frozen with 120 accepted runs, re-validated complete | 34 GiB |
 | after M2's receipt | `gpt-oss:20b` (Ollama, campaign target M2) | 12.8 GiB | M2 complete and frozen; disk needed for M3 with headroom | receipt `M2-gpt-oss-20b.json` frozen with 120 accepted runs, re-validated complete | 32.9 GiB |
+| after M3's receipt | `devstral-small-2:24b` (Ollama, campaign target M3) | 14.1 GiB | M3 complete and frozen; disk needed for M4 with headroom | receipt `M3-devstral-small-2-24b.json` frozen with 120 accepted runs, re-validated complete | 30.6 GiB |
 
 ## 4. Campaign configuration (frozen)
 
@@ -145,6 +146,21 @@ CPU load); from M2 on, tests ran only between batches.
 | Weights | removed after the receipt (12.8 GiB reclaimed); M1 and M2 re-validated **COMPLETE without either model installed** |
 
 Per task (passes / 5): 5/5: async-retry, escape-html, fix-list-dedup, fix-roman-numerals, grid-paths, implement-lru-cache, merge-intervals, paginator, query-builder, result-type, top-k-frequent, two-sum-indices; 4/5: async-timeout, expression-evaluator, fix-binary-search, refactor-order-validation, toposort; 3/5: async-batched, async-first-success, fix-path-traversal, mask-secrets, sanitize-filename; 1/5: async-gather-bounded; 0/5: validate-redirect-url.
+
+### M3 — Devstral Small 2 24B (`devstral-small-2:24b`) — COMPLETE, ranked
+
+| | |
+|---|---|
+| Identity | digest `24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8` = the pin, at submission and acceptance of all 24 cells; mistral3, 24.0B, Q4_K_M; 15.18 GB; Ollama 0.31.1 (server default context length 393216) |
+| Install | pulled 23:49 → 00:06 UTC on 2026-09-28 after M2's weights were removed; digest verified against the pin |
+| Smoke | passed operationally: 4 evaluations, 2/4 passed, no timeouts |
+| Full batch | 24 fresh evaluations, 120 runs, 00:08 → 00:53 UTC on 2026-09-28 (44.6 min) |
+| Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
+| Scores | **71/120 passed — pass rate 0.592, Wilson 95% [0.502, 0.675]**; mean final score 0.829; 5 timeouts; 0 agent errors |
+| Receipt | `reports/phase0-modern-local/receipts/M3-devstral-small-2-24b.json` (+ `.md`), sha256 `270168ed9b4a…`, recorded in the ledger |
+| Weights | removed after the receipt (14.1 GiB reclaimed); M1, M2 and M3 re-validated **COMPLETE without their models installed** |
+
+Per task (passes / 5): 5/5: fix-binary-search, fix-roman-numerals, implement-lru-cache, mask-secrets, merge-intervals, paginator, query-builder, refactor-order-validation, two-sum-indices; 4/5: async-timeout, fix-list-dedup, grid-paths, sanitize-filename; 3/5: toposort; 2/5: async-gather-bounded, top-k-frequent; 1/5: escape-html, expression-evaluator, fix-path-traversal; 0/5: async-batched, async-first-success, async-retry, result-type, validate-redirect-url.
 
 ## 7. Final cohort, leaderboard and integrity
 
