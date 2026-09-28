@@ -390,8 +390,9 @@ def cmd_baseline_report(args) -> int:
         print("the campaign is not complete; the OFFICIAL baseline is not produced "
               "(use --allow-incomplete for a clearly-labelled PROVISIONAL report)")
         return 1
+    stem = "modern-local-leaderboard" if manifest.is_sequential else "post-phase0-baseline"
     _write(result, analysis.render_official_baseline(result), args.out_dir or manifest.outputs_dir(),
-           "post-phase0-baseline" if result["official"] else "post-phase0-baseline-PROVISIONAL")
+           stem if result["official"] else f"{stem}-PROVISIONAL")
     return 0
 
 
