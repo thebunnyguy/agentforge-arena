@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import copy
 import datetime
+import hashlib
 import json
 import re
 import signal
@@ -393,6 +394,7 @@ def make_modern(modern: Manifest, tmp_path: Path, server: FakeOllamaServer, mode
                          runtime_dir=str(tmp_path / f"{name}-rt"),
                          purpose="test of the sequential-local tooling (NOT campaign evidence)")
     data["backend"] = {**data["backend"], "base_url": server.url}
+    data["model_files_owner"] = True  # a self-contained test plan owns the (fake) model files it names
     if minimum_ranked is not None:
         data["execution"] = {**data["execution"], "minimum_ranked_models": minimum_ranked}
     if server_version is not None:
@@ -1492,7 +1494,7 @@ def test_a_refused_classification_leaves_no_ledger_behind(modern, tmp_path, serv
 
 
 def test_a_classified_model_leaves_the_expected_cohort_and_is_never_launched_or_pulled(modern, tmp_path, server):
-    m = make_modern(modern, tmp_path, server)
+    m = make_modern(modern, tmp_path, server, minimum_ranked=1)  # the subject is exclusion, not the cohort floor
     complete(m, server, "M1")
     before = validate_mod.validate_campaign(m)
     assert before["complete"] is False and before["expected"]["cells"] == 4
@@ -1682,7 +1684,10 @@ def test_a_cohort_below_the_plans_floor_of_complete_models_is_never_official(mod
     model_receipt(m, "M1")
     complete(m, server, "M2")
     receipt = validate_mod.validate_campaign(m)
-    assert receipt["complete"] is True, receipt["problems"]  # nothing expected is missing ...
+    # nothing expected is missing, but the validator itself enforces the floor (final review RT-6)
+    assert receipt["missing"]["cells"] == [] and receipt["present"]["cells_complete"] == 2
+    assert receipt["complete"] is False
+    assert receipt["problems"] == ["cohort below the plan's floor: 2 complete model(s) < minimum_ranked_models 3"]
     cohort_info = receipt["cohort"]
     assert cohort_info["ranked_models"] == [M1, M2] and all(i["ranked"] for i in cohort_info["models"].values())
     assert cohort_info["minimum_ranked_models"] == 3 and cohort_info["meets_minimum"] is False  # ... but 2 < 3
@@ -1695,11 +1700,11 @@ def test_a_cohort_below_the_plans_floor_of_complete_models_is_never_official(mod
     assert "PROVISIONAL" in analysis.render_official_baseline(provisional)
     run_cli = cli_runner(m, tmp_path, capsys)
     rc, _, _ = run_cli("validate", "--receipt", str(tmp_path / "receipt.json"))
-    assert rc == 0  # the completeness receipt; the leaderboard is what the floor gates
+    assert rc == 1  # below the floor: never COMPLETE, and the leaderboard is never OFFICIAL
     rc, out, _ = run_cli("baseline-report", "--out-dir", str(tmp_path / "board"))
     assert rc == 1 and not (tmp_path / "board").exists()
     rc, _, _ = run_cli("baseline-report", "--allow-incomplete", "--out-dir", str(tmp_path / "board"))
-    assert rc == 0 and (tmp_path / "board" / "post-phase0-baseline-PROVISIONAL.json").exists()
+    assert rc == 0 and (tmp_path / "board" / "modern-local-leaderboard-PROVISIONAL.json").exists()
 
 
 # =========================================================================== #
@@ -2294,11 +2299,14 @@ def test_a_frozen_receipt_is_reissued_only_on_request_and_the_previous_version_i
     freeze_lifecycle_clock(monkeypatch, datetime.datetime(2026, 9, 28, 12, 0, 1, tzinfo=datetime.timezone.utc),
                            datetime.datetime(2026, 9, 28, 12, 0, 2, tzinfo=datetime.timezone.utc))
     second, again = model_receipt(m, "M1", reissue=True)
-    assert again == target and second["supersedes"] == record
+    superseded = {**record, "superseded_path": str(target.parent / "M1-qwen3.5-9b.superseded-20260928T120001Z.json"),
+                  "superseded_sha256": hashlib.sha256(frozen).hexdigest()}
+    assert again == target and second["supersedes"] == superseded
     old_json = target.parent / "M1-qwen3.5-9b.superseded-20260928T120001Z.json"
     old_md = target.parent / "M1-qwen3.5-9b.superseded-20260928T120001Z.md"
     assert old_json.read_bytes() == frozen and old_md.read_bytes() == frozen_md
-    assert json.loads(target.read_text())["supersedes"] == record
+    assert json.loads(target.read_text())["supersedes"] == superseded
+    assert load_ledger(m).data["receipts"]["M1"]["history"] == [superseded]
     ledger = load_ledger(m)
     assert ledger.data["receipts"]["M1"]["sha256"] == file_sha256(target) != record["sha256"]
     assert lifecycle.phase_finished(m, ledger, "M1")  # the new version still finishes the phase
@@ -2488,3 +2496,99 @@ def test_the_historical_plan_still_behaves_as_before(base, tmp_path, monkeypatch
             action()
     assert lifecycle.live_smoke_apps(m) == [] and "smoke_dir" not in m.data["runtime"]
     assert "model_status" not in load_ledger(m).data or not load_ledger(m).data["model_status"]
+
+
+# =========================================================================== #
+# final review (RT-1, RT-2, RT-3, RT-8)
+# =========================================================================== #
+
+
+def test_a_derived_plan_that_does_not_own_the_model_files_never_manages_them(modern, tmp_path, server):
+    # RT-1: a rehearsal plan derived with the CLI's `derive` names only some campaign
+    # targets; it must never pull, remove, classify or smoke (nor remove weights)
+    m = make_modern(modern, tmp_path, server)
+    data = dict(m.data)
+    data.pop("model_files_owner")
+    rehearsal = Manifest(data)
+    server.install_pinned(m, "M2")
+    for action in (lambda: remove_model(rehearsal, M2, "free space"), lambda: pull_model(rehearsal, "M1"),
+                   lambda: classify_model(rehearsal, "M2", "LOCAL_RESOURCE_LIMIT", "r", "e"),
+                   lambda: lifecycle.remove_weights(rehearsal, str(tmp_path), "r")):
+        with pytest.raises(CampaignStop, match="this plan is a derived plan"):
+            action()
+    assert server.deletes == [] and server.pulls == []
+
+
+def _weights_dir(home: Path, *parts: str, files: dict) -> Path:
+    folder = home.joinpath(*parts)
+    for rel, size in files.items():
+        target = folder / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(b"\0" * size)
+    return folder
+
+
+def test_remove_weights_never_removes_user_files_beside_or_disguised_as_weights(modern, tmp_path, server, monkeypatch):
+    # RT-2: only weight files (by suffix, or large Hugging Face hub blobs) plus model
+    # metadata; a 'blobs' folder name or a small non-weight file is never enough
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    m = make_modern(modern, tmp_path, server)
+    spoof = _weights_dir(home, ".lmstudio", "models", "me", "project",
+                         files={"blobs/notes.txt": 10_000_000, "blobs/dataset.csv": 90_000_000})
+    mixed = _weights_dir(home, ".cache", "huggingface", "hub", "models--me--finetune",
+                         files={"model.safetensors": 95_000_000, "my-thesis.docx": 5_000_000})
+    for path in (spoof, mixed):
+        with pytest.raises(CampaignStop, match="neither model weights nor model metadata"):
+            lifecycle.remove_weights(m, str(path), "free space")
+        assert path.exists()
+    ok = _weights_dir(home, ".cache", "huggingface", "hub", "models--acme--m",
+                      files={"blobs/0123abcd": 80 * 1024 * 1024, "refs/main": 40, "snapshots/x/config.json": 500})
+    record = lifecycle.remove_weights(m, str(ok), "free space")
+    assert record["outcome"] == "removed" and not ok.exists() and spoof.exists() and mixed.exists()
+
+
+def test_remove_weights_refuses_during_campaign_evaluations_unless_a_disk_emergency(modern, tmp_path, server,
+                                                                                     monkeypatch):
+    # RT-3: never beside a running campaign evaluation, except --during-batch, which
+    # records the overlap
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    m = make_modern(modern, tmp_path, server)
+    add_in_flight(m, m.cells("M1")[0])
+    first = _weights_dir(home, ".lmstudio", "models", "pub", "a", files={"a.gguf": 1_000_000})
+    with pytest.raises(CampaignStop, match="--during-batch"):
+        lifecycle.remove_weights(m, str(first), "free space")
+    assert first.exists()
+    record = lifecycle.remove_weights(m, str(first), "disk emergency", during_batch=True)
+    assert record["outcome"] == "removed" and record["active_evaluations_during_removal"]
+    log = [json.loads(line) for line in (m.runtime_subdir("inventories") / "storage-log.jsonl").read_text().splitlines()]
+    assert log[0]["action"] == "remove-weights" and log[0]["active_evaluations_during_removal"]
+
+
+def test_the_leaderboard_shows_each_models_timeouts_and_agent_errors(modern, tmp_path, server):
+    # RT-8: the official leaderboard discloses what drives low scores
+    m = make_modern(modern, tmp_path, server, minimum_ranked=1)
+    complete(m, server, "M1")
+    classify_model(m, "M2", "NOT_BENCHMARKED", "optional in this test", "none")
+    board = analysis.official_baseline(m)
+    row = next(e for e in board["leaderboard"] if e["agent"] == M1)
+    assert {"timeouts", "request_timeout_hits", "agent_errors"} <= set(row)
+    assert "timeouts (full request)" in analysis.render_official_baseline(board)
+    assert board["provenance"]["model_identity"]["source"].startswith("pinned registry digests")
+
+
+def test_remove_weights_copies_its_record_into_the_ledger_when_no_launcher_holds_it(modern, tmp_path, server,
+                                                                                    monkeypatch):
+    # the record carries a 'kind' (weight format) that must not collide with the
+    # ledger event's own type argument
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    m = make_modern(modern, tmp_path, server)
+    Ledger.open_or_create(m.ledger_path(), campaign_id=m.campaign_id, manifest_sha256=m.sha256,
+                          manifest_path="").save()
+    folder = _weights_dir(home, ".lmstudio", "models", "pub", "b", files={"b.gguf": 1_000_000})
+    lifecycle.remove_weights(m, str(folder), "free space")
+    ledger = json.loads(m.ledger_path().read_text())
+    assert ledger["model_deletions"][-1]["runtime"] == "lm-studio" and ledger["model_deletions"][-1]["kind"]
+    assert ledger["events"][-1]["type"] == "model_deletion"

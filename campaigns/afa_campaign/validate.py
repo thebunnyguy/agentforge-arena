@@ -306,6 +306,10 @@ def validate_campaign(
                 and valid_runs == expected["runs"])
     cohort_info = (_cohort_summary(manifest, phase, per_model, classified, classified_accepted)
                    if manifest.is_sequential else None)
+    if cohort_info is not None and phase == "all" and not cohort_info["meets_minimum"]:
+        problems.append(f"cohort below the plan's floor: {len(cohort_info['ranked_models'])} complete model(s) < "
+                        f"minimum_ranked_models {cohort_info['minimum_ranked_models']}")
+        complete = False
     return {
         "receipt_version": RECEIPT_VERSION,
         "campaign_id": manifest.campaign_id,

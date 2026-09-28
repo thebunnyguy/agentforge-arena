@@ -127,7 +127,7 @@ def cmd_remove_weights(args) -> int:
     if args.confirm != manifest.campaign_id:
         print(f"remove-weights deletes model files. Re-run with --confirm {manifest.campaign_id} to proceed.")
         return 2
-    record = remove_weights(manifest, args.path, args.reason, log=_log)
+    record = remove_weights(manifest, args.path, args.reason, log=_log, during_batch=args.during_batch)
     return 0 if record["outcome"] == "removed" else 1
 
 
@@ -443,6 +443,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--path", required=True)
     p.add_argument("--reason", required=True)
     p.add_argument("--confirm", default="")
+    p.add_argument("--during-batch", action="store_true",
+                   help="disk emergency while campaign evaluations run; the overlap is recorded")
     p.set_defaults(func=cmd_remove_weights)
 
     p = sub.add_parser("classify-model", help="record a model as not benchmarked locally (reason + evidence)")

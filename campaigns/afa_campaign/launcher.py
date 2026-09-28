@@ -134,6 +134,11 @@ def check_runtime_code(manifest: Manifest) -> tuple[list[str], dict]:
     return problems, facts
 
 
+def _tooling_dirty() -> bool | None:
+    rc, dirty = _git("status", "--porcelain", "--", "campaigns/afa_campaign")
+    return bool(dirty) if rc == 0 else None
+
+
 def same_path(a: str | Path, b: str | Path) -> bool:
     """Same file? (samefile when both exist: macOS volumes are case-insensitive)."""
     try:
@@ -509,6 +514,7 @@ class Launcher:
                 "historical_evidence_sha256_start": pf.facts.get("historical_evidence_sha256"),
                 "inventory": pf.facts.get("inventory"),
                 "check_code": bool(check_code and (pf.facts.get("code") or {}).get("head")),
+                "tooling_dirty": _tooling_dirty(),
                 "warmup": self.warmup,
                 "outcome": "running",
                 **({"model": self.manifest.phase_entry(phase)["model"]} if self.manifest.is_sequential else {}),

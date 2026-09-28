@@ -334,7 +334,7 @@ class Ledger:
         """Append a lifecycle record (smokes, model_pulls, model_deletions)."""
         self.data.setdefault(field, []).append(record)
         self.event(field.rstrip("s"), **{k: v for k, v in record.items()
-                                         if isinstance(v, (str, int, float, bool)) and k not in ("at", "type")})
+                                         if isinstance(v, (str, int, float, bool)) and k not in ("at", "type", "kind")})
         return record
 
     def disowned_ids(self) -> set[str]:

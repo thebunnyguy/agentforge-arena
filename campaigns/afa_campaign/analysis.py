@@ -660,6 +660,9 @@ def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> 
                 "coverage": {"cells_with_fresh_evidence": len(cells), "manifest_tasks": len(tasks),
                              "fraction": len(cells) / len(tasks) if tasks else 0.0},
                 "voided_runs": sum(c.check.voided for c in cells if c.check),
+                "timeouts": sum(c.check.timeouts for c in cells if c.check),
+                "request_timeout_hits": sum(c.check.request_timeout_hits for c in cells if c.check),
+                "agent_errors": sum(c.check.agent_errors for c in cells if c.check),
                 "evaluation_ids": sorted(c.evaluation_id for c in cells),
             })
         matrix = []
@@ -718,7 +721,10 @@ def official_baseline(manifest: Manifest, *, allow_incomplete: bool = False) -> 
             "per_cell": {c.cell.key: {"at_submit": (ledger.active_entry(c.cell.key) or {}).get("model_digest_at_submit"),
                                        "at_finalize": (ledger.active_entry(c.cell.key) or {}).get("model_digest_at_finalize")}
                          for c in valid} if ledger else {},
-            "source": "external Ollama inventory snapshots recorded by the launcher (not AgentForge-persisted)",
+            "source": ("pinned registry digests in the frozen manifest, checked against the external Ollama "
+                       "inventory at every submission and acceptance (not AgentForge-persisted)"
+                       if manifest.is_sequential else
+                       "external Ollama inventory snapshots recorded by the launcher (not AgentForge-persisted)"),
         },
         "excluded_cells": co.summary()["excluded"],
         "completeness_receipt": {
@@ -916,7 +922,8 @@ def render_official_baseline(result: dict) -> str:
         "",
         "## Leaderboard (kernel Wilson 95% lower-bound ranking)",
         "",
-        *_head("rank", "model", "n", "pass rate", "Wilson 95%", "coverage", "voided", "provisional"),
+        *_head("rank", "model", "n", "pass rate", "Wilson 95%", "coverage", "voided", "timeouts (full request)",
+               "agent errors", "provisional"),
     ]
     for e in result["leaderboard"]:
         rank = "-" if e["rank_low"] is None else (str(e["rank_low"]) if e["rank_low"] == e["rank_high"]
@@ -925,11 +932,12 @@ def render_official_baseline(result: dict) -> str:
         lines.append(_row(rank, e["agent"], e["n"], _f(e["pass_rate"]),
                           f"[{_f(e['wilson_low'])}, {_f(e['wilson_high'])}]",
                           f"{cov['cells_with_fresh_evidence']}/{cov['manifest_tasks']}", e["voided_runs"],
+                          f"{e.get('timeouts', '-')} ({e.get('request_timeout_hits', '-')})", e.get("agent_errors", "-"),
                           "yes" if e["provisional"] else "no"))
     for m in result["models_without_evidence"]:
         if result.get("model_states"):
             continue  # listed in the roster table above; never ranked
-        lines.append(_row("-", m, 0, "-", "-", f"0/{len(result['task_matrix'])}", 0, NO_FRESH))
+        lines.append(_row("-", m, 0, "-", "-", f"0/{len(result['task_matrix'])}", 0, "-", "-", NO_FRESH))
     models = list(result["task_matrix"][0]["cells"]) if result["task_matrix"] else []
     lines += ["", "## Task matrix (passes/valid, Wilson 95%)", "", *_head("task (version)", *models)]
     for row in result["task_matrix"]:

@@ -3,7 +3,7 @@
   "campaign_id": "phase0-modern-local-v1",
   "manifest_sha256": "sha256:a89bf89f41c54ddb219237882af595a2bfd7109c5733bf59dbae78671b4db6d1",
   "scope": "all",
-  "generated_at": "2026-09-28T07:22:46Z",
+  "generated_at": "2026-09-28T08:10:57Z",
   "campaign_db": "reports/phase0-modern-local.sqlite",
   "ledger": {
     "path": "reports/phase0-modern-local/ledger.json",

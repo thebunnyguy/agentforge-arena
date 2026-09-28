@@ -27,7 +27,7 @@ This cohort is a **new baseline**. It is not directly comparable with the histor
 | | |
 |---|---|
 | Machine | Apple M4 Max, arm64, 36 GiB unified memory, macOS 27.0 |
-| Disk (data volume) | 926 GiB; **4.7 GiB free** at the start of the mission (3.9 GiB when the storage inventory was taken) |
+| Disk (data volume) | 926 GiB; **3.9 GiB free** when the first storage inventory was taken (2026-09-27T20:05Z; an earlier, unrecorded reading showed ~4.7 GiB) |
 | Ollama | 0.31.1 (`ollama serve` started from the CLI with `OLLAMA_KEEP_ALIVE=60m`; every other server setting is the default and stayed unchanged for the whole campaign; models in `~/.ollama/models`) |
 | AgentForge runtime | tag `phase0-integrity-v1` = `7369e67e1ceb4b2a566986f247961f8a63f99567`; `afa_api/`, `runner/`, `kernel/`, `tasks/` checked equal to the tag before every launch |
 | Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced`, checked before the campaign, before every submission, after every model and at the end |
@@ -37,36 +37,45 @@ The shell profile exports `OLLAMA_MODEL_PATH=/Volumes/X10 Pro/ollama-cli-models`
 
 ## 3. Storage inventory and cleanup
 
-Initial inventory ([`storage-before.json`](#), kept with the campaign outputs; home paths shown as `~`):
+Initial inventory ([`storage-before.json`](../../campaigns/phase0-modern-local-v1/results/inventories/storage-before.json), committed path-sanitized; home paths shown as `~`):
 
 | Runtime | Model | Size | Notes |
 |---|---|---|---|
 | Ollama | `qwen3.5:9b` | 6.1 GiB | campaign target M1, reused (not re-downloaded) |
 | Ollama | `qwen3.6:27b-mlx` | 18.4 GiB | MLX (nvfp4) — authorized for removal |
 | Ollama | `nomic-embed-text:latest` | 0.3 GiB | embedding model, kept (not needed for space) |
-| Hugging Face cache | `unsloth/Qwen3.6-27B-GGUF` (Q4_K_M) | 15.7 GiB | model weights, kept (space not needed) |
+| Hugging Face cache | `unsloth/Qwen3.6-27B-GGUF` (Q4_K_M) | 15.7 GiB | model weights; initially kept, removed during M1 |
 | Hugging Face cache | `openai/clip-vit-base-patch32` | 1.1 GiB | not a benchmark model, never touched |
-| LM Studio | `Ministral-3-14B-Reasoning-2512-GGUF` | 11.1 GiB | model weights, kept (space not needed) |
+| LM Studio | `Ministral-3-14B-Reasoning-2512-GGUF` | 11.1 GiB | model weights; initially kept, removed during M5 |
 
 Totals: 8 removals (6 Ollama models, 2 non-Ollama weight directories), **~112 GiB of model weights removed**; free
-disk went from 4.7 GiB at the start to 45.1 GiB at the end. Kept untouched: `nomic-embed-text:latest` (Ollama),
+disk went from 3.9 GiB (first recorded inventory) to 45.1 GiB at the end. Kept untouched: `nomic-embed-text:latest` (Ollama),
 `openai/clip-vit-base-patch32` (Hugging Face cache), an empty LM Studio `Qwen2.5-Coder-14B-Instruct-MLX-4bit` directory.
 Every pull and removal is also in the committed audit log `campaigns/phase0-modern-local-v1/results/inventories/storage-log.jsonl`.
 
-Every removal is recorded BEFORE it happens — in `reports/phase0-modern-local/inventories/storage-log.jsonl` and,
-once the ledger exists, in the ledger's `model_deletions` (model, runtime, digest, size, reason, campaign evidence
-status, free space before/after):
+Every removal is recorded BEFORE it happens in `reports/phase0-modern-local/inventories/storage-log.jsonl`, the
+complete record (model, runtime, digest, size, reason, campaign evidence status, free space before/after). The five
+campaign-target removals are also in the ledger's `model_deletions`. The MLX removal predates the ledger (created
+2026-09-27T20:45:58Z). The two non-Ollama removals are only in the storage log: a running launch held the ledger lock,
+so they were not copied into the ledger (logged as `remove-weights-note`).
 
 | When | Removed | Size | Reason | Evidence status | Free after |
 |---|---|---|---|---|---|
-| before M1 | `qwen3.6:27b-mlx` (Ollama, MLX nvfp4) | 18.4 GiB | authorized MLX weights; 3.9 GiB free was too low to operate safely and to pull the next target | not a campaign model | 22 GiB |
-| during M1 | `unsloth/Qwen3.6-27B-GGUF` (Hugging Face cache, one Q4_K_M GGUF) | 15.7 GiB | macOS swap grew on the same volume during the batch (free space fell from 20 to 12 GiB); clearly model data, re-downloadable, redundant with the Ollama `qwen3.6:27b` target | not a campaign model (outside Ollama) | 27 GiB |
-| after M1's receipt | `qwen3.5:9b` (Ollama, campaign target M1) | 6.1 GiB | M1 complete and frozen; disk needed for M2 with headroom | receipt `M1-qwen3.5-9b.json` frozen with 120 accepted runs, re-validated complete | 34 GiB |
+| before M1 | `qwen3.6:27b-mlx` (Ollama, MLX nvfp4) | 18.4 GiB | authorized MLX weights; 3.9 GiB free was too low to operate safely and to pull the next target | not a campaign model | 22.3 GiB |
+| during M1 | `unsloth/Qwen3.6-27B-GGUF` (Hugging Face cache, one Q4_K_M GGUF) | 15.7 GiB | macOS swap grew on the same volume during the batch (free space fell to 11.6 GiB); clearly model data, re-downloadable, redundant with the Ollama `qwen3.6:27b` target | not a campaign model (outside Ollama) | 27.3 GiB |
+| after M1's receipt | `qwen3.5:9b` (Ollama, campaign target M1) | 6.1 GiB | M1 complete and frozen; disk needed for M2 with headroom | receipt `M1-qwen3.5-9b.json` frozen with 120 accepted runs, re-validated complete | 33.5 GiB |
 | after M2's receipt | `gpt-oss:20b` (Ollama, campaign target M2) | 12.8 GiB | M2 complete and frozen; disk needed for M3 with headroom | receipt `M2-gpt-oss-20b.json` frozen with 120 accepted runs, re-validated complete | 32.9 GiB |
 | after M3's receipt | `devstral-small-2:24b` (Ollama, campaign target M3) | 14.1 GiB | M3 complete and frozen; disk needed for M4 with headroom | receipt `M3-devstral-small-2-24b.json` frozen with 120 accepted runs, re-validated complete | 30.6 GiB |
 | after M4's receipt | `qwen3-coder:30b` (Ollama, campaign target M4) | 17.3 GiB | M4 complete and frozen; disk needed for the optional M5 with headroom | receipt `M4-qwen3-coder-30b.json` frozen with 120 accepted runs, re-validated complete | 33.8 GiB |
-| during M5 | `Ministral-3-14B-Reasoning-2512-GGUF` (LM Studio: Q6_K GGUF + F16 projector GGUF) | 11.2 GiB | machine safety: swap grew ~6 GB in 30 min during the 27B batch and free disk fell to 11 GiB; clearly model data | not a campaign model (outside Ollama) | 22.5 GiB |
-| after M5's receipt | `qwen3.6:27b` (Ollama, campaign target M5) | 16.5 GiB | campaign finished; the owner does not require keeping benchmarked weights | receipt `M5-qwen3.6-27b.json` frozen with 120 accepted runs, re-validated complete | 45.1 GiB (swap also shrank) |
+| during M5 | `Ministral-3-14B-Reasoning-2512-GGUF` (LM Studio: GGUF weights + GGUF projector) | 11.1 GiB (11.2 GiB freed) | machine safety: swap grew ~6 GB in 30 min during the 27B batch and free disk fell to 11 GiB; clearly model data | not a campaign model (outside Ollama) | 22.5 GiB |
+| after M5's receipt | `qwen3.6:27b` (Ollama, campaign target M5) | 16.5 GiB | campaign finished; the owner does not require keeping benchmarked weights | receipt `M5-qwen3.6-27b.json` frozen with 120 accepted runs, re-validated complete | 45.1 GiB (from 22.1; swap also shrank) |
+
+The two non-Ollama removals ran while a campaign trial was in flight (the tool then had no active-evaluation check;
+it now refuses unless `--during-batch` is passed, which records the overlap). The Hugging Face removal
+(21:38:17–21:38:21Z) fell inside `qwen3.5:9b | paginator` position 4, which was already 151 s into its budget and
+ended as a full 180 s timeout; the LM Studio removal (02:31:39–02:31:57Z) fell inside `qwen3.6:27b | async-retry`
+position 0, also a full 180 s timeout, as were all five positions of that cell. Neither removal touched the model
+being served, the campaign database or the ledger; their effect on those two runs is nil or marginal.
 
 ## 4. Campaign configuration (frozen)
 
@@ -102,7 +111,8 @@ Qwen3-Coder-Next is deliberately out of scope.
 
 ```bash
 python3 -m afa_campaign storage-inventory --label before-M2          # disk + Ollama + other model weights
-python3 -m afa_campaign remove-model --model <finished target> --reason "..."   # only if space is needed
+python3 -m afa_campaign remove-model --model <finished target> --reason "..." --confirm phase0-modern-local-v1   # only if space is needed
+python3 -m afa_campaign remove-weights --path <HF / LM Studio model dir> --reason "..." --confirm phase0-modern-local-v1   # non-Ollama weights, only if clearly model data and needed
 python3 -m afa_campaign pull-model --phase M2                        # reuse if installed; digest must equal the pin
 python3 -m afa_campaign smoke --phase M2 --confirm phase0-modern-local-v1   # 4 tasks x 1 rep, SCRATCH db (never evidence)
 python3 -m afa_campaign preflight --phase M2
@@ -110,6 +120,9 @@ python3 -m afa_campaign launch --phase M2 --confirm phase0-modern-local-v1  # 24
 python3 -m afa_campaign validate --phase M2                          # 24 cells / 120 accepted runs
 python3 -m afa_campaign model-receipt --phase M2                     # frozen receipt BEFORE any removal
 python3 -m afa_campaign status                                       # campaign progress
+# after the last model:
+python3 -m afa_campaign validate --phase all                         # whole cohort; COMPLETE only at >= minimum_ranked_models
+python3 -m afa_campaign baseline-report                              # OFFICIAL modern-local-leaderboard.{json,md}
 ```
 
 The campaign app runs throughout from this checkout: `AFA_DB_PATH="$PWD/reports/phase0-modern-local.sqlite"
@@ -128,7 +141,7 @@ recorded with `classify-model --phase Mx --status LOCAL_RESOURCE_LIMIT|LOCAL_RUN
 | Smoke | the first attempt was halted by a tooling defect (the smoke's own scratch plan demanded a prior smoke; fixed, recorded in the ledger as `halted`); the second attempt passed operationally: 4 evaluations, 1/4 passed, 2 timeouts |
 | Full batch | 24 fresh evaluations, 120 runs, 2026-09-27 20:55 → 22:50 UTC (1 h 55 min) |
 | Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
-| Scores | **40/120 passed — pass rate 0.333, Wilson 95% [0.255, 0.422]**; mean final score 0.481; 30 timeouts (19 ran the full 180 s request timeout; each time the model answered the one-token probe afterwards, so they are model behaviour); 0 agent errors |
+| Scores | **40/120 passed — pass rate 0.333, Wilson 95% [0.255, 0.422]**; mean final score 0.481; 30 timeouts (19 ran the full 180 s request timeout, in 13 evaluations; after each of those 13 evaluations the model answered a one-token generation probe, so they are treated as model behaviour; the other 11 exceeded the task's wall-clock limit); 0 agent errors; 22 runs produced no edit |
 | Receipt | `reports/phase0-modern-local/receipts/M1-qwen3.5-9b.json` (+ `.md`), sha256 `5924d5768149…`, recorded in the ledger |
 | Weights | removed after the receipt (6.1 GiB reclaimed); `validate --phase M1` re-run **without the model installed: COMPLETE** — model weights ≠ benchmark evidence |
 
@@ -161,7 +174,7 @@ Per task (passes / 5): 5/5: async-retry, escape-html, fix-list-dedup, fix-roman-
 | | |
 |---|---|
 | Identity | digest `24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8` = the pin, at submission and acceptance of all 24 cells; mistral3, 24.0B, Q4_K_M; 15.18 GB; Ollama 0.31.1 (server default context length 393216) |
-| Install | pulled 23:49 → 00:06 UTC on 2026-09-28 after M2's weights were removed; digest verified against the pin |
+| Install | pulled 2026-09-27 23:49 → 2026-09-28 00:06 UTC (16.6 min) after M2's weights were removed; digest verified against the pin |
 | Smoke | passed operationally: 4 evaluations, 2/4 passed, no timeouts |
 | Full batch | 24 fresh evaluations, 120 runs, 00:08 → 00:53 UTC on 2026-09-28 (44.6 min) |
 | Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
@@ -186,7 +199,7 @@ Per task (passes / 5): 5/5: fix-binary-search, fix-roman-numerals, implement-lru
 
 Passes per task: paginator 5, top-k-frequent 5, grid-paths 4, mask-secrets 4; 0/5 on the other 20 tasks.
 
-**Why this coding model scores low — an output-format failure, not a serving fault.** The frozen AgentForge agent
+**Why this coding model scores low — an output-format failure in the diagnosed case, not a serving fault.** The frozen AgentForge agent
 asks every model to answer with `# FILE: <path>` followed by a fenced ```` ```python ```` block holding the complete
 file, and its parser (`runner/afa_runner/agents_ollama.py`) applies only complete fenced blocks. Reproduced with the
 runtime's own prompt builder and request (temperature 0.8, seeds 42/43, outside the campaign database):
@@ -197,20 +210,24 @@ output, Ollama reports no output parser or thinking for this model, and every ot
 parser. Under the campaign's rules this is a benchmark outcome of the model under the uniform protocol (it ran
 normally and needed no special setting), not `LOCAL_RUNTIME_UNSUPPORTED`; the runtime was not changed. Its score
 measures format compliance with AgentForge's agent contract as much as coding ability, and should be read that way.
+The campaign stores no response text, so the cause of each of the 96 empty diffs is not individually verified; the
+missing opening fence is the cause found in the diagnosed case. (The diagnostic ran outside the campaign against the
+then-installed model; its prompts, responses and token counts were not persisted and are not part of the committed
+evidence — only a short operator note was kept outside the repository.)
 
 ### M5 (optional) — Qwen3.6 27B (`qwen3.6:27b`) — COMPLETE, ranked
 
 | | |
 |---|---|
-| Identity | digest `9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3` = the pin, at submission and acceptance of all 24 cells; qwen35, 27.3B, Q4_K_M (canonical GGUF tag, not the MLX variant); 17.77 GB; Ollama 0.31.1 |
+| Identity | digest `9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3` = the pin, at submission and acceptance of all 24 cells; qwen35, 27.3B, Q4_K_M (canonical GGUF tag, not the MLX variant); 17.77 GB; Ollama 0.31.1 (Ollama reported no default context length in the model details) |
 | Install | pulled 01:21 → 01:49 UTC on 2026-09-28 (28 min) after M4's weights were removed; digest verified against the pin |
-| Practicality check | smoke passed operationally (4 valid evaluations, 1/4 passed, 2 timeouts); resident model ~20 GB; memory 15–24 % free, swap flat, disk unchanged during the smoke — practical, so the optional batch ran |
-| Resources during the batch | memory 13–24 % free throughout, no OOM, no crash; macOS swap grew to ~14–17 GB on the data volume, so an 11.2 GiB LM Studio GGUF was removed (§3) and a watchdog would have stopped the model below 8 GiB free (it never fired; free disk stayed ≥ 11 GiB) |
+| Practicality check | smoke passed operationally (4 valid evaluations, 1/4 passed, 2 timeouts); resident model 17.3 GB (`ollama ps`: 17,269,050,571 bytes); system memory free 84 % before the smoke and 17 % after it, swap used 5.4 → 5.7 GB of 6 GB (recorded in the smoke record) — practical, so the optional batch ran |
+| Resources during the batch | memory 13–24 % free throughout, no OOM, no crash; macOS swap grew to ~14–17 GB on the data volume, so an 11.1 GiB LM Studio GGUF was removed (§3) and a watchdog would have stopped the model below 8 GiB free (it never fired; free disk stayed ≥ 11 GiB) — operator monitoring, not persisted; the storage log records 11.3 GiB free at 02:31Z before the LM Studio removal and 22.1 GiB before the final removal |
 | Full batch | 24 fresh evaluations, 120 runs, 01:59 → 07:21 UTC on 2026-09-28 (5 h 22 min) |
 | Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
-| Scores | **11/120 passed — pass rate 0.092, Wilson 95% [0.052, 0.157]**; mean final score 0.122; **105 timeouts** (83 ran the full 180 s request timeout; after each, the model answered the one-token probe, so they are model behaviour — it reasons for longer than the uniform time budget allows); 0 agent errors |
+| Scores | **11/120 passed — pass rate 0.092, Wilson 95% [0.052, 0.157]**; mean final score 0.122; **105 timeouts** (83 ran the full 180 s request timeout, in 20 evaluations; after each of those 20 evaluations the model answered a one-token generation probe, so they are treated as model behaviour; the other 22 answered within 180 s but exceeded the task's wall-clock limit — it reasons for longer than the uniform time budget allows); 0 agent errors; 83 runs produced no edit |
 | Receipt | `reports/phase0-modern-local/receipts/M5-qwen3.6-27b.json` (+ `.md`), sha256 `39f381d6e773…`, recorded in the ledger |
-| Weights | removed after the receipt; the whole campaign validated **COMPLETE with no benchmark model installed** |
+| Weights | removed after the receipt (16.5 GiB of weights; free disk rose 22.1 → 45.1 GiB as swap also shrank); the whole campaign validated **COMPLETE with no benchmark model installed** |
 
 Passes per task: fix-binary-search 4, fix-list-dedup 3, fix-roman-numerals 1, merge-intervals 1, query-builder 1,
 refactor-order-validation 1; 0/5 on the other 18 tasks (17 of them timed out on all 5 runs).
@@ -226,30 +243,32 @@ required models (the minimum) + 120 from the optional model.
 
 ### OFFICIAL modern local leaderboard (kernel ranking by Wilson 95 % lower bound)
 
-| rank | model | n | pass rate | Wilson 95 % | coverage |
-|---|---|---|---|---|---|
-| 1 | `gpt-oss:20b` | 120 | 0.800 | [0.720, 0.862] | 24/24 |
-| 2 | `devstral-small-2:24b` | 120 | 0.592 | [0.502, 0.675] | 24/24 |
-| 3 | `qwen3.5:9b` | 120 | 0.333 | [0.255, 0.422] | 24/24 |
-| 4 | `qwen3-coder:30b` | 120 | 0.150 | [0.097, 0.225] | 24/24 |
-| 5 | `qwen3.6:27b` | 120 | 0.092 | [0.052, 0.157] | 24/24 |
+| rank | model | n | pass rate | Wilson 95 % | coverage | timeouts (full 180 s request) | agent errors |
+|---|---|---|---|---|---|---|---|
+| 1 | `gpt-oss:20b` | 120 | 0.800 | [0.720, 0.862] | 24/24 | 0 (0) | 0 |
+| 2 | `devstral-small-2:24b` | 120 | 0.592 | [0.502, 0.675] | 24/24 | 5 (0) | 0 |
+| 3 | `qwen3.5:9b` | 120 | 0.333 | [0.255, 0.422] | 24/24 | 30 (19) | 0 |
+| 4 | `qwen3-coder:30b` | 120 | 0.150 | [0.097, 0.225] | 24/24 | 0 (0) | 0 |
+| 5 | `qwen3.6:27b` | 120 | 0.092 | [0.052, 0.157] | 24/24 | 105 (83) | 0 |
 
 Domain profiles (pooled pass rate per task domain, weighted by domain membership):
 
 | model | api-design | async-concurrency | backend | performance | security |
 |---|---|---|---|---|---|
-| `gpt-oss:20b` | 0.97 | 0.64 | 0.87 | 0.95 | 0.56 |
-| `devstral-small-2:24b` | 0.75 | 0.24 | 0.69 | 0.68 | 0.44 |
-| `qwen3.5:9b` | 0.17 | 0.08 | 0.37 | 0.42 | 0.48 |
-| `qwen3-coder:30b` | 0.25 | 0.00 | 0.04 | 0.45 | 0.16 |
-| `qwen3.6:27b` | 0.07 | 0.00 | 0.17 | 0.03 | 0.00 |
+| `gpt-oss:20b` | 0.975 | 0.640 | 0.872 | 0.950 | 0.560 |
+| `devstral-small-2:24b` | 0.750 | 0.240 | 0.688 | 0.675 | 0.440 |
+| `qwen3.5:9b` | 0.175 | 0.080 | 0.368 | 0.425 | 0.480 |
+| `qwen3-coder:30b` | 0.250 | 0.000 | 0.040 | 0.450 | 0.160 |
+| `qwen3.6:27b` | 0.075 | 0.000 | 0.168 | 0.025 | 0.000 |
 
 The full leaderboard, the 24-task × 5-model matrix, per-model domain profiles and the provenance summary are in
-`campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.{json,md}`; the per-model receipts in
+`campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.{json,md}` (regenerated after the final
+review from the unchanged database and ledger to add the timeout and agent-error columns); the per-model receipts in
 `results/receipts/`. **Reading the results:** every model got the same prompt, parser, task pins, temperature, seeds
 and 180 s request timeout. Two scores are dominated by that uniform protocol rather than by raw ability:
-Qwen3-Coder 30B-A3B's (96/120 answers without the opening code fence the agent contract requires — §6 M4) and
-Qwen3.6 27B's (105/120 runs over the time budget — §6 M5). Quantization and architecture differ naturally
+Qwen3-Coder 30B-A3B's (96/120 runs produced no edit; the missing opening code fence reproduced in §6 M4 is the
+cause found in the diagnosed case — the campaign stores no response text, so the cause of each of the 96 is not
+individually verified) and Qwen3.6 27B's (105/120 runs over the time budget — §6 M5). Quantization and architecture differ naturally
 (Q4_K_M ×4, MXFP4 for gpt-oss).
 
 ### Comparability with the historical baseline
@@ -271,7 +290,28 @@ benchmark definitions.
 | Model weights ≠ evidence | each model re-validated COMPLETE after its weights were removed; the final `validate --phase all` ran with none of them installed |
 | Campaign DB | `reports/phase0-modern-local.sqlite` (gitignored): 120 evaluations, 600 trials, 600 runs, 600 scores, 600 diffs, 8,949 test results; `PRAGMA integrity_check` ok; WAL checkpointed; sha256 `04babe7db1b8bdffbf8f92c3d3859f50c7cb05393ee5c1dd74cc724a43bbe36f` |
 | Ledger | `reports/phase0-modern-local/ledger.json` (gitignored), sha256 `8450e48f91802e92972713e336f4f9ef5eea882f7e84a4a136bfe84dbd98910a` at freezing |
-| Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced` — unchanged before the campaign, before every submission, after every model and at the end |
+| Tooling provenance | each model's launches ran at one committed tooling head — M1 `cfa9025`, M2 `7d58623`, M3 `58c8745`, M4 `4955f16`, M5 `b79ea47`; the acceptance code (`launcher.py`, `validate.py`, `ledger.py`, `analysis.py`, `status.py`) is byte-identical from `cfa9025` to the final campaign commit `56daab5` (later commits changed only lifecycle commands, the CLI and a manifest type check). Disclosed gaps: the passing M1 smoke (20:46:36Z) ran on the uncommitted fix later committed as `cfa9025` (20:54:54Z), and the first `remove-weights` (21:38:17Z) ran 12 s before its commit `411e7f7`; smokes and storage actions did not record a tooling revision at the time (they do now) |
+| Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced` — unchanged before the campaign, before every submission, after every model and at the end (the main file and its empty WAL are unchanged; its `-shm` sidecar was touched at 2026-09-27T22:52Z by a non-immutable read-only open) |
+
+### Final review and post-campaign tooling fixes
+
+An independent read-only fact-check of this report and a red-team review of the tooling ran after the last model.
+The report corrections are applied above. The tooling fixes landed after all 600 runs were accepted; none changes the
+acceptance predicate, and every committed result was regenerated from the same evidence (the campaign database and
+ledger are unchanged by them):
+
+- a plan derived from the campaign plan with `derive` (a rehearsal subset; `derive` never sets the explicit
+  `model_files_owner` opt-in) can no longer pull, remove, classify or remove weights — under its partial roster the
+  campaign's unfinished targets would look unowned;
+- `remove-weights` counts only weight files (by suffix, or ≥ 64 MiB Hugging Face `blobs/`) plus an allow-list of model
+  metadata, refuses any other file, refuses while campaign evaluations or a smoke app are live unless `--during-batch`
+  (which records the overlap), records the tooling revision, records a part-way failure as `PARTIAL`, and copies its
+  record into the ledger without the event-name collision that would have crashed that copy (never reached in this
+  campaign: both copies were refused by the launcher's lock). It now has regression tests;
+- `validate --phase all` reports a sequential cohort below `minimum_ranked_models` as incomplete (exit 1);
+- a reissued model receipt records the renamed superseded file and its sha256 (no receipt was reissued here);
+- the leaderboard now shows each model's timeouts, full-request timeouts and agent errors, and names the pinned
+  registry digests as the source of model identity; launches record whether the tooling tree was dirty.
 
 ### Committed vs not committed
 

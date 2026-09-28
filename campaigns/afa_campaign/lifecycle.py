@@ -203,18 +203,32 @@ def _db_busy(manifest: Manifest, client: api_mod.AgentForgeApi | None) -> list[s
     return sorted(set(busy))
 
 
+def tooling_state() -> dict:
+    """The tooling revision a lifecycle action ran on: git HEAD and whether the
+    tooling tree had uncommitted changes."""
+    from .launcher import _git
+
+    rc, head = _git("rev-parse", "HEAD")
+    rc2, dirty = _git("status", "--porcelain", "--", "campaigns/afa_campaign")
+    return {"head": head if rc == 0 else None, "dirty": bool(dirty) if rc2 == 0 else None}
+
+
 def pinned_ollama_version(manifest: Manifest) -> str | None:
     return (manifest.data.get("execution") or {}).get("ollama_server_version")
 
 
 def _require_campaign_plan(manifest: Manifest, what: str) -> None:
-    """Model files are only ever managed under a sequential-local plan - never the
-    historical plan (no roster) and never a smoke's scratch plan (its roster lists
-    only the smoked model, so every other campaign target would look unowned)."""
-    if not manifest.is_sequential or manifest.data.get("smoke_of"):
+    """Model files are only ever managed under a campaign's OWN sequential-local
+    plan - never the historical plan (no roster), never a smoke's scratch plan and
+    never another derived plan (a partial roster makes every other campaign target
+    look unowned), unless a self-contained derived plan explicitly declares that it
+    owns the model files it names (``model_files_owner``; the CLI never sets it)."""
+    derived = manifest.data.get("derived_from") and not manifest.data.get("model_files_owner")
+    if not manifest.is_sequential or manifest.data.get("smoke_of") or derived:
+        kind_text = (manifest.kind if not manifest.is_sequential else "a smoke plan" if manifest.data.get("smoke_of")
+                     else "a derived plan (it does not own the campaign's model files)")
         raise CampaignStop(f"{what} applies only to a sequential-local campaign plan (pass --manifest "
-                           "campaigns/phase0-modern-local-v1/manifest.json); this plan is "
-                           f"{'a smoke plan' if manifest.data.get('smoke_of') else manifest.kind}")
+                           f"campaigns/phase0-modern-local-v1/manifest.json); this plan is {kind_text}")
 
 
 def _check_server_version(manifest: Manifest, what: str) -> str | None:
@@ -489,6 +503,7 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
         free_before = disk_free()["free_bytes"]
         info = installed[model]
         record = {"model": model, "runtime": "ollama", "digest": info["digest"], "size_bytes": info["size_bytes"],
+                  "tooling": tooling_state(),
                   "format": info.get("format"), "reason": reason.strip(), "evidence_status": evidence_status,
                   "campaign_target": roster.get(model, {}).get("phase"), "free_bytes_before": free_before,
                   "requested_at": utc_now(), "outcome": "requested"}
@@ -513,6 +528,9 @@ def remove_model(manifest: Manifest, model: str, reason: str, *, client: api_mod
 
 
 WEIGHT_SUFFIXES = (".gguf", ".safetensors", ".bin", ".npz", ".pt", ".pth")
+# files that may sit BESIDE the weights of a model directory (metadata only)
+METADATA_SUFFIXES = (".json", ".md", ".txt", ".gitattributes", ".model", ".tiktoken", ".jinja", ".yaml", ".yml")
+METADATA_NAMES = (".DS_Store", "main", "LICENSE", "README")
 
 
 def _weight_roots() -> list[tuple[str, Path, int]]:
@@ -523,11 +541,14 @@ def _weight_roots() -> list[tuple[str, Path, int]]:
             ("lm-studio", home / ".lmstudio" / "models", 2)]
 
 
-def remove_weights(manifest: Manifest, path: str, reason: str, *, log=print) -> dict:
+def remove_weights(manifest: Manifest, path: str, reason: str, *, log=print, during_batch: bool = False) -> dict:
     """Remove ONE model directory of a Hugging Face hub cache or LM Studio store,
     recorded BEFORE the removal. Refused unless the directory sits exactly at a
-    model entry of such a store (no symlink escape) and is at least 90% weight
-    files: never user data, never anything else."""
+    model entry of such a store (no symlink escape), at least 90% of its bytes
+    are weight files and every other file is model metadata (config, tokenizer,
+    README, refs) - so no user file is ever removed. Refused while campaign
+    evaluations run or a smoke app is alive, unless ``during_batch`` (a disk
+    emergency), which records the active evaluations."""
     if not (reason and reason.strip()):
         raise LedgerError("removing model weights requires a written reason")
     _require_campaign_plan(manifest, "remove-weights")
@@ -547,25 +568,46 @@ def remove_weights(manifest: Manifest, path: str, reason: str, *, log=print) -> 
     if match is None or not real.is_dir():
         raise CampaignStop(f"{path} is not a model directory of a Hugging Face hub cache (models--*) or an LM Studio "
                            "store; nothing else is ever removed")
-    total, weights = 0, 0
+    total, weights, foreign = 0, 0, []
     for root_dir, _dirs, files in os.walk(real, followlinks=False):
         for name in files:
-            full = os.path.join(root_dir, name)
-            if os.path.islink(full):
+            full = Path(root_dir) / name
+            if full.is_symlink():
                 continue
-            size = os.lstat(full).st_size
+            size = full.lstat().st_size
             total += size
-            weights += size if name.lower().endswith(WEIGHT_SUFFIXES) or "/blobs/" in full else 0
+            rel_parts = full.relative_to(real).parts
+            # a Hugging Face hub entry stores its files as content-addressed blobs
+            hub_blob = match[0] == "huggingface-cache" and rel_parts[0] == "blobs"
+            if name.lower().endswith(WEIGHT_SUFFIXES) or (hub_blob and size >= 64 * 1024 * 1024):
+                weights += size
+            elif not (name.lower().endswith(METADATA_SUFFIXES) or name in METADATA_NAMES or hub_blob
+                      or rel_parts[0] == "refs"):
+                foreign.append(str(full.relative_to(real)))
+    if foreign:
+        raise CampaignStop(f"{path} holds files that are neither model weights nor model metadata "
+                           f"({foreign[:5]}); refused")
     if total == 0 or weights < 0.9 * total:
         raise CampaignStop(f"{path} is not (almost) only model weight files ({weights}/{total} bytes); refused")
+    ledger = _existing_ledger(manifest)
+    busy = (_active_evaluations(manifest, ledger, None) if ledger else _db_busy(manifest, None))
+    alive = live_smoke_apps(manifest)
+    if (busy or alive) and not during_batch:
+        raise CampaignStop(f"campaign evaluations are active ({busy}) or a smoke app is alive ({alive}); pass "
+                           "--during-batch only for a disk emergency (the overlap is recorded)")
     free_before = disk_free()["free_bytes"]
     record = {"action": "remove-weights", "runtime": match[0], "path": _home(real), "model": str(match[1]),
               "kind": _weight_kind(real), "bytes": total, "reason": reason.strip(),
               "evidence_status": "not a campaign model (model weights outside Ollama; no campaign evidence depends "
                                  "on them)", "free_bytes_before": free_before, "requested_at": utc_now(),
-              "outcome": "requested"}
+              "outcome": "requested", "active_evaluations_during_removal": busy, "tooling": tooling_state()}
     storage_log(manifest, record)  # recorded BEFORE the removal
-    shutil.rmtree(real)
+    try:
+        shutil.rmtree(real)
+    except OSError as exc:
+        storage_log(manifest, {**record, "action": "remove-weights-result", "outcome": "PARTIAL",
+                               "error": str(exc)[:300], "completed_at": utc_now()})
+        raise CampaignStop(f"removing {path} failed part-way ({exc}); recorded as PARTIAL") from None
     record.update(outcome="removed" if not real.exists() else "STILL PRESENT",
                   free_bytes_after=disk_free()["free_bytes"], completed_at=utc_now())
     record["reclaimed_bytes"] = record["free_bytes_after"] - free_before
@@ -743,12 +785,20 @@ def model_receipt(manifest: Manifest, phase: str, *, reissue: bool = False) -> t
                 old = target.with_suffix(suffix)
                 if old.exists():
                     old.rename(old.with_name(f"{old.stem}.superseded-{tag}{suffix}"))
-            result["supersedes"] = (ledger.data.get("receipts") or {}).get(phase)
+            previous = dict((ledger.data.get("receipts") or {}).get(phase) or {})
+            superseded_path = target.with_name(f"{target.stem}.superseded-{tag}.json")
+            previous.update(superseded_path=paths.display(superseded_path),
+                            superseded_sha256=file_sha256(superseded_path) if superseded_path.exists() else None)
+            result["supersedes"] = previous
         target.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
         (folder / f"{phase}-{_slug(model)}.md").write_text(render_model_receipt(result))
+        history = list(((ledger.data.get("receipts") or {}).get(phase) or {}).get("history") or [])
+        if result.get("supersedes"):
+            history.append({k: v for k, v in result["supersedes"].items() if k != "history"})
         ledger.data.setdefault("receipts", {})[phase] = {
             "path": paths.display(target), "sha256": file_sha256(target), "at": utc_now(), "model": model,
-            "accepted_runs": result["accepted_runs"], "digest": digests[0] if len(digests) == 1 else digests}
+            "accepted_runs": result["accepted_runs"], "digest": digests[0] if len(digests) == 1 else digests,
+            **({"history": history} if history else {})}
         ledger.event("model_receipt", phase=phase, model=model, accepted_runs=result["accepted_runs"])
         ledger.save()
         return result, target
@@ -840,6 +890,7 @@ def run_smoke(manifest: Manifest, phase: str, *, port: int = 8792, log=print, ta
         init_db(smoke)
         record = {"phase": phase, "model": model, "smoke_campaign_id": smoke_id, "scratch": paths.display(folder),
                   "tasks": smoke_tasks, "started_at": utc_now(), "ollama_version": version,
+                  "tooling": tooling_state(),
                   "operational_ok": False, "outcome": "started", "failure": None,
                   "memory_before": _memory_snapshot(),
                   "note": "operational check only: a low score is not a smoke failure; never campaign evidence"}

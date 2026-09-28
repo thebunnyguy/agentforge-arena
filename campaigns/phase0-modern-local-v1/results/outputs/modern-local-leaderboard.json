@@ -2,7 +2,7 @@
   "report": "modern-local-leaderboard",
   "campaign_id": "phase0-modern-local-v1",
   "manifest_sha256": "sha256:a89bf89f41c54ddb219237882af595a2bfd7109c5733bf59dbae78671b4db6d1",
-  "generated_at": "2026-09-28T07:22:58Z",
+  "generated_at": "2026-09-28T08:10:57Z",
   "official": true,
   "label": "OFFICIAL modern local leaderboard",
   "model_states": {
@@ -155,6 +155,9 @@
         "fraction": 1.0
       },
       "voided_runs": 0,
+      "timeouts": 0,
+      "request_timeout_hits": 0,
+      "agent_errors": 0,
       "evaluation_ids": [
         "0745d339082c47ccb92af3590bb9f855",
         "133193e4e1c24fa2b83e92d5b848ee4a",
@@ -197,6 +200,9 @@
         "fraction": 1.0
       },
       "voided_runs": 0,
+      "timeouts": 5,
+      "request_timeout_hits": 0,
+      "agent_errors": 0,
       "evaluation_ids": [
         "07801af6cc734e08bedfcf54ed28c475",
         "0854091dab254c5c906ada6841085826",
@@ -239,6 +245,9 @@
         "fraction": 1.0
       },
       "voided_runs": 0,
+      "timeouts": 30,
+      "request_timeout_hits": 19,
+      "agent_errors": 0,
       "evaluation_ids": [
         "10e911b69a1a4e0480dcc0d0934f187c",
         "1bb5329c2dfe4e90b2bec70b0be3c213",
@@ -281,6 +290,9 @@
         "fraction": 1.0
       },
       "voided_runs": 0,
+      "timeouts": 0,
+      "request_timeout_hits": 0,
+      "agent_errors": 0,
       "evaluation_ids": [
         "168d5faa50244fc99c12d9957cad0b4e",
         "29be2ea16b7f470aa002fb065b647f54",
@@ -323,6 +335,9 @@
         "fraction": 1.0
       },
       "voided_runs": 0,
+      "timeouts": 105,
+      "request_timeout_hits": 83,
+      "agent_errors": 0,
       "evaluation_ids": [
         "0fe52f6e407b4256bed422196d95836b",
         "169c75683861495a83a8c495355dc1ab",
@@ -6535,12 +6550,12 @@
           "at_finalize": "9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3"
         }
       },
-      "source": "external Ollama inventory snapshots recorded by the launcher (not AgentForge-persisted)"
+      "source": "pinned registry digests in the frozen manifest, checked against the external Ollama inventory at every submission and acceptance (not AgentForge-persisted)"
     },
     "excluded_cells": [],
     "completeness_receipt": {
       "complete": true,
-      "generated_at": "2026-09-28T07:22:58Z",
+      "generated_at": "2026-09-28T08:10:57Z",
       "expected": {
         "scope": "all",
         "cells": 120,

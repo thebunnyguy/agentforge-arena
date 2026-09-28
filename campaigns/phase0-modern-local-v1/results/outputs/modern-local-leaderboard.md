@@ -18,13 +18,13 @@ Only models whose full 24 tasks x 5 repetitions batch is accepted are ranked; ev
 
 ## Leaderboard (kernel Wilson 95% lower-bound ranking)
 
-| rank | model | n | pass rate | Wilson 95% | coverage | voided | provisional |
-|---|---|---|---|---|---|---|---|
-| 1 | gpt-oss:20b | 120 | 0.800 | [0.720, 0.862] | 24/24 | 0 | no |
-| 2 | devstral-small-2:24b | 120 | 0.592 | [0.502, 0.675] | 24/24 | 0 | no |
-| 3 | qwen3.5:9b | 120 | 0.333 | [0.255, 0.422] | 24/24 | 0 | no |
-| 4 | qwen3-coder:30b | 120 | 0.150 | [0.097, 0.225] | 24/24 | 0 | no |
-| 5 | qwen3.6:27b | 120 | 0.092 | [0.052, 0.157] | 24/24 | 0 | no |
+| rank | model | n | pass rate | Wilson 95% | coverage | voided | timeouts (full request) | agent errors | provisional |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | gpt-oss:20b | 120 | 0.800 | [0.720, 0.862] | 24/24 | 0 | 0 (0) | 0 | no |
+| 2 | devstral-small-2:24b | 120 | 0.592 | [0.502, 0.675] | 24/24 | 0 | 5 (0) | 0 | no |
+| 3 | qwen3.5:9b | 120 | 0.333 | [0.255, 0.422] | 24/24 | 0 | 30 (19) | 0 | no |
+| 4 | qwen3-coder:30b | 120 | 0.150 | [0.097, 0.225] | 24/24 | 0 | 0 (0) | 0 | no |
+| 5 | qwen3.6:27b | 120 | 0.092 | [0.052, 0.157] | 24/24 | 0 | 105 (83) | 0 | no |
 
 ## Task matrix (passes/valid, Wilson 95%)
 
