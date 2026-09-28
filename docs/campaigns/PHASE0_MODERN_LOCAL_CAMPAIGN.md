@@ -56,6 +56,7 @@ status, free space before/after):
 | before M1 | `qwen3.6:27b-mlx` (Ollama, MLX nvfp4) | 18.4 GiB | authorized MLX weights; 3.9 GiB free was too low to operate safely and to pull the next target | not a campaign model | 22 GiB |
 | during M1 | `unsloth/Qwen3.6-27B-GGUF` (Hugging Face cache, one Q4_K_M GGUF) | 15.7 GiB | macOS swap grew on the same volume during the batch (free space fell from 20 to 12 GiB); clearly model data, re-downloadable, redundant with the Ollama `qwen3.6:27b` target | not a campaign model (outside Ollama) | 27 GiB |
 | after M1's receipt | `qwen3.5:9b` (Ollama, campaign target M1) | 6.1 GiB | M1 complete and frozen; disk needed for M2 with headroom | receipt `M1-qwen3.5-9b.json` frozen with 120 accepted runs, re-validated complete | 34 GiB |
+| after M2's receipt | `gpt-oss:20b` (Ollama, campaign target M2) | 12.8 GiB | M2 complete and frozen; disk needed for M3 with headroom | receipt `M2-gpt-oss-20b.json` frozen with 120 accepted runs, re-validated complete | 32.9 GiB |
 
 ## 4. Campaign configuration (frozen)
 
@@ -129,6 +130,21 @@ toposort, validate-redirect-url.
 
 Disclosure: independent test agents ran the tooling's test suite on this machine during part of M1's batch (extra
 CPU load); from M2 on, tests ran only between batches.
+
+### M2 — gpt-oss 20B (`gpt-oss:20b`) — COMPLETE, ranked
+
+| | |
+|---|---|
+| Identity | digest `17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7` = the pin, at submission and acceptance of all 24 cells; gptoss, 20.9B, MXFP4; 13.79 GB; Ollama 0.31.1 (server default context length 131072) |
+| Install | pulled 2026-09-27 22:57 → 23:08 UTC (10.5 min) after M1's weights were removed; digest verified against the pin |
+| Smoke | passed operationally: 4 evaluations, 2/4 passed, no timeouts |
+| Full batch | 24 fresh evaluations, 120 runs, 23:09 → 23:49 UTC on 2026-09-27 (39.5 min) |
+| Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
+| Scores | **96/120 passed — pass rate 0.800, Wilson 95% [0.720, 0.862]**; mean final score 0.961; 0 timeouts; 0 agent errors |
+| Receipt | `reports/phase0-modern-local/receipts/M2-gpt-oss-20b.json` (+ `.md`), sha256 `e8fa7809f91a…`, recorded in the ledger |
+| Weights | removed after the receipt (12.8 GiB reclaimed); M1 and M2 re-validated **COMPLETE without either model installed** |
+
+Per task (passes / 5): 5/5: async-retry, escape-html, fix-list-dedup, fix-roman-numerals, grid-paths, implement-lru-cache, merge-intervals, paginator, query-builder, result-type, top-k-frequent, two-sum-indices; 4/5: async-timeout, expression-evaluator, fix-binary-search, refactor-order-validation, toposort; 3/5: async-batched, async-first-success, fix-path-traversal, mask-secrets, sanitize-filename; 1/5: async-gather-bounded; 0/5: validate-redirect-url.
 
 ## 7. Final cohort, leaderboard and integrity
 
