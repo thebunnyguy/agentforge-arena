@@ -58,6 +58,7 @@ status, free space before/after):
 | after M1's receipt | `qwen3.5:9b` (Ollama, campaign target M1) | 6.1 GiB | M1 complete and frozen; disk needed for M2 with headroom | receipt `M1-qwen3.5-9b.json` frozen with 120 accepted runs, re-validated complete | 34 GiB |
 | after M2's receipt | `gpt-oss:20b` (Ollama, campaign target M2) | 12.8 GiB | M2 complete and frozen; disk needed for M3 with headroom | receipt `M2-gpt-oss-20b.json` frozen with 120 accepted runs, re-validated complete | 32.9 GiB |
 | after M3's receipt | `devstral-small-2:24b` (Ollama, campaign target M3) | 14.1 GiB | M3 complete and frozen; disk needed for M4 with headroom | receipt `M3-devstral-small-2-24b.json` frozen with 120 accepted runs, re-validated complete | 30.6 GiB |
+| after M4's receipt | `qwen3-coder:30b` (Ollama, campaign target M4) | 17.3 GiB | M4 complete and frozen; disk needed for the optional M5 with headroom | receipt `M4-qwen3-coder-30b.json` frozen with 120 accepted runs, re-validated complete | 33.8 GiB |
 
 ## 4. Campaign configuration (frozen)
 
@@ -161,6 +162,33 @@ Per task (passes / 5): 5/5: async-retry, escape-html, fix-list-dedup, fix-roman-
 | Weights | removed after the receipt (14.1 GiB reclaimed); M1, M2 and M3 re-validated **COMPLETE without their models installed** |
 
 Per task (passes / 5): 5/5: fix-binary-search, fix-roman-numerals, implement-lru-cache, mask-secrets, merge-intervals, paginator, query-builder, refactor-order-validation, two-sum-indices; 4/5: async-timeout, fix-list-dedup, grid-paths, sanitize-filename; 3/5: toposort; 2/5: async-gather-bounded, top-k-frequent; 1/5: escape-html, expression-evaluator, fix-path-traversal; 0/5: async-batched, async-first-success, async-retry, result-type, validate-redirect-url.
+
+### M4 — Qwen3-Coder 30B-A3B (`qwen3-coder:30b`) — COMPLETE, ranked
+
+| | |
+|---|---|
+| Identity | digest `06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca` = the pin, at submission and acceptance of all 24 cells; qwen3moe (30B-A3B MoE), 30.5B, Q4_K_M; 18.56 GB; Ollama 0.31.1 (server default context length 262144) |
+| Install | pulled 00:54 → 01:04 UTC on 2026-09-28 (11 min) after M3's weights were removed; digest verified against the pin |
+| Smoke | passed operationally (4 valid evaluations) but **0/4 passed, every diff empty** — investigated before the batch (below) |
+| Full batch | 24 fresh evaluations, 120 runs, 01:08 → 01:20 UTC on 2026-09-28 (12.4 min) |
+| Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
+| Scores | **18/120 passed — pass rate 0.150, Wilson 95% [0.097, 0.225]**; mean final score 0.184; 0 timeouts; 0 agent errors; **96 of 120 runs produced no edit** (M1 22, M2 1, M3 2) |
+| Receipt | `reports/phase0-modern-local/receipts/M4-qwen3-coder-30b.json` (+ `.md`), sha256 `bb816124966b…`, recorded in the ledger |
+| Weights | removed after the receipt (17.3 GiB reclaimed); M1–M4 re-validated **COMPLETE without their models installed** |
+
+Passes per task: paginator 5, top-k-frequent 5, grid-paths 4, mask-secrets 4; 0/5 on the other 20 tasks.
+
+**Why this coding model scores low — an output-format failure, not a serving fault.** The frozen AgentForge agent
+asks every model to answer with `# FILE: <path>` followed by a fenced ```` ```python ```` block holding the complete
+file, and its parser (`runner/afa_runner/agents_ollama.py`) applies only complete fenced blocks. Reproduced with the
+runtime's own prompt builder and request (temperature 0.8, seeds 42/43, outside the campaign database):
+`qwen3-coder:30b` answers `# FILE: <path>`, then the complete file, then a closing fence — **without the opening
+fence** — so no block is parsed and no edit is applied; in the reproduced `fix-binary-search` case the code itself
+was a correct fix. `/api/generate` and `/api/chat` produced identical prompt-token counts (470 / 511) and identical
+output, Ollama reports no output parser or thinking for this model, and every other model got the same prompt and
+parser. Under the campaign's rules this is a benchmark outcome of the model under the uniform protocol (it ran
+normally and needed no special setting), not `LOCAL_RUNTIME_UNSUPPORTED`; the runtime was not changed. Its score
+measures format compliance with AgentForge's agent contract as much as coding ability, and should be read that way.
 
 ## 7. Final cohort, leaderboard and integrity
 
