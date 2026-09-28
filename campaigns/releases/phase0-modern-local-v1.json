@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "id": "phase0-modern-local-v1",
+  "title": "AgentForge Modern Local Benchmark v1",
+  "short_title": "Modern Local v1",
+  "status": "OFFICIAL",
+  "released_at": "2026-09-28",
+  "summary": "Five modern, locally runnable coding models, each run fresh on all 24 audited AgentForge tasks five times through the Phase-0 runtime, one model at a time, on one Apple M4 Max through Ollama.",
+  "source": {
+    "kind": "campaign",
+    "campaign_dir": "campaigns/phase0-modern-local-v1",
+    "leaderboard": "results/outputs/modern-local-leaderboard.json",
+    "completeness": "results/outputs/completeness-receipt-all.json",
+    "receipts": "results/receipts",
+    "sha256sums": "results/SHA256SUMS",
+    "task_version_changes": "integrity/pack-audit/remediation-manifest.json"
+  },
+  "git": {
+    "repository_url": "https://github.com/thebunnyguy/agentforge-arena",
+    "tag": "phase0-modern-local-v1",
+    "commit": "92a3b0c6195d7bc9c5856ad0788e8cfd1fdaf230"
+  },
+  "headline": {
+    "inference": "local Ollama inference",
+    "paid_api_cost": {
+      "text": "$0 paid API cost",
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §4 and §7: local only, no hosted or paid fallback; no hosted or paid service was used"
+    }
+  },
+  "environment": {
+    "scope": "LOCAL benchmark: every model ran on one machine through a local Ollama server. The results describe this hardware and this uniform time budget, not hosted or cloud deployment performance.",
+    "hardware": {
+      "chip": "Apple M4 Max",
+      "architecture": "arm64",
+      "memory": "36 GiB unified memory",
+      "os": "macOS 27.0",
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §2 Environment (operator-recorded; the campaign artifacts record no hardware fields)"
+    },
+    "hosted_api": "none — no hosted or paid API was used or available as a fallback"
+  },
+  "ranking_method": "Official rank = the AgentForge kernel's ranking by Wilson 95% lower bound (kernel/afa_kernel/ranking.py rank_by_lcb), computed by the campaign tooling (campaigns/afa_campaign/analysis.py official_baseline). Pass rate alone does not order the table.",
+  "documented_facts": [
+    {
+      "id": "qwen3-coder-no-edit-runs",
+      "model": "qwen3-coder:30b",
+      "label": "Runs with no applied edit",
+      "value": 96,
+      "of": 120,
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §6 M4 (counted from the campaign database, which is not committed; the committed artifacts do not carry this count)"
+    }
+  ],
+  "caveats": [
+    {
+      "id": "qwen3-coder-protocol-sensitivity",
+      "model": "qwen3-coder:30b",
+      "kind": "protocol-sensitivity",
+      "label": "Protocol sensitivity",
+      "summary": "Protocol sensitivity was demonstrated in a diagnosed case; the overall result reflects both coding performance and compliance with AgentForge v1's output contract.",
+      "points": [
+        "96 of 120 campaign runs produced no applied edit.",
+        "In a diagnosed reproduction, the model produced a correct code change but omitted AgentForge v1's required opening code fence, so no edit was applied.",
+        "The campaign stores no raw model responses, so that specific cause is not independently proven for all 96 runs.",
+        "The score reflects both task performance and compliance with AgentForge v1's output protocol. It is not a finding that the model has poor underlying coding capability."
+      ],
+      "checks": [],
+      "documented_fact": "qwen3-coder-no-edit-runs",
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §6 M4; docs/release/PHASE0_MODERN_LOCAL_PROMOTION.md §3"
+    },
+    {
+      "id": "qwen3.6-latency-constrained",
+      "model": "qwen3.6:27b",
+      "kind": "latency-constrained",
+      "label": "Latency constrained",
+      "summary": "Performance under the fixed local latency budget was heavily constrained.",
+      "points": [
+        "105 of 120 runs were classified as timeouts.",
+        "83 of them were full 180-second model request timeouts.",
+        "This is performance under AgentForge's uniform local time budget on this hardware (Apple M4 Max, 36 GiB). It should not be read as a general conclusion about the model's capability or about its performance in other environments."
+      ],
+      "checks": [
+        { "field": "timeouts", "equals": 105 },
+        { "field": "request_timeout_hits", "equals": 83 },
+        { "field": "runs", "equals": 120 }
+      ],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §6 M5; docs/release/PHASE0_MODERN_LOCAL_PROMOTION.md §3"
+    },
+    {
+      "id": "historical-not-comparable",
+      "model": null,
+      "kind": "non-comparable",
+      "label": "Not comparable with historical results",
+      "summary": "Historical results are not directly comparable with Modern Local v1. Eighteen of the 24 task definitions changed and the historical runs predate the current evaluation-integrity system.",
+      "points": [
+        "The 720 pre-Phase-0 runs used older versions of 18 of the 24 tasks, a different runtime path and, for some models, other generation settings.",
+        "The two result sets are never pooled. qwen3.5:9b appears in both; its equal 40/120 counts are a coincidence on different benchmark definitions."
+      ],
+      "checks": [],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §1 and §7 Comparability; integrity/pack-audit/remediation-manifest.json summary"
+    }
+  ],
+  "integrity_not_claimed": [
+    {
+      "property": "Hidden-test isolation",
+      "status": "UNVERIFIABLE",
+      "note": "The ORACLE benchmark audit rates hidden-test isolation UNVERIFIABLE for all 24 tasks: under the trusted-local sandbox the code under test can read the hidden-test file while the hidden suite runs (confirmed by the audit's isolation probe). AgentForge makes no hidden-test isolation claim; the sandbox provides workspace isolation and timeouts, not security isolation.",
+      "source": "docs/BENCHMARK_INTEGRITY.md (isolation.hidden_test_readability, integrity/afa_integrity/checks/isolation.py); docs/release/PHASE0_MASTER_PROMOTION.md"
+    }
+  ],
+  "evidence_links": [
+    { "label": "Campaign report", "path": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md", "kind": "report" },
+    { "label": "Promotion receipt", "path": "docs/release/PHASE0_MODERN_LOCAL_PROMOTION.md", "kind": "report" },
+    { "label": "Campaign manifest (frozen plan)", "path": "campaigns/phase0-modern-local-v1/manifest.json", "kind": "manifest" },
+    { "label": "Official leaderboard dataset", "path": "campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.json", "kind": "dataset" },
+    { "label": "Official leaderboard (Markdown)", "path": "campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.md", "kind": "dataset" },
+    { "label": "Completeness receipt", "path": "campaigns/phase0-modern-local-v1/results/outputs/completeness-receipt-all.json", "kind": "receipt" },
+    { "label": "Result hashes (SHA256SUMS)", "path": "campaigns/phase0-modern-local-v1/results/SHA256SUMS", "kind": "receipt" },
+    { "label": "Storage audit log", "path": "campaigns/phase0-modern-local-v1/results/inventories/storage-log.jsonl", "kind": "inventory" }
+  ]
+}

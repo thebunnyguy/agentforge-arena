@@ -1,0 +1,3342 @@
+{
+  "schema_version": 1,
+  "id": "phase0-modern-local-v1",
+  "title": "AgentForge Modern Local Benchmark v1",
+  "short_title": "Modern Local v1",
+  "status": "OFFICIAL",
+  "released_at": "2026-09-28",
+  "summary": "Five modern, locally runnable coding models, each run fresh on all 24 audited AgentForge tasks five times through the Phase-0 runtime, one model at a time, on one Apple M4 Max through Ollama.",
+  "repository": {
+    "url": "https://github.com/thebunnyguy/agentforge-arena",
+    "ref": "phase0-modern-local-v1",
+    "commit": "92a3b0c6195d7bc9c5856ad0788e8cfd1fdaf230"
+  },
+  "campaign_id": "phase0-modern-local-v1",
+  "comparable": true,
+  "ranked": true,
+  "counts": {
+    "models": 5,
+    "models_ranked": 5,
+    "tasks": 24,
+    "repetitions": 5,
+    "evaluations": 120,
+    "runs": 600,
+    "runs_per_model": 120
+  },
+  "headline": {
+    "inference": "local Ollama inference",
+    "paid_api_cost": {
+      "text": "$0 paid API cost",
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §4 and §7: local only, no hosted or paid fallback; no hosted or paid service was used"
+    }
+  },
+  "environment": {
+    "scope": "LOCAL benchmark: every model ran on one machine through a local Ollama server. The results describe this hardware and this uniform time budget, not hosted or cloud deployment performance.",
+    "hardware": {
+      "chip": "Apple M4 Max",
+      "architecture": "arm64",
+      "memory": "36 GiB unified memory",
+      "os": "macOS 27.0",
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §2 Environment (operator-recorded; the campaign artifacts record no hardware fields)"
+    },
+    "hosted_api": "none — no hosted or paid API was used or available as a fallback",
+    "ollama_version": "0.31.1",
+    "backend": "ollama"
+  },
+  "methodology": {
+    "campaign_id": "phase0-modern-local-v1",
+    "campaign_title": "AgentForge Modern Local Benchmark: sequential local cohort",
+    "plan_kind": "sequential-local",
+    "mode": "fresh",
+    "backend": {
+      "kind": "ollama",
+      "base_url": "http://127.0.0.1:11434"
+    },
+    "ollama_version": "0.31.1",
+    "temperature": 0.8,
+    "base_seed": 42,
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "seed_policy": "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx (0..repetitions-1) before each trial (set_run_seed), so position idx of every (model, task) cell uses the same seed and a resumed position re-uses its original seed",
+    "request": "the Phase-0 runtime's OllamaAgent calls /api/generate with only temperature and seed; every other inference setting (context length, thinking) is the Ollama server's default for that model, identical for every model of the campaign",
+    "request_timeout_s": 180,
+    "repetitions": 5,
+    "evaluation_granularity": "one fresh evaluation per (model, task) cell: tasks=[task_id], repeats=repetitions, name=<evaluation_name_prefix>:<phase>:<model>|<task_id>; phase = the model's roster phase",
+    "official_rule": "the leaderboard is OFFICIAL only when every roster model is either COMPLETE (24 cells, 120 accepted runs) or explicitly classified, and at least minimum_ranked_models models are COMPLETE",
+    "minimum_ranked_models": 3,
+    "ranking_method": "Official rank = the AgentForge kernel's ranking by Wilson 95% lower bound (kernel/afa_kernel/ranking.py rank_by_lcb), computed by the campaign tooling (campaigns/afa_campaign/analysis.py official_baseline). Pass rate alone does not order the table.",
+    "one_model_at_a_time": true,
+    "runtime_release": {
+      "tag": "phase0-integrity-v1",
+      "commit": "7369e67e1ceb4b2a566986f247961f8a63f99567",
+      "paths": [
+        "afa_api",
+        "runner",
+        "kernel",
+        "tasks"
+      ],
+      "rule": "the launcher refuses to run when the runtime paths differ from the release tag or have uncommitted changes"
+    },
+    "manifest_sha256": "sha256:a89bf89f41c54ddb219237882af595a2bfd7109c5733bf59dbae78671b4db6d1",
+    "ledger_sha256": "8450e48f91802e92972713e336f4f9ef5eea882f7e84a4a136bfe84dbd98910a",
+    "historical_evidence": {
+      "path": "reports/runs.sqlite",
+      "sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced"
+    },
+    "evidence_scope": {
+      "class": "real",
+      "ownership": "campaign-owned only: the active 'succeeded' ledger entry of each manifest cell whose evaluation passes every campaign check (cohort.check_cell_evaluation)",
+      "excludes": [
+        "mock / synthetic runs",
+        "legacy (unattested) runs",
+        "old task versions",
+        "provenance conflicts",
+        "evaluations the campaign ledger does not own",
+        "superseded ledger entries",
+        "cells failing a campaign check",
+        "the pre-Phase-0 historical evidence"
+      ]
+    },
+    "model_identity_source": "pinned registry digests in the frozen manifest, checked against the external Ollama inventory at every submission and acceptance (not AgentForge-persisted)"
+  },
+  "integrity": {
+    "complete": true,
+    "official": true,
+    "problems": [],
+    "warnings": [],
+    "planned_runs": 600,
+    "accepted_runs": 600,
+    "valid_runs": 600,
+    "planned_evaluations": 120,
+    "accepted_evaluations": 120,
+    "models_total": 5,
+    "models_complete": 5,
+    "tasks_total": 24,
+    "task_coverage_min": 24,
+    "missing_runs": 0,
+    "missing_evaluations": 0,
+    "extra_runs": 0,
+    "untracked_evaluations": 0,
+    "disowned_evaluations": 0,
+    "superseded_entries": 0,
+    "voided_runs": 0,
+    "evidence_classes": {
+      "real": 600,
+      "synthetic": 0,
+      "legacy": 0,
+      "conflict": 0
+    },
+    "backend_kind": "ollama",
+    "task_pins": {
+      "tasks": 24,
+      "basis": "every accepted run is at its task's pinned version and content digest (checked per run by the campaign validator; the completeness receipt is complete with no problems)"
+    },
+    "model_identity": {
+      "cells_at_pinned_digest": 120,
+      "cells_total": 120,
+      "ollama_version": "0.31.1"
+    },
+    "runtime": {
+      "tag": "phase0-integrity-v1",
+      "commit": "7369e67e1ceb4b2a566986f247961f8a63f99567",
+      "paths": [
+        "afa_api",
+        "runner",
+        "kernel",
+        "tasks"
+      ],
+      "launches_with_code_check": 5,
+      "launches": 5
+    },
+    "historical_evidence_unchanged": true,
+    "not_claimed": [
+      {
+        "property": "Hidden-test isolation",
+        "status": "UNVERIFIABLE",
+        "note": "The ORACLE benchmark audit rates hidden-test isolation UNVERIFIABLE for all 24 tasks: under the trusted-local sandbox the code under test can read the hidden-test file while the hidden suite runs (confirmed by the audit's isolation probe). AgentForge makes no hidden-test isolation claim; the sandbox provides workspace isolation and timeouts, not security isolation.",
+        "source": "docs/BENCHMARK_INTEGRITY.md (isolation.hidden_test_readability, integrity/afa_integrity/checks/isolation.py); docs/release/PHASE0_MASTER_PROMOTION.md"
+      }
+    ]
+  },
+  "domains": [
+    "api-design",
+    "async-concurrency",
+    "backend",
+    "performance",
+    "security"
+  ],
+  "task_pack": [
+    {
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:1bfcf38552c595e2f45f0b3e0bf9aecb47846d9d155e36fad71bd552ba265525",
+      "domains": [
+        {
+          "domain": "security",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": false
+    },
+    {
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:97d42f89f91ca3ba10ee968ac43ec0281bd986ece26f76f6a7bdaef7c13484ce",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": false
+    },
+    {
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:b8050c0f63f569c72738fdc8ae02ec19f5f52a23373788e1cffec4df0515f38b",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "async-retry",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:743f10eb2959463740a4c615a60af402fc9e9c650507bccdb0bba67dc4053897",
+      "domains": [
+        {
+          "domain": "async-concurrency",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "async-timeout",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:e2d6c2616c55f1910282e2862a5b7e49709d8d4231f5c97c92bc4c40e7f104fd",
+      "domains": [
+        {
+          "domain": "async-concurrency",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:e58739216d5cced5e441df27d4a629acf69890dddfa111e391a54e4c0ac384e6",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": false
+    },
+    {
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:711a4313f541efaaad7d782730f16ac5bdc09f86babf03e59cb27e4a6ac4cc19",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        },
+        {
+          "domain": "api-design",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": false
+    },
+    {
+      "task_id": "mask-secrets",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:be4619e8f0d6da8b484bc30d130eb1ad95838edb5068c206cd4d66a847293b3d",
+      "domains": [
+        {
+          "domain": "security",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "merge-intervals",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:413356d815870ac64bc74876b6f2a29006554e56c5d72d043bd69d154be5ab70",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        },
+        {
+          "domain": "performance",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "paginator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:8455df342ed6e853cadda163e970fb098fa916472fdfe2f9353d5648c75ef4db",
+      "domains": [
+        {
+          "domain": "api-design",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "result-type",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:34098c06cd150ab3166f3c221b8c8ff4685eea2f7cdea204c90fbbd719e820a1",
+      "domains": [
+        {
+          "domain": "api-design",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:4546131c33d455d531d3388e629ee3257a973c58b15f81ff5ec44ab99d150574",
+      "domains": [
+        {
+          "domain": "security",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:663be68e47533cb829a8c5add006bb24dc838d460190dccf231c4105b2520439",
+      "domains": [
+        {
+          "domain": "async-concurrency",
+          "weight": 1.0
+        },
+        {
+          "domain": "performance",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": false
+    },
+    {
+      "task_id": "async-first-success",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:d2371fcc477cbf55f47b364925a3719a7122b525cf8ad352aa6bc560cd5e3de6",
+      "domains": [
+        {
+          "domain": "async-concurrency",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:bdcf2f0d8fc40260fba5672b6b1017d0da70d47a099e761178bbb2221a97dc54",
+      "domains": [
+        {
+          "domain": "async-concurrency",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:048d526e856035d29278fcc443c99439cacc6aed3e94a28e50c7dbdb0857d8c2",
+      "domains": [
+        {
+          "domain": "security",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "grid-paths",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:8bd8923b24f8f5aa16b3cace88b8139c9ae23a69cbad95f5428f679439ae9276",
+      "domains": [
+        {
+          "domain": "performance",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "query-builder",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:fe812df540da8bdacbc65432fabbc8f6bf3ae63d4e6ad2abebf0246a544858c6",
+      "domains": [
+        {
+          "domain": "api-design",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:3e2ffe535ab5f3f0ac992e376637a5289a1683ce8e0292b8193b26e2308e3972",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        },
+        {
+          "domain": "api-design",
+          "weight": 0.5
+        }
+      ],
+      "activity": "refactoring",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:c4fb17f874fa701173602d5e8acf50578c7622ad9473baaef1ec5d2e70936d3c",
+      "domains": [
+        {
+          "domain": "performance",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "toposort",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:00858816e5473d96413cc1048ca43e569e378c063aa90c419b7871e1ea219251",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:c7005cb3b399ea7dd1f762352921e5f3588bd28e5fdfbe08515af96db63e4c7d",
+      "domains": [
+        {
+          "domain": "performance",
+          "weight": 1.0
+        },
+        {
+          "domain": "backend",
+          "weight": 0.5
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 20,
+      "version_changed_since_pre_phase0": false
+    },
+    {
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:c7d40bc86203bac8765553e9a2da5f72aad730a2f102cdc36ee0b215aebbac07",
+      "domains": [
+        {
+          "domain": "security",
+          "weight": 1.0
+        }
+      ],
+      "activity": "debugging-bugfix",
+      "timeout_s": 60,
+      "version_changed_since_pre_phase0": true
+    },
+    {
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:164d48bd040cf2c0c16865284fccd4f8b2b9358fc45e65139cf69dd4dc9cfee3",
+      "domains": [
+        {
+          "domain": "backend",
+          "weight": 1.0
+        }
+      ],
+      "activity": "feature-implementation",
+      "timeout_s": 120,
+      "version_changed_since_pre_phase0": true
+    }
+  ],
+  "models": [
+    {
+      "id": "gpt-oss:20b",
+      "display_name": "gpt-oss 20B",
+      "phase": "M2",
+      "optional": false,
+      "state": "COMPLETE",
+      "ranked": true,
+      "classification": null,
+      "rank": {
+        "low": 1,
+        "high": 1,
+        "provisional": false
+      },
+      "identity": {
+        "ollama_tag": "gpt-oss:20b",
+        "digest": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+        "family": "gptoss",
+        "parameter_size": "20.9B",
+        "quantization": "MXFP4",
+        "format": "gguf",
+        "download_bytes": 13793440755,
+        "context_length": 131072,
+        "digest_verified_cells": 24,
+        "ollama_version": "0.31.1"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 96,
+        "pass_rate": 0.8,
+        "wilson_low": 0.7196316465662729,
+        "wilson_high": 0.8617561908001696,
+        "mean_final_score": 0.96132337241748,
+        "timeouts": 0,
+        "request_timeout_hits": 0,
+        "agent_errors": 0,
+        "voided": 0
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-09-27T23:09:55Z",
+        "finished_at": "2026-09-27T23:49:23Z"
+      },
+      "tooling_heads": [
+        "7d586235523d9cbc9b5dd132b249f7582016895d"
+      ],
+      "receipt": "campaigns/phase0-modern-local-v1/results/receipts/M2-gpt-oss-20b.json",
+      "domains": [
+        {
+          "domain": "api-design",
+          "pooled_pass_rate": 0.975,
+          "wilson_low": 0.8162188777590572,
+          "wilson_high": 0.9970885438851936,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.9951389826576091,
+          "displayable": true
+        },
+        {
+          "domain": "async-concurrency",
+          "pooled_pass_rate": 0.64,
+          "wilson_low": 0.44518154601046633,
+          "wilson_high": 0.7975234356826436,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.7975103971607864,
+          "displayable": true
+        },
+        {
+          "domain": "backend",
+          "pooled_pass_rate": 0.872,
+          "wilson_low": 0.7788220825557167,
+          "wilson_high": 0.9294783084626569,
+          "n_eff": 76.21951219512195,
+          "n_tasks": 17,
+          "n_runs": 85,
+          "stability": 0.8618065448209912,
+          "displayable": true
+        },
+        {
+          "domain": "performance",
+          "pooled_pass_rate": 0.95,
+          "wilson_low": 0.7802409941703117,
+          "wilson_high": 0.9902607737031892,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.988589113385309,
+          "displayable": true
+        },
+        {
+          "domain": "security",
+          "pooled_pass_rate": 0.56,
+          "wilson_low": 0.3706701701956443,
+          "wilson_high": 0.7333462505299744,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.8908671545456177,
+          "displayable": true
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "afcfbe631dbd44e78ec3e112a74b90d4"
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "d0ffeed3f7f64cd297756187abb1afea"
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "29d97226477e4e8ca74a7745d377a09b"
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "b17c7ffa2f4c471c9e5b90c02ee6d556"
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.9,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "cf9f4a1fd1a44687bb292f1ae0816293"
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "3a2e535f872048e0a9b2934cea740b61"
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "bc7b948eaa8c4903ac126999925caff5"
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.9333333333333333,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "0745d339082c47ccb92af3590bb9f855"
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "dc8d3be121d74c248e84b54eca921907"
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "b178da7ee39b4ddc8ab2f1cdece29ff1"
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "53ffd353d6954e398dae929fabd7da40"
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.9692307692307693,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "de881f853b2e422d8fb960b46f42e927"
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.9666666666666666,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "3d9b6d3933394550b065533639165d0f"
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.95,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "f74badacd54047d5b5526d1c75bfc5de"
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.8444444444444444,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "30f570756c124b188a0d3505c7466635"
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.96,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8677105c7d054dfd93b5ca4e715558a9"
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8e3e92665d964ee186dac136320fa158"
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "133193e4e1c24fa2b83e92d5b848ee4a"
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.9913043478260869,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "6aceb644d2d142659c4e5662ef5e090e"
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "9cb1f6e0cdbe4fd3a6045dc88346eb31"
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8923076923076924,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "59a4057de28e4cb29ec8ebfc9e5d443a"
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "6a59d50d0132469dae57dc4a846c2282"
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.875,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "9777a932aaaf45f2bad2665a2f7b05c1"
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.9894736842105264,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "3fb7391bbb7d49c7b89eb827253a1de3"
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "devstral-small-2:24b",
+      "display_name": "Devstral Small 2 24B",
+      "phase": "M3",
+      "optional": false,
+      "state": "COMPLETE",
+      "ranked": true,
+      "classification": null,
+      "rank": {
+        "low": 2,
+        "high": 2,
+        "provisional": false
+      },
+      "identity": {
+        "ollama_tag": "devstral-small-2:24b",
+        "digest": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+        "family": "mistral3",
+        "parameter_size": "24.0B",
+        "quantization": "Q4_K_M",
+        "format": "gguf",
+        "download_bytes": 15177373679,
+        "context_length": 393216,
+        "digest_verified_cells": 24,
+        "ollama_version": "0.31.1"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 71,
+        "pass_rate": 0.5916666666666667,
+        "wilson_low": 0.5022061864748179,
+        "wilson_high": 0.6754400971649285,
+        "mean_final_score": 0.8291664524559261,
+        "timeouts": 5,
+        "request_timeout_hits": 0,
+        "agent_errors": 0,
+        "voided": 0
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-09-28T00:08:38Z",
+        "finished_at": "2026-09-28T00:53:15Z"
+      },
+      "tooling_heads": [
+        "58c8745413b4e87d114aa60733108e347dc583c6"
+      ],
+      "receipt": "campaigns/phase0-modern-local-v1/results/receipts/M3-devstral-small-2-24b.json",
+      "domains": [
+        {
+          "domain": "api-design",
+          "pooled_pass_rate": 0.75,
+          "wilson_low": 0.5458832011254775,
+          "wilson_high": 0.882173336582023,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 1.0,
+          "displayable": true
+        },
+        {
+          "domain": "async-concurrency",
+          "pooled_pass_rate": 0.24,
+          "wilson_low": 0.11496157730326725,
+          "wilson_high": 0.43430059955238565,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.5801732327959555,
+          "displayable": true
+        },
+        {
+          "domain": "backend",
+          "pooled_pass_rate": 0.688,
+          "wilson_low": 0.5770905199842875,
+          "wilson_high": 0.7808677421432775,
+          "n_eff": 76.21951219512195,
+          "n_tasks": 17,
+          "n_runs": 85,
+          "stability": 0.6878503349155904,
+          "displayable": true
+        },
+        {
+          "domain": "performance",
+          "pooled_pass_rate": 0.675,
+          "wilson_low": 0.47037832936704543,
+          "wilson_high": 0.829261247028205,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.6467968625769328,
+          "displayable": true
+        },
+        {
+          "domain": "security",
+          "pooled_pass_rate": 0.44,
+          "wilson_low": 0.2666537494700256,
+          "wilson_high": 0.6293298298043557,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.7279343726386921,
+          "displayable": true
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.2,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "e44074b7eec74e26a66c28a27e2806fc"
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "2c82e6783b3343b085a714ecb0a8854b"
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "0a5ae9f0b68644f7a4b45d846cfa714f"
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.8571428571428571,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "5444476b17624948bd9eebecc391a51a"
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.9,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "eaf3d5ebf5834d30882ced865a0c63f7"
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8d0f8535b7c445e3928bcc7403d86962"
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "b4f44d83551a4da6a907900b39ceccc9"
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "d50f80f5e9624dc9bcc53009bbf14fef"
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "12c4c6714e144382affb84364b58f1a2"
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "07801af6cc734e08bedfcf54ed28c475"
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.9,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "0854091dab254c5c906ada6841085826"
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.9846153846153847,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "911d7945ccac430bbe3802b5cd5e1e32"
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.9166666666666666,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "672089d6acc1456f9df927d0bd634430"
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.575,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "ee7f0c6d5766463483561ff595068897"
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "pass_rate": 0.4,
+          "wilson_low": 0.1176182311592533,
+          "wilson_high": 0.769280067791163,
+          "mean_final_score": 0.4444444444444445,
+          "timeouts": 2,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a2e75dd441d84e43b6e29aba02dccb3f"
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.82,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "decc2327b6ed4024988dba67a4da5757"
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.9076923076923077,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "d5b05599e7cb464399046cadf2ba96d9"
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c7c082eac43c4d8cb83fdb415d894a61"
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "e3a88306e14d406a928eaed1fb4b550d"
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "pass_rate": 0.4,
+          "wilson_low": 0.1176182311592533,
+          "wilson_high": 0.769280067791163,
+          "mean_final_score": 0.4,
+          "timeouts": 3,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c9be1767fbbf4f61bee6af9c3d6f534c"
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.8615384615384615,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "6f6b39f3c1294f0b9d3b3151f8164ab4"
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "19269aa3a65544beb722164d54093cb2"
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.775,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "2abbeafb20ab4c1cb95bc2052e36e191"
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.5578947368421052,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "6c96c4f530b945189e383b2abcca0b76"
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "qwen3.5:9b",
+      "display_name": "Qwen 3.5 9B",
+      "phase": "M1",
+      "optional": false,
+      "state": "COMPLETE",
+      "ranked": true,
+      "classification": null,
+      "rank": {
+        "low": 3,
+        "high": 3,
+        "provisional": false
+      },
+      "identity": {
+        "ollama_tag": "qwen3.5:9b",
+        "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+        "family": "qwen35",
+        "parameter_size": "9.7B",
+        "quantization": "Q4_K_M",
+        "format": "gguf",
+        "download_bytes": 6594474236,
+        "context_length": 262144,
+        "digest_verified_cells": 24,
+        "ollama_version": "0.31.1"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 40,
+        "pass_rate": 0.3333333333333333,
+        "wilson_low": 0.255316102227993,
+        "wilson_high": 0.4216906547906502,
+        "mean_final_score": 0.4810142715577498,
+        "timeouts": 30,
+        "request_timeout_hits": 19,
+        "agent_errors": 0,
+        "voided": 0
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-09-27T20:55:04Z",
+        "finished_at": "2026-09-27T22:50:06Z"
+      },
+      "tooling_heads": [
+        "cfa9025bf804616e6b2bd2906461e382a021edcc"
+      ],
+      "receipt": "campaigns/phase0-modern-local-v1/results/receipts/M1-qwen3.5-9b.json",
+      "domains": [
+        {
+          "domain": "api-design",
+          "pooled_pass_rate": 0.175,
+          "wilson_low": 0.07023610330731325,
+          "wilson_high": 0.37329039767293615,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.35297652096281407,
+          "displayable": true
+        },
+        {
+          "domain": "async-concurrency",
+          "pooled_pass_rate": 0.08,
+          "wilson_low": 0.022219933691091917,
+          "wilson_high": 0.24966512122957818,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.47342040110322053,
+          "displayable": true
+        },
+        {
+          "domain": "backend",
+          "pooled_pass_rate": 0.368,
+          "wilson_low": 0.26850426137134786,
+          "wilson_high": 0.480163341815681,
+          "n_eff": 76.21951219512195,
+          "n_tasks": 17,
+          "n_runs": 85,
+          "stability": 0.42365248065544675,
+          "displayable": true
+        },
+        {
+          "domain": "performance",
+          "pooled_pass_rate": 0.425,
+          "wilson_low": 0.24796493952832163,
+          "wilson_high": 0.6236180991594281,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.09012217640266205,
+          "displayable": true
+        },
+        {
+          "domain": "security",
+          "pooled_pass_rate": 0.48,
+          "wilson_low": 0.30031003928960015,
+          "wilson_high": 0.6650178204685269,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.49566392843632073,
+          "displayable": true
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "b7b4d739a1294407b90ee0c0c16056f6"
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8666666666666666,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c547426684504a1fb7a60e1c7d4900f8"
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 1,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "22ae8db0d1a24502b6c1646dc7d62e0f"
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.34285714285714286,
+          "timeouts": 3,
+          "request_timeout_hits": 2,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "61266c5c9d9f4062b0fe0002346e5255"
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "pass_rate": 0.4,
+          "wilson_low": 0.1176182311592533,
+          "wilson_high": 0.769280067791163,
+          "mean_final_score": 0.4,
+          "timeouts": 1,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "7ae73065e29e430289d09c1b73fcaf27"
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 1,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "1bb5329c2dfe4e90b2bec70b0be3c213"
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 1,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "3d06f299de6c470cb9bfb1f147dba5eb"
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.9111111111111111,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "7254e530ca5d43af805d0ae8dc40b110"
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.7857142857142858,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a2bdbf3488664c0fa64e715021637221"
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "pass_rate": 0.4,
+          "wilson_low": 0.1176182311592533,
+          "wilson_high": 0.769280067791163,
+          "mean_final_score": 0.4,
+          "timeouts": 2,
+          "request_timeout_hits": 2,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "293be3b4b4284f39a95db2958aa5da70"
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.16,
+          "timeouts": 2,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "62f36d0620b44de8bd426c9e40a779a2"
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 1,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "30618e3037274d37b8033f52ff26b22f"
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.7333333333333333,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "9f15138527c040f2a335ce8293356157"
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.025,
+          "timeouts": 3,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a78db5015bfc47a0ba7561bf08a27f46"
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 3,
+          "request_timeout_hits": 3,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "4c77c90cc35e40f6a8ef3a71688cd25a"
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.48,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "54b0e072b95945e793e28d488a79ae40"
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.6,
+          "timeouts": 2,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "6e9587b51e3c4454896115b81b398261"
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.5555555555555556,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a0573744312e49da8dea8db504fcad7d"
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.3826086956521739,
+          "timeouts": 1,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "441c288b27584518b793cf36f3ed8536"
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.3111111111111111,
+          "timeouts": 3,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "61c0fb6ae7a241a698606b3487a7e563"
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.015384615384615385,
+          "timeouts": 3,
+          "request_timeout_hits": 3,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "4d55198e001a42f2a39ff406c7e61167"
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.6,
+          "timeouts": 2,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8a9e1b7649dd4baa9c68d7ac3c26cdbb"
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.575,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a8f8f4c95f0f4627b3a8d911c45e86d1"
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 1,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "10e911b69a1a4e0480dcc0d0934f187c"
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "qwen3-coder:30b",
+      "display_name": "Qwen3-Coder 30B-A3B",
+      "phase": "M4",
+      "optional": false,
+      "state": "COMPLETE",
+      "ranked": true,
+      "classification": null,
+      "rank": {
+        "low": 4,
+        "high": 4,
+        "provisional": false
+      },
+      "identity": {
+        "ollama_tag": "qwen3-coder:30b",
+        "digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+        "family": "qwen3moe",
+        "parameter_size": "30.5B",
+        "quantization": "Q4_K_M",
+        "format": "gguf",
+        "download_bytes": 18556700222,
+        "context_length": 262144,
+        "digest_verified_cells": 24,
+        "ollama_version": "0.31.1"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 18,
+        "pass_rate": 0.15,
+        "wilson_low": 0.09703734033668816,
+        "wilson_high": 0.22467684940246252,
+        "mean_final_score": 0.18425438596491228,
+        "timeouts": 0,
+        "request_timeout_hits": 0,
+        "agent_errors": 0,
+        "voided": 0
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-09-28T01:08:25Z",
+        "finished_at": "2026-09-28T01:20:51Z"
+      },
+      "tooling_heads": [
+        "4955f164912f0313af94eb72467127830541b998"
+      ],
+      "receipt": "campaigns/phase0-modern-local-v1/results/receipts/M4-qwen3-coder-30b.json",
+      "domains": [
+        {
+          "domain": "api-design",
+          "pooled_pass_rate": 0.25,
+          "wilson_low": 0.11782666341797707,
+          "wilson_high": 0.4541167988745225,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 1.0,
+          "displayable": true
+        },
+        {
+          "domain": "async-concurrency",
+          "pooled_pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.13319649395317873,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 1.0,
+          "displayable": true
+        },
+        {
+          "domain": "backend",
+          "pooled_pass_rate": 0.04,
+          "wilson_low": 0.013804869432540903,
+          "wilson_high": 0.11033980834043837,
+          "n_eff": 76.21951219512195,
+          "n_tasks": 17,
+          "n_runs": 85,
+          "stability": 0.9003270190220742,
+          "displayable": true
+        },
+        {
+          "domain": "performance",
+          "pooled_pass_rate": 0.45,
+          "wilson_low": 0.2683458025429043,
+          "wilson_high": 0.6460428899155958,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.7763932022500211,
+          "displayable": true
+        },
+        {
+          "domain": "security",
+          "pooled_pass_rate": 0.16,
+          "wilson_low": 0.06403347608577986,
+          "wilson_high": 0.34654013980238163,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.6601176674200321,
+          "displayable": true
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "506b4955ca5c4967a9758b6ce37b805f"
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "9da0c8b2d57044da915267a84264df57"
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "58f409c3a32243198fb2d9fd70e5d0e2"
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "969bf18d65604cdd85ae23caea1157b6"
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "168d5faa50244fc99c12d9957cad0b4e"
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "3e6b8b544ed744819be25ba9927adfe9"
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "d3744031909c4fbe9dd5caa666a513fb"
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "493f42c589e34d8e9f752aa4270859ed"
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "697f7dbd7cc24908b5474e6297e35029"
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "d58ec5bbb23642c3b1cee400a061574c"
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "ede929347c6c4bfb93276bde9ec06615"
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "4b96a48afe20402a9fab8a23110068c1"
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "95cf0f6e175943f2be51df1ea0d5bc2a"
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "29be2ea16b7f470aa002fb065b647f54"
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c3265526c531475990a2dcc3d8e06d08"
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.18,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "dd5b2ca2c5784646bbf27e2d3ac45e09"
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "d0bfe28d0f7947f199bfcb4ccb51eed5"
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "7868180aab0a4678bb9b315a0940e8ce"
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c7b80a7ba74642da8a72a3bd4d8c279e"
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "pass_rate": 1.0,
+          "wilson_low": 0.5655085052479191,
+          "wilson_high": 1.0,
+          "mean_final_score": 1.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a35079ce7e9a4448bf33d66a88677314"
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "36332ac1ec964d5eb30edf18c014c4d0"
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "bca2471bc6bf4768a2700facb85c2d18"
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "ba46cf78804046e0b2f243ee3b06470e"
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.6421052631578947,
+          "timeouts": 0,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "5167442c49d34c30ab336c440dd2bbc4"
+        }
+      ],
+      "caveat_ids": [
+        "qwen3-coder-protocol-sensitivity"
+      ],
+      "documented_facts": [
+        {
+          "id": "qwen3-coder-no-edit-runs",
+          "model": "qwen3-coder:30b",
+          "label": "Runs with no applied edit",
+          "value": 96,
+          "of": 120,
+          "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §6 M4 (counted from the campaign database, which is not committed; the committed artifacts do not carry this count)"
+        }
+      ]
+    },
+    {
+      "id": "qwen3.6:27b",
+      "display_name": "Qwen3.6 27B",
+      "phase": "M5",
+      "optional": true,
+      "state": "COMPLETE",
+      "ranked": true,
+      "classification": null,
+      "rank": {
+        "low": 5,
+        "high": 5,
+        "provisional": false
+      },
+      "identity": {
+        "ollama_tag": "qwen3.6:27b",
+        "digest": "9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3",
+        "family": "qwen35",
+        "parameter_size": "27.3B",
+        "quantization": "Q4_K_M",
+        "format": "gguf",
+        "download_bytes": 17769076719,
+        "context_length": null,
+        "digest_verified_cells": 24,
+        "ollama_version": "0.31.1"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 11,
+        "pass_rate": 0.09166666666666666,
+        "wilson_low": 0.0519566467894248,
+        "wilson_high": 0.15670990790625097,
+        "mean_final_score": 0.12222222222222222,
+        "timeouts": 105,
+        "request_timeout_hits": 83,
+        "agent_errors": 0,
+        "voided": 0
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-09-28T01:59:19Z",
+        "finished_at": "2026-09-28T07:21:15Z"
+      },
+      "tooling_heads": [
+        "b79ea4734ba47c5039480814d2e0d9d8f76a343a"
+      ],
+      "receipt": "campaigns/phase0-modern-local-v1/results/receipts/M5-qwen3.6-27b.json",
+      "domains": [
+        {
+          "domain": "api-design",
+          "pooled_pass_rate": 0.075,
+          "wilson_low": 0.01901221647004625,
+          "wilson_high": 0.25329166942720305,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.6645898033750315,
+          "displayable": true
+        },
+        {
+          "domain": "async-concurrency",
+          "pooled_pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.13319649395317873,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.8360216816500154,
+          "displayable": true
+        },
+        {
+          "domain": "backend",
+          "pooled_pass_rate": 0.168,
+          "wilson_low": 0.10049966111780848,
+          "wilson_high": 0.2673612802313853,
+          "n_eff": 76.21951219512195,
+          "n_tasks": 17,
+          "n_runs": 85,
+          "stability": 0.5980062112400303,
+          "displayable": true
+        },
+        {
+          "domain": "performance",
+          "pooled_pass_rate": 0.025,
+          "wilson_low": 0.002911456114806407,
+          "wilson_high": 0.18378112224094284,
+          "n_eff": 22.857142857142858,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 0.7857101521562702,
+          "displayable": true
+        },
+        {
+          "domain": "security",
+          "pooled_pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.13319649395317873,
+          "n_eff": 25.0,
+          "n_tasks": 5,
+          "n_runs": 25,
+          "stability": 1.0,
+          "displayable": true
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "334347ea3beb49818206b564674d6255"
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "pass_rate": 0.8,
+          "wilson_low": 0.3755282641185388,
+          "wilson_high": 0.9637768390302125,
+          "mean_final_score": 0.8,
+          "timeouts": 1,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8d2fdef5417246d78801d30a98f9360c"
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "pass_rate": 0.6,
+          "wilson_low": 0.23071993220883708,
+          "wilson_high": 0.8823817688407467,
+          "mean_final_score": 0.6,
+          "timeouts": 2,
+          "request_timeout_hits": 1,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "f6d2be037858470982197119dce71fef"
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "bb04332196be495b93e50ac3575243ba"
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "cdc27b7a23464d8d91260ddabc3ce769"
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.2,
+          "timeouts": 4,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "92e202c997f04702a1a6f2d8dd60c2a0"
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "b62102cd675e42ceba5a6dd7101bd0ad"
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "feece6324f7448d3b721306816ade7e9"
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.2,
+          "timeouts": 4,
+          "request_timeout_hits": 2,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "28ea6eaad82547c1b03f38ec3d6db5be"
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "f822994c18b747a5ac26d3770e8df5aa"
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 2,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c0f0128d47224d97a27358eecdf4e6c6"
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "174ab3dad82c40ef8dddd45bc18c084f"
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.7333333333333333,
+          "timeouts": 1,
+          "request_timeout_hits": 0,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "a119cc24d0054e5389a70c5fbb1d2467"
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "c22f15beaa7b440dbaf06e0601ca4652"
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "213fad06856d431d81178fbc4fba2a2b"
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8745966ad791481f830f905276ef6286"
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "ccfbe3c479694a06959590ac3dc2a1b4"
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.2,
+          "timeouts": 4,
+          "request_timeout_hits": 2,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "6ab0d9233b794b139753eb442b0434e5"
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "pass_rate": 0.2,
+          "wilson_low": 0.03622316096978745,
+          "wilson_high": 0.6244717358814613,
+          "mean_final_score": 0.2,
+          "timeouts": 4,
+          "request_timeout_hits": 4,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "8a1f005f930f4884b82e14f8047a3e1c"
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.3",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "0fe52f6e407b4256bed422196d95836b"
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "fa4d7ff2d519453d8c6fa0c3fb3a22b7"
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 2,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "f77e7f848aee453caa71d9256f817827"
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "169c75683861495a83a8c495355dc1ab"
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "wilson_low": 0.0,
+          "wilson_high": 0.43449149475208104,
+          "mean_final_score": 0.0,
+          "timeouts": 5,
+          "request_timeout_hits": 5,
+          "agent_errors": 0,
+          "voided": 0,
+          "provisional": false,
+          "evaluation_id": "ea04cce6264b4268a91eb32b84d327f1"
+        }
+      ],
+      "caveat_ids": [
+        "qwen3.6-latency-constrained"
+      ],
+      "documented_facts": []
+    }
+  ],
+  "caveats": [
+    {
+      "id": "qwen3-coder-protocol-sensitivity",
+      "model": "qwen3-coder:30b",
+      "kind": "protocol-sensitivity",
+      "label": "Protocol sensitivity",
+      "summary": "Protocol sensitivity was demonstrated in a diagnosed case; the overall result reflects both coding performance and compliance with AgentForge v1's output contract.",
+      "points": [
+        "96 of 120 campaign runs produced no applied edit.",
+        "In a diagnosed reproduction, the model produced a correct code change but omitted AgentForge v1's required opening code fence, so no edit was applied.",
+        "The campaign stores no raw model responses, so that specific cause is not independently proven for all 96 runs.",
+        "The score reflects both task performance and compliance with AgentForge v1's output protocol. It is not a finding that the model has poor underlying coding capability."
+      ],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §6 M4; docs/release/PHASE0_MODERN_LOCAL_PROMOTION.md §3",
+      "verified_fields": [],
+      "documented_fact": "qwen3-coder-no-edit-runs"
+    },
+    {
+      "id": "qwen3.6-latency-constrained",
+      "model": "qwen3.6:27b",
+      "kind": "latency-constrained",
+      "label": "Latency constrained",
+      "summary": "Performance under the fixed local latency budget was heavily constrained.",
+      "points": [
+        "105 of 120 runs were classified as timeouts.",
+        "83 of them were full 180-second model request timeouts.",
+        "This is performance under AgentForge's uniform local time budget on this hardware (Apple M4 Max, 36 GiB). It should not be read as a general conclusion about the model's capability or about its performance in other environments."
+      ],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §6 M5; docs/release/PHASE0_MODERN_LOCAL_PROMOTION.md §3",
+      "verified_fields": [
+        "timeouts",
+        "request_timeout_hits",
+        "runs"
+      ],
+      "documented_fact": null
+    },
+    {
+      "id": "historical-not-comparable",
+      "model": null,
+      "kind": "non-comparable",
+      "label": "Not comparable with historical results",
+      "summary": "Historical results are not directly comparable with Modern Local v1. Eighteen of the 24 task definitions changed and the historical runs predate the current evaluation-integrity system.",
+      "points": [
+        "The 720 pre-Phase-0 runs used older versions of 18 of the 24 tasks, a different runtime path and, for some models, other generation settings.",
+        "The two result sets are never pooled. qwen3.5:9b appears in both; its equal 40/120 counts are a coincidence on different benchmark definitions."
+      ],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §1 and §7 Comparability; integrity/pack-audit/remediation-manifest.json summary",
+      "verified_fields": [],
+      "documented_fact": null
+    }
+  ],
+  "evidence_links": [
+    {
+      "label": "Campaign report",
+      "path": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md",
+      "kind": "report"
+    },
+    {
+      "label": "Promotion receipt",
+      "path": "docs/release/PHASE0_MODERN_LOCAL_PROMOTION.md",
+      "kind": "report"
+    },
+    {
+      "label": "Campaign manifest (frozen plan)",
+      "path": "campaigns/phase0-modern-local-v1/manifest.json",
+      "kind": "manifest"
+    },
+    {
+      "label": "Official leaderboard dataset",
+      "path": "campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.json",
+      "kind": "dataset"
+    },
+    {
+      "label": "Official leaderboard (Markdown)",
+      "path": "campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.md",
+      "kind": "dataset"
+    },
+    {
+      "label": "Completeness receipt",
+      "path": "campaigns/phase0-modern-local-v1/results/outputs/completeness-receipt-all.json",
+      "kind": "receipt"
+    },
+    {
+      "label": "Result hashes (SHA256SUMS)",
+      "path": "campaigns/phase0-modern-local-v1/results/SHA256SUMS",
+      "kind": "receipt"
+    },
+    {
+      "label": "Storage audit log",
+      "path": "campaigns/phase0-modern-local-v1/results/inventories/storage-log.jsonl",
+      "kind": "inventory"
+    },
+    {
+      "label": "Model receipt — gpt-oss 20B",
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M2-gpt-oss-20b.json",
+      "kind": "receipt",
+      "model": "gpt-oss:20b"
+    },
+    {
+      "label": "Model receipt — Devstral Small 2 24B",
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M3-devstral-small-2-24b.json",
+      "kind": "receipt",
+      "model": "devstral-small-2:24b"
+    },
+    {
+      "label": "Model receipt — Qwen 3.5 9B",
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M1-qwen3.5-9b.json",
+      "kind": "receipt",
+      "model": "qwen3.5:9b"
+    },
+    {
+      "label": "Model receipt — Qwen3-Coder 30B-A3B",
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M4-qwen3-coder-30b.json",
+      "kind": "receipt",
+      "model": "qwen3-coder:30b"
+    },
+    {
+      "label": "Model receipt — Qwen3.6 27B",
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M5-qwen3.6-27b.json",
+      "kind": "receipt",
+      "model": "qwen3.6:27b"
+    }
+  ],
+  "sources": [
+    {
+      "path": "campaigns/releases/phase0-modern-local-v1.json",
+      "sha256": "0040c67b20d1b9dc957f75c37e2b9095f9469fea80dbeb9d6407f664e4f16210"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/manifest.json",
+      "sha256": "efad08a724374845c5e443ecf22422f60259237faa2c20aa268ace371c81f9df"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.json",
+      "sha256": "3ff0edffc16312827aa1bebf578ac985352718fc9e98a66237cc09ab61c6b098"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/outputs/completeness-receipt-all.json",
+      "sha256": "22b038efacb1e319a64615d87d193342c2d1c2563d8da2be5e5e23cf29b98749"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/SHA256SUMS",
+      "sha256": "0166baf226c720154cde4a8d1f23e4f9cc2995ecec9c3cba9fac595f0ad72830"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M1-qwen3.5-9b.json",
+      "sha256": "6888f4853e21f7f5c47064f1da412a5eaeaf8538c9e85f737bf30a05b561244f"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M2-gpt-oss-20b.json",
+      "sha256": "e8fa7809f91a4b1ebce1cbe00a780b275d1863f1f8618ed61f0aa0587c9db787"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M3-devstral-small-2-24b.json",
+      "sha256": "270168ed9b4a6794ba5952712885f2794cd25f41002e86ef718792842f687dd3"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M4-qwen3-coder-30b.json",
+      "sha256": "bb816124966bcd873206aa6a3dc814a160f59ce7772425cadac5ac834541b423"
+    },
+    {
+      "path": "campaigns/phase0-modern-local-v1/results/receipts/M5-qwen3.6-27b.json",
+      "sha256": "39f381d6e7737980ec4fba6be7acbdf5df45979f5c8f3ed56360b02829717577"
+    },
+    {
+      "path": "integrity/pack-audit/remediation-manifest.json",
+      "sha256": "356e8cdb8b3f02630e94a6a45823513df5a3e9c8e02c824e34c938861073a780"
+    }
+  ]
+}

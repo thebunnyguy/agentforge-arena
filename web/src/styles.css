@@ -2537,3 +2537,933 @@ pre.log {
     box-shadow: 0 0 0 4px rgba(200, 241, 105, 0);
   }
 }
+
+/* Benchmark releases ------------------------------------------------- */
+/* Static, data-driven release pages (pages/Benchmark*.tsx). Existing tokens
+   only; every state carries a word or number, never colour alone. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* Anchor visually hidden text to its control or scroller: an absolutely
+   positioned .sr-only inside a scrolled table would otherwise resolve against
+   the page and widen it. Scoped to the benchmark pages so existing pages keep
+   their layout. */
+.bench-page .external-link,
+.bench-page .link-arrow,
+.bench-page .matrix-cell-button,
+.bench-page .table-scroll {
+  position: relative;
+}
+.external-link {
+  overflow-wrap: anywhere;
+}
+.external-link svg {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: -1px;
+}
+.notice-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.notice-body p {
+  margin: 0;
+}
+.notice-points {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.notice-points li + li {
+  margin-top: 2px;
+}
+.notice-source {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.notice-body .notice-source {
+  margin-top: 6px;
+}
+
+/* Release selector and facts */
+.release-toolbar select,
+.model-switcher select,
+.domain-toolbar select {
+  min-width: 0;
+  max-width: 100%;
+}
+.release-toolbar select {
+  min-width: min(280px, 100%);
+}
+.model-switcher {
+  margin-bottom: 20px;
+}
+.release-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.badge-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.release-status-text,
+.kv dd.prose-value {
+  color: var(--text-secondary);
+  font-family: var(--sans);
+}
+
+/* Headline strip */
+.release-headline {
+  margin-bottom: 20px;
+}
+.headline-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.headline-strip li {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--bg-elevated);
+}
+.headline-strip strong {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+.headline-strip span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.headline-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.headline-context li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: var(--text-secondary);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 12px;
+}
+.headline-window {
+  margin: 10px 0 0;
+}
+
+/* Result tables */
+.bench-page .rank-number {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+.release-leaderboard .model-cell,
+.release-recorded .model-cell {
+  min-width: 180px;
+}
+table.data.release-leaderboard td.num,
+table.data.release-recorded td.num,
+table.data.model-tasks td.num,
+table.data.model-tasks td.mono {
+  white-space: nowrap;
+}
+.cell-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.bench-interval {
+  display: grid;
+  gap: 1px;
+  min-width: 130px;
+}
+.bench-interval .compact-range {
+  display: none;
+}
+.bench-interval-text {
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Caveat and fact lists */
+.reading-list,
+.not-claimed,
+.not-recorded,
+.documented-facts,
+.evidence-links,
+.source-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reading-list > li,
+.not-claimed > li,
+.documented-facts > li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.reading-list > li:last-child,
+.not-claimed > li:last-child,
+.documented-facts > li:last-child {
+  border-bottom: 0;
+}
+.reading-list p,
+.not-claimed p {
+  margin: 6px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.reading-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  color: var(--text);
+}
+.reading-tag {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.not-recorded > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.not-recorded > li:last-child {
+  border-bottom: 0;
+}
+.plain-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Domain comparison */
+.domain-toolbar {
+  margin: 20px 0 4px;
+}
+/* One plot per domain: exact rate, then the interval plot with its text. */
+.bench-domain-list .domain-row {
+  grid-template-columns: minmax(145px, 1fr) 55px minmax(170px, 2fr);
+}
+.bench-domain-list .bench-interval {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Task matrix: numbers in every cell, sticky task column */
+table.task-matrix {
+  min-width: 720px;
+}
+table.data.task-matrix th,
+table.data.task-matrix td {
+  padding: 4px 5px;
+}
+table.data.task-matrix thead th {
+  padding: 10px 6px;
+  text-align: center;
+}
+table.data.task-matrix .sticky-col {
+  padding-left: 8px;
+}
+/* The release matrices tint each cell evenly by its served rate; the text
+   in the cell is the value. */
+table.task-matrix td.matrix-heat,
+table.domain-matrix td.matrix-heat {
+  background: rgba(200, 241, 105, calc(var(--heat) * 0.2));
+}
+table.domain-matrix thead th:not(:first-child) {
+  text-align: center;
+}
+.task-matrix .sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 170px;
+  text-align: left;
+  background: var(--bg-elevated);
+  box-shadow: 1px 0 0 var(--border);
+}
+.task-matrix .task-head {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+.task-matrix td.task-cell {
+  min-width: 92px;
+}
+.matrix-cell-button {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 40px;
+  padding: 4px 6px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.matrix-cell-button:hover {
+  border-color: var(--border-strong);
+}
+.matrix-cell-button[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.matrix-cell-button:focus-visible {
+  outline-offset: 1px;
+}
+.cell-timeouts {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--warn);
+  font-size: 10px;
+}
+.matrix-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+.matrix-legend svg {
+  color: var(--warn);
+}
+.matrix-detail {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: var(--bg-inset);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.matrix-detail .note {
+  margin: 0;
+}
+.detail-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.detail-sub-inline {
+  color: var(--text-muted);
+}
+.digest-value,
+.hash-list dd,
+.source-hash {
+  word-break: break-all;
+}
+
+.method-list-stack dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+table.data.task-matrix thead th.sticky-col {
+  text-align: left;
+}
+/* Key-value list for a narrow column: label above value. */
+.kv.kv-stacked {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+.kv.kv-stacked dd + dt {
+  margin-top: 10px;
+}
+
+/* Integrity facts */
+.integrity-list {
+  display: grid;
+  margin: 0;
+}
+.integrity-list > div {
+  display: grid;
+  grid-template-columns: minmax(170px, 250px) minmax(0, 1fr) auto;
+  gap: 4px 16px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.integrity-list > div:last-child {
+  border-bottom: 0;
+}
+.integrity-list dt {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.integrity-list dd {
+  margin: 0;
+  min-width: 0;
+}
+.integrity-value {
+  color: var(--text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.integrity-detail {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-family: var(--sans);
+  font-size: 11px;
+}
+.integrity-state {
+  justify-self: end;
+}
+
+/* Evidence links: label and path in the first column, the link in the
+   second; stacked below 1081px so the links line up. */
+.evidence-links > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.evidence-links > li:last-child {
+  border-bottom: 0;
+}
+.evidence-link-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text);
+}
+.evidence-path {
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.source-list > li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.source-list > li:last-child {
+  border-bottom: 0;
+}
+.source-hash {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+@media (max-width: 780px) {
+  .bench-domain-list .domain-row {
+    grid-template-columns: minmax(120px, 1fr) auto;
+  }
+  .bench-domain-list .domain-row .bench-interval {
+    grid-column: 1 / -1;
+  }
+  .integrity-list > div {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .integrity-list dt {
+    grid-column: 1 / -1;
+  }
+  .task-matrix .sticky-col {
+    min-width: 132px;
+  }
+  .task-matrix td.task-cell {
+    min-width: 76px;
+  }
+  .method-list-stack div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
+/* Benchmark releases: navigation, tables, cards and matrix ------------- */
+/* Everything below is scoped to .bench-page (the root of each benchmark
+   page) or to classes only the benchmark pages use. */
+
+/* Release and model switchers: lists of links (.version-chip pattern). */
+.bench-page .release-switch,
+.bench-page .model-switcher {
+  display: grid;
+  gap: 8px;
+}
+.bench-page .release-switch {
+  margin-bottom: 16px;
+}
+.bench-page .model-switcher {
+  margin-bottom: 20px;
+}
+.bench-page .fact-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bench-page .chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bench-page .chip-list .version-chip {
+  font-family: var(--sans);
+  min-height: 32px;
+  white-space: normal;
+}
+.bench-page .chip-list .version-chip[aria-current="page"] {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 650;
+}
+.bench-page .chip-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.bench-page .chip-sep {
+  color: var(--text-faint);
+}
+.bench-page .chip-sub {
+  color: var(--text-secondary);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.bench-page .bench-status-line {
+  margin: -6px 0 16px;
+  font-size: 12px;
+}
+.bench-page .doc-marker {
+  margin-left: 4px;
+  padding: 0 6px;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.bench-page .doc-marker:hover,
+.bench-page .doc-marker:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.bench-page .bench-error-message {
+  overflow-wrap: anywhere;
+}
+
+/* Row headers: the identifying first cell of every benchmark table is a
+   <th scope="row"> that looks like a regular primary cell. */
+.bench-page table.data tbody th.row-head {
+  padding: 12px 11px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(43, 50, 45, 0.72);
+  font-size: inherit;
+  font-weight: 650;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  vertical-align: middle;
+}
+.bench-page table.data tbody th.row-head.mono {
+  font-family: var(--mono);
+}
+.bench-page table.data tbody tr:last-child th {
+  border-bottom: none;
+}
+
+/* Wide tables: pinned identifying column and a scroll cue. The shadows sit
+   on the scroller's background: "local" covers scroll with the content and
+   hide the "scroll" shadows at an edge with no more content. */
+.bench-page .bench-scroll {
+  background:
+    linear-gradient(to right, var(--bg-elevated) 30%, rgba(23, 26, 24, 0))
+      left center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--bg-elevated) 30%, rgba(23, 26, 24, 0))
+      right center / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.55), transparent)
+      right center / 14px 100% no-repeat scroll;
+}
+.bench-page table.data .sticky-id,
+.bench-page table.data .sticky-rank {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg-elevated);
+  box-shadow: 1px 0 0 var(--border);
+}
+.bench-page table.data .sticky-rank {
+  width: 48px;
+  min-width: 48px;
+  box-shadow: none;
+}
+.bench-page table.data .sticky-id.after-rank {
+  left: 48px;
+}
+.bench-page .scroll-hint {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+/* Official leaderboard: table on wide screens, cards on small ones. Only one
+   is displayed (display:none keeps the other out of the a11y tree). */
+.bench-page .leaderboard-cards {
+  display: none;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.bench-page .leaderboard-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.bench-page .card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.bench-page .card-rank {
+  display: grid;
+  justify-items: center;
+  min-width: 44px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+.bench-page .card-rank-label {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bench-page .card-rank strong {
+  color: var(--text);
+  font-size: 18px;
+}
+.bench-page .card-model {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.bench-page .card-model .sub-cell {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 400;
+}
+.bench-page .card-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+.bench-page .card-facts > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.bench-page .card-facts .card-wide {
+  grid-column: 1 / -1;
+}
+.bench-page .card-facts dt {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bench-page .card-facts dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+}
+@media (max-width: 780px) {
+  .bench-page .leaderboard-cards {
+    display: grid;
+  }
+  .bench-page .leaderboard-table {
+    display: none;
+  }
+}
+
+/* Reading these results: calm list with every caveat point. */
+.bench-page .reading-points {
+  margin: 4px 0 6px;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.bench-page .reading-points li + li {
+  margin-top: 3px;
+}
+.bench-page .reading-list .notice-source {
+  margin: 4px 0 8px;
+}
+
+/* Domain comparison heat table: rate plus its interval in every cell. */
+.bench-page table.domain-matrix td.cell {
+  text-align: center;
+}
+.bench-page table.domain-matrix .cell-rate {
+  display: block;
+  color: var(--text);
+}
+.bench-page table.domain-matrix .cell-ci {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.bench-page table.domain-matrix .domain-size {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Model page: the overall plot keeps the SVG's own aspect ratio (uniform
+   scale, never stretched), with non-scaling strokes; the interval is shown
+   once, as 1-decimal text. */
+.bench-page .bench-overall-plot {
+  display: grid;
+  gap: 6px;
+  max-width: 320px;
+}
+.bench-page .bench-overall-plot .confidence {
+  grid-template-columns: minmax(0, 1fr);
+}
+.bench-page .bench-overall-plot .wilson-svg {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 100 / 24;
+}
+.bench-page .bench-overall-plot .wilson-svg line,
+.bench-page .bench-overall-plot .wilson-svg circle {
+  vector-effect: non-scaling-stroke;
+}
+.bench-page .bench-overall-plot .plot-range {
+  stroke-width: 8px;
+  stroke-linecap: butt;
+}
+.bench-page .bench-overall-plot .plot-cap {
+  stroke-width: 2px;
+}
+.bench-page .bench-overall-plot .plot-point {
+  stroke-width: 2px;
+}
+.bench-page .bench-overall-plot .plot-axis {
+  width: 100%;
+  margin-top: 0;
+}
+.bench-page .bench-overall-plot .compact-range {
+  display: none;
+}
+.bench-page .bench-overall-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.bench-page .bench-overall-text strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Task matrix: own scroll box with a sticky header row and task column. */
+.bench-page .matrix-scroll {
+  max-height: 70vh;
+  overflow: auto;
+  scroll-padding-inline-start: 170px;
+  scroll-padding-top: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.bench-page table.data.task-matrix thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  min-width: 76px;
+  max-width: 104px;
+  background: var(--bg-elevated);
+  box-shadow: 0 1px 0 var(--border-strong);
+  white-space: normal;
+  /* long tags without spaces (llama3.2:latest) may break anywhere rather than clip */
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+.bench-page table.data.task-matrix thead th.sticky-col {
+  left: 0;
+  z-index: 3;
+  max-width: none;
+  box-shadow:
+    1px 0 0 var(--border),
+    0 1px 0 var(--border-strong);
+}
+.bench-page .task-matrix .task-head {
+  white-space: nowrap;
+}
+.bench-page table.data.task-matrix .matrix-detail-row > td {
+  padding: 0 0 8px;
+  background: var(--bg-elevated);
+}
+.bench-page .matrix-detail-inline {
+  position: sticky;
+  left: 0;
+  box-sizing: border-box;
+  width: calc(var(--matrix-visible, 100%) - 2px);
+  max-width: 100%;
+  margin: 0;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.bench-page .matrix-detail-inline .cell-detail {
+  margin-bottom: 10px;
+}
+@media (max-width: 780px) {
+  .bench-page .matrix-scroll {
+    scroll-padding-inline-start: 132px;
+  }
+}
+@media (max-width: 479px) {
+  /* Narrow phones: task ids wrap only at their hyphens. */
+  .bench-page .task-matrix .task-head {
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  .bench-page .task-matrix .sticky-col {
+    min-width: 118px;
+    max-width: 132px;
+  }
+  .bench-page .matrix-scroll {
+    scroll-padding-inline-start: 132px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .bench-page .evidence-links > li {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}
+@media (max-width: 780px) {
+  /* A section action (e.g. "How ranking works") goes under the heading on
+     small screens so the description keeps the full width. */
+  .bench-page .section-header {
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+  .bench-page .section-header > div:first-child {
+    flex: 1 1 100%;
+  }
+}
+/* Let the matrix fit its container when the cells' own minimums allow it
+   (e.g. at tablet width) instead of a fixed 720px minimum. */
+.bench-page table.data.task-matrix {
+  min-width: 0;
+}
+@media (max-width: 479px) {
+  /* Keep the pinned column narrow on phones so the scrolling columns
+     get most of the width; long names wrap. */
+  .bench-page table.data .sticky-id {
+    width: 1%;
+    min-width: 96px;
+  }
+}
+
+/* Benchmark releases: the at-a-glance strip wraps 3 + 2 on
+   tablets and 2 + 2 + 1 on phones, a last short row filling its width so no
+   empty cell shows the divider colour; interval bars end exactly at their
+   bounds (a round cap stretched by the plot's non-uniform scale overshoots);
+   the historical generation table keeps its notes column readable. */
+@media (max-width: 1080px) and (min-width: 601px) {
+  .headline-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .headline-strip li:last-child:nth-child(3n + 2) {
+    grid-column: span 2;
+  }
+  .headline-strip li:last-child:nth-child(3n + 1) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .headline-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .headline-strip li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+.bench-page .plot-range {
+  stroke-linecap: butt;
+}
+.bench-page table.data.generation-groups td:last-child {
+  min-width: 240px;
+}

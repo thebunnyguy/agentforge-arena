@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test:focused": "playwright test tests/jobView.spec.ts tests/jobEvents.spec.ts tests/evaluationValidation.spec.ts",
+    "test:focused": "playwright test tests/jobView.spec.ts tests/jobEvents.spec.ts tests/evaluationValidation.spec.ts tests/benchmarkReleases.spec.ts",
     "test:browser": "playwright test tests/routes.spec.ts",
     "test:async": "playwright test --config=playwright.async.config.ts",
     "test:real": "playwright test --config=playwright.real.config.ts",
+    "test:benchmarks": "playwright test --config=playwright.benchmarks.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {

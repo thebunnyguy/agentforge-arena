@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "historical-pre-phase0",
+  "title": "Pre-Phase-0 legacy results",
+  "short_title": "Pre-Phase-0 (legacy)",
+  "status": "HISTORICAL",
+  "released_at": "2026-09-17",
+  "summary": "The 720 runs recorded before the Phase-0 evaluation-integrity work (6 models × 24 tasks × 5), kept read-only in reports/runs.sqlite. Shown as recorded, unranked, and never pooled with a Phase-0 release.",
+  "source": {
+    "kind": "historical-db",
+    "database": "reports/runs.sqlite",
+    "sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced",
+    "documented_generation": "campaigns/phase0-post-integrity/manifest.json",
+    "task_version_changes": "integrity/pack-audit/remediation-manifest.json",
+    "compare_with_release": "phase0-modern-local-v1"
+  },
+  "git": {
+    "repository_url": "https://github.com/thebunnyguy/agentforge-arena",
+    "tag": "phase0-modern-local-v1",
+    "commit": "92a3b0c6195d7bc9c5856ad0788e8cfd1fdaf230"
+  },
+  "comparability": "Historical results are not directly comparable with Modern Local v1. Eighteen of the 24 task definitions changed and the historical runs predate the current evaluation-integrity system.",
+  "not_recorded": [
+    "model digests (only two short prefixes are documented in the README)",
+    "backend provenance per run (no backend_kind; runs are not linked to evaluation jobs)",
+    "task content digests",
+    "hardware",
+    "a per-run generation configuration (settings are documented per group only)"
+  ],
+  "caveats": [
+    {
+      "id": "historical-not-comparable",
+      "model": null,
+      "kind": "non-comparable",
+      "label": "Not comparable with Modern Local v1",
+      "summary": "Historical results are not directly comparable with Modern Local v1. Eighteen of the 24 task definitions changed and the historical runs predate the current evaluation-integrity system.",
+      "points": [
+        "These runs are unranked here: they are shown as recorded (pass counts, timeouts, voided runs and mean final scores under formula v0.1); no confidence intervals or ranks are computed for them.",
+        "Scores used scoring formula v0.1; 18 of the 24 tasks have since changed version (see the task table), so their old results do not describe the current tasks."
+      ],
+      "checks": [],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §7 Comparability; integrity/pack-audit/remediation-manifest.json"
+    }
+  ],
+  "evidence_links": [
+    { "label": "Historical evidence database", "path": "reports/runs.sqlite", "kind": "dataset" },
+    { "label": "Documented generation settings", "path": "campaigns/phase0-post-integrity/manifest.json", "kind": "manifest" },
+    { "label": "Task version changes (ORACLE remediation)", "path": "integrity/pack-audit/remediation-manifest.json", "kind": "report" },
+    { "label": "qwen3.5:9b evaluation report (2026-09-17)", "path": "reports/qwen3.5-9b-evaluation-2026-09-17.md", "kind": "report" },
+    { "label": "README evaluation provenance", "path": "README.md", "kind": "report" }
+  ]
+}

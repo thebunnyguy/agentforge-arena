@@ -1,0 +1,1874 @@
+{
+  "schema_version": 1,
+  "id": "historical-pre-phase0",
+  "title": "Pre-Phase-0 legacy results",
+  "short_title": "Pre-Phase-0 (legacy)",
+  "status": "HISTORICAL",
+  "released_at": "2026-09-17",
+  "summary": "The 720 runs recorded before the Phase-0 evaluation-integrity work (6 models × 24 tasks × 5), kept read-only in reports/runs.sqlite. Shown as recorded, unranked, and never pooled with a Phase-0 release.",
+  "repository": {
+    "url": "https://github.com/thebunnyguy/agentforge-arena",
+    "ref": "phase0-modern-local-v1",
+    "commit": "92a3b0c6195d7bc9c5856ad0788e8cfd1fdaf230"
+  },
+  "campaign_id": null,
+  "comparable": false,
+  "ranked": false,
+  "comparability": "Historical results are not directly comparable with Modern Local v1. Eighteen of the 24 task definitions changed and the historical runs predate the current evaluation-integrity system.",
+  "counts": {
+    "models": 6,
+    "models_ranked": 0,
+    "tasks": 24,
+    "repetitions": 5,
+    "evaluations": null,
+    "runs": 720,
+    "runs_per_model": 120
+  },
+  "environment": null,
+  "methodology": {
+    "scoring_formula": [
+      "v0.1"
+    ],
+    "generation_groups": [
+      {
+        "group": "p0_completion_runs",
+        "temperature": 0.8,
+        "base_seed": 42,
+        "request_timeout_s": null,
+        "ollama_version": "0.17.4",
+        "models": "not enumerated by the README (it records digests for qwen2.5-coder:7b and llama3.2:latest)"
+      },
+      {
+        "group": "qwen3.5:9b",
+        "temperature": 0.6,
+        "base_seed": 42,
+        "request_timeout_s": 180,
+        "ollama_version": null,
+        "models": "qwen3.5:9b"
+      }
+    ],
+    "generation_sources": [
+      "README.md, section 'Evaluation provenance'",
+      "reports/qwen3.5-9b-evaluation-2026-09-17.md"
+    ],
+    "not_recorded": [
+      "model digests (only two short prefixes are documented in the README)",
+      "backend provenance per run (no backend_kind; runs are not linked to evaluation jobs)",
+      "task content digests",
+      "hardware",
+      "a per-run generation configuration (settings are documented per group only)"
+    ],
+    "task_versions_changed": 18,
+    "run_window": {
+      "started_at": "2026-06-18 06:11:14",
+      "finished_at": "2026-09-17 11:49:05"
+    }
+  },
+  "integrity": null,
+  "domains": [],
+  "task_pack": [
+    {
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.1",
+      "version_changed_since_pre_phase0": false,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": null,
+      "current_version": "1.0.0",
+      "version_changed_since_pre_phase0": false,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "async-retry",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "async-timeout",
+      "task_version": "1.0.0",
+      "task_digest": null,
+      "current_version": "1.0.1",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": null,
+      "current_version": "1.0.0",
+      "version_changed_since_pre_phase0": false,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.1",
+      "version_changed_since_pre_phase0": false,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "mask-secrets",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "merge-intervals",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "paginator",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "result-type",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": false,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "async-first-success",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "grid-paths",
+      "task_version": "1.0.0",
+      "task_digest": null,
+      "current_version": "1.0.1",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "query-builder",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.2",
+      "task_digest": null,
+      "current_version": "1.0.3",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.2",
+      "task_digest": null,
+      "current_version": "1.0.3",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "toposort",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.1",
+      "version_changed_since_pre_phase0": false,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    },
+    {
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.1",
+      "task_digest": null,
+      "current_version": "1.0.2",
+      "version_changed_since_pre_phase0": true,
+      "domains": [],
+      "activity": null,
+      "timeout_s": null
+    }
+  ],
+  "models": [
+    {
+      "id": "deepseek-coder:6.7b",
+      "display_name": "deepseek-coder:6.7b",
+      "ranked": false,
+      "rank": null,
+      "state": "RECORDED",
+      "identity": {
+        "ollama_tag": "deepseek-coder:6.7b",
+        "digest": null,
+        "digest_prefix_documented": null
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 28,
+        "timeouts": 0,
+        "voided": 0,
+        "mean_final_score": 0.40484442708707413
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-06-18 07:01:55",
+        "finished_at": "2026-06-22 07:05:09"
+      },
+      "generation": null,
+      "domains": [],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "gemma2:2b",
+      "display_name": "gemma2:2b",
+      "ranked": false,
+      "rank": null,
+      "state": "RECORDED",
+      "identity": {
+        "ollama_tag": "gemma2:2b",
+        "digest": null,
+        "digest_prefix_documented": null
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 4,
+        "timeouts": 0,
+        "voided": 0,
+        "mean_final_score": 0.09615937711525947
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-06-18 06:11:14",
+        "finished_at": "2026-06-22 07:29:32"
+      },
+      "generation": null,
+      "domains": [],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "llama3.2:latest",
+      "display_name": "llama3.2:latest",
+      "ranked": false,
+      "rank": null,
+      "state": "RECORDED",
+      "identity": {
+        "ollama_tag": "llama3.2:latest",
+        "digest": null,
+        "digest_prefix_documented": "a80c4f17acd5"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 22,
+        "timeouts": 0,
+        "voided": 0,
+        "mean_final_score": 0.32952245466951346
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-06-19 07:07:35",
+        "finished_at": "2026-06-22 07:21:01"
+      },
+      "generation": null,
+      "domains": [],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "qwen2.5-coder:3b",
+      "display_name": "qwen2.5-coder:3b",
+      "ranked": false,
+      "rank": null,
+      "state": "RECORDED",
+      "identity": {
+        "ollama_tag": "qwen2.5-coder:3b",
+        "digest": null,
+        "digest_prefix_documented": null
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 18,
+        "timeouts": 0,
+        "voided": 0,
+        "mean_final_score": 0.26449619688590276
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-06-18 06:56:34",
+        "finished_at": "2026-06-22 07:12:22"
+      },
+      "generation": null,
+      "domains": [],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 4,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "qwen2.5-coder:7b",
+      "display_name": "qwen2.5-coder:7b",
+      "ranked": false,
+      "rank": null,
+      "state": "RECORDED",
+      "identity": {
+        "ollama_tag": "qwen2.5-coder:7b",
+        "digest": null,
+        "digest_prefix_documented": "dae161e27b0e"
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 67,
+        "timeouts": 0,
+        "voided": 0,
+        "mean_final_score": 0.7006492037374391
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-06-19 07:33:18",
+        "finished_at": "2026-06-22 06:52:47"
+      },
+      "generation": null,
+      "domains": [],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 0,
+          "voided": 0
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    },
+    {
+      "id": "qwen3.5:9b",
+      "display_name": "qwen3.5:9b",
+      "ranked": false,
+      "rank": null,
+      "state": "RECORDED",
+      "identity": {
+        "ollama_tag": "qwen3.5:9b",
+        "digest": null,
+        "digest_prefix_documented": null
+      },
+      "totals": {
+        "runs": 120,
+        "passes": 40,
+        "timeouts": 36,
+        "voided": 0,
+        "mean_final_score": 0.5055794668294669
+      },
+      "coverage": {
+        "tasks_with_evidence": 24,
+        "tasks_total": 24
+      },
+      "run_window": {
+        "started_at": "2026-09-17 09:45:28",
+        "finished_at": "2026-09-17 11:49:05"
+      },
+      "generation": {
+        "group": "qwen3.5:9b",
+        "temperature": 0.6,
+        "base_seed": 42,
+        "request_timeout_s": 180,
+        "ollama_version": null
+      },
+      "domains": [],
+      "tasks": [
+        {
+          "task_id": "escape-html",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-binary-search",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-list-dedup",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 5,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-retry",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 1,
+          "voided": 0
+        },
+        {
+          "task_id": "async-timeout",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-roman-numerals",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "implement-lru-cache",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "mask-secrets",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 3,
+          "timeouts": 1,
+          "voided": 0
+        },
+        {
+          "task_id": "merge-intervals",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "paginator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 1,
+          "timeouts": 4,
+          "voided": 0
+        },
+        {
+          "task_id": "result-type",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 1,
+          "voided": 0
+        },
+        {
+          "task_id": "sanitize-filename",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 1,
+          "voided": 0
+        },
+        {
+          "task_id": "async-batched",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "async-first-success",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 2,
+          "voided": 0
+        },
+        {
+          "task_id": "async-gather-bounded",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 1,
+          "voided": 0
+        },
+        {
+          "task_id": "fix-path-traversal",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "grid-paths",
+          "task_version": "1.0.0",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 3,
+          "voided": 0
+        },
+        {
+          "task_id": "query-builder",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 0,
+          "voided": 0
+        },
+        {
+          "task_id": "refactor-order-validation",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 1,
+          "voided": 0
+        },
+        {
+          "task_id": "top-k-frequent",
+          "task_version": "1.0.2",
+          "evidence": true,
+          "runs": 5,
+          "passes": 2,
+          "timeouts": 3,
+          "voided": 0
+        },
+        {
+          "task_id": "toposort",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 3,
+          "voided": 0
+        },
+        {
+          "task_id": "two-sum-indices",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 5,
+          "voided": 0
+        },
+        {
+          "task_id": "validate-redirect-url",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 5,
+          "voided": 0
+        },
+        {
+          "task_id": "expression-evaluator",
+          "task_version": "1.0.1",
+          "evidence": true,
+          "runs": 5,
+          "passes": 0,
+          "timeouts": 5,
+          "voided": 0
+        }
+      ],
+      "caveat_ids": [],
+      "documented_facts": []
+    }
+  ],
+  "caveats": [
+    {
+      "id": "historical-not-comparable",
+      "model": null,
+      "kind": "non-comparable",
+      "label": "Not comparable with Modern Local v1",
+      "summary": "Historical results are not directly comparable with Modern Local v1. Eighteen of the 24 task definitions changed and the historical runs predate the current evaluation-integrity system.",
+      "points": [
+        "These runs are unranked here: they are shown as recorded (pass counts, timeouts, voided runs and mean final scores under formula v0.1); no confidence intervals or ranks are computed for them.",
+        "Scores used scoring formula v0.1; 18 of the 24 tasks have since changed version (see the task table), so their old results do not describe the current tasks."
+      ],
+      "source": "docs/campaigns/PHASE0_MODERN_LOCAL_CAMPAIGN.md §7 Comparability; integrity/pack-audit/remediation-manifest.json",
+      "verified_fields": [],
+      "documented_fact": null
+    }
+  ],
+  "evidence_links": [
+    {
+      "label": "Historical evidence database",
+      "path": "reports/runs.sqlite",
+      "kind": "dataset"
+    },
+    {
+      "label": "Documented generation settings",
+      "path": "campaigns/phase0-post-integrity/manifest.json",
+      "kind": "manifest"
+    },
+    {
+      "label": "Task version changes (ORACLE remediation)",
+      "path": "integrity/pack-audit/remediation-manifest.json",
+      "kind": "report"
+    },
+    {
+      "label": "qwen3.5:9b evaluation report (2026-09-17)",
+      "path": "reports/qwen3.5-9b-evaluation-2026-09-17.md",
+      "kind": "report"
+    },
+    {
+      "label": "README evaluation provenance",
+      "path": "README.md",
+      "kind": "report"
+    }
+  ],
+  "sources": [
+    {
+      "path": "campaigns/releases/historical-pre-phase0.json",
+      "sha256": "58d37fcfc7e4fc0a4a2f8f5a4ae063f3f5d9c5f8d57b2a7427cb70d8ef4f0c8a"
+    },
+    {
+      "path": "reports/runs.sqlite",
+      "sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced"
+    },
+    {
+      "path": "campaigns/phase0-post-integrity/manifest.json",
+      "sha256": "4623eb24b6f000b74d0370fd0a0d91922bcf0bfe8cd9a17ed1cb196aa1ff27e8"
+    },
+    {
+      "path": "integrity/pack-audit/remediation-manifest.json",
+      "sha256": "356e8cdb8b3f02630e94a6a45823513df5a3e9c8e02c824e34c938861073a780"
+    }
+  ]
+}

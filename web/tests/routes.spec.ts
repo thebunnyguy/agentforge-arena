@@ -9,6 +9,7 @@ const routeCases = [
   ["cell", `/cell/${agent}/fix-binary-search`],
   ["run", `/cell/${agent}/fix-binary-search/run/0`],
   ["settings", "/settings"],
+  ["benchmarks", "/benchmarks"],
 ] as const;
 const widths = [375, 768, 1440, 2560];
 
@@ -19,6 +20,12 @@ for (const [name, route] of routeCases) {
       const response = await page.goto(route, { waitUntil: "networkidle" });
       expect(response?.ok()).toBeTruthy();
       await expect(page.locator("h1").first()).toBeVisible();
+      // The SPA fallback plus the "*" -> /404 route would satisfy a bare "an
+      // h1 is visible" check, so the benchmark page must show its own title.
+      if (name === "benchmarks")
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+          "AgentForge Modern Local Benchmark v1",
+        );
       const layout = await page.evaluate(() => {
         const root = document.documentElement;
         const plots = [

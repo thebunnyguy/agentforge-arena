@@ -6,6 +6,7 @@ Model lifecycle storage-inventory, pull-model, smoke, model-receipt, remove-mode
                 (sequential-local campaigns: one model at a time under limited storage)
 Observation     status, validate
 Analysis        phase-a-report, compare-baselines, baseline-report
+Publication     release-data (benchmark release datasets for the web UI; --check detects drift)
 
 Every command takes ``--manifest`` (default: $AFA_CAMPAIGN_MANIFEST, else the
 phase0-post-integrity manifest). Phases are the manifest's own (A/B, or one per
@@ -396,6 +397,14 @@ def cmd_baseline_report(args) -> int:
     return 0
 
 
+def cmd_release_data(args) -> int:
+    from . import release_data
+
+    for message in release_data.generate(check=args.check, release_ids=args.release or None):
+        print(message)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="afa_campaign", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -552,6 +561,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out-dir")
     p.add_argument("--allow-incomplete", action="store_true")
     p.set_defaults(func=cmd_baseline_report)
+
+    p = sub.add_parser("release-data", help="write the web UI's benchmark release datasets from campaigns/releases/*.json")
+    p.add_argument("--check", action="store_true", help="compare with the committed datasets; fail on drift")
+    p.add_argument("--release", action="append", help="only this release id (repeatable)")
+    p.set_defaults(func=cmd_release_data)
     return parser
 
 
@@ -559,6 +573,12 @@ def _analysis_error():
     from .analysis import AnalysisError
 
     return AnalysisError
+
+
+def _release_error():
+    from .release_data import ReleaseDataError
+
+    return ReleaseDataError
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -573,7 +593,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return int(args.func(args) or 0)
     except (CampaignStop, LedgerError, ManifestError, FileNotFoundError, OllamaError, urllib.error.URLError,
-            _analysis_error()) as exc:
+            _analysis_error(), _release_error()) as exc:
         # Refusals are expected operator-facing outcomes, not crashes.
         print(f"refused: {exc}", file=sys.stderr)
         return 3

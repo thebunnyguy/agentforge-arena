@@ -7,6 +7,7 @@ import {
   History,
   Home,
   ListChecks,
+  Medal,
   Menu,
   Plus,
   Settings as SettingsIcon,
@@ -33,6 +34,7 @@ const nav = [
   {
     section: "Analyze",
     links: [
+      { to: "/benchmarks", label: "Benchmarks", icon: Medal },
       { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
       { to: "/agents", label: "Agents", icon: Bot },
       { to: "/tasks", label: "Tasks", icon: ListChecks },
@@ -257,8 +259,18 @@ export function Layout() {
   );
 }
 
+/** decodeURIComponent throws on a malformed escape (e.g. "%E0%A4%A"); the
+ * breadcrumb then shows the raw segment instead of blanking the app. */
+function safeDecode(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
 function Breadcrumbs({ path }: { path: string }) {
-  const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
+  const parts = path.split("/").filter(Boolean).map(safeDecode);
   const crumbs: Array<{ label: string; to?: string }> = [
     { label: "Overview", to: "/" },
   ];
@@ -287,6 +299,16 @@ function Breadcrumbs({ path }: { path: string }) {
       add(parts[3], `/task/${encodeURIComponent(parts[3])}`);
       add(`Run #${parts[4]}`);
     }
+  } else if (parts[0] === "benchmarks") {
+    // Overview / Benchmarks / <release id> / <model id | Methodology>. Built
+    // from the URL alone so the shell never loads the release datasets.
+    const releaseId = parts[1];
+    if (releaseId) {
+      add("Benchmarks", "/benchmarks");
+      add(releaseId, `/benchmarks/${encodeURIComponent(releaseId)}`);
+      if (parts[2] === "models" && parts[3]) add(parts[3]);
+      else if (parts[2] === "methodology") add("Methodology");
+    } else add("Benchmarks");
   } else if (parts[0] === "runs") add("Leaderboard", "/leaderboard");
   else if (parts[0] === "leaderboard") add("Leaderboard");
   else if (parts[0] === "agents") add("Agents");

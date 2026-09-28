@@ -29,15 +29,18 @@ export function SectionHeader({
   title,
   description,
   action,
+  id,
 }: {
   title: string;
   description?: ReactNode;
   action?: ReactNode;
+  /** Optional heading id, e.g. for a table's aria-labelledby. */
+  id?: string;
 }) {
   return (
     <div className="section-header">
       <div>
-        <h2>{title}</h2>
+        <h2 id={id}>{title}</h2>
         {description && <p>{description}</p>}
       </div>
       {action && <div className="section-action">{action}</div>}
