@@ -694,3 +694,98 @@ test("pending JSON history from an old job cannot paint a new job", async ({
   await expect(page.getByRole("heading", { name: "model-new" })).toBeVisible();
   await expect(page.getByText("old tape", { exact: false })).toHaveCount(0);
 });
+
+test("a resumed evaluation keeps its live stream when SSE replays the earlier cancel", async ({
+  page,
+}) => {
+  const history = [
+    {
+      seq: 1,
+      type: "run_started",
+      payload: { task_id: "fix-binary-search", idx: 0 },
+    },
+    { seq: 2, type: "job_canceled", payload: { reason: "cancel requested" } },
+    { seq: 3, type: "job_resumed", payload: { evaluation_id: "job-resumed" } },
+  ];
+  // SSE starts from the beginning of the tape: it replays seq 1-3 (already
+  // read as JSON history), then delivers the resumed run as seq 4.
+  await page.addInitScript((replay) => {
+    class ReplayEventSource {
+      onopen: ((event: Event) => void) | null = null;
+      onmessage: ((event: MessageEvent<string>) => void) | null = null;
+      onerror: ((event: Event) => void) | null = null;
+      listeners = new Map<string, Array<(event: Event) => void>>();
+      constructor() {
+        const emit = (seq: number, type: string, payload: unknown) => {
+          const event = new MessageEvent(type, {
+            data: JSON.stringify(payload),
+            lastEventId: String(seq),
+          });
+          this.listeners.get(type)?.forEach((listener) => listener(event));
+        };
+        window.setTimeout(() => {
+          this.onopen?.(new Event("open"));
+          replay.forEach((item) => emit(item.seq, item.type, item.payload));
+          window.setTimeout(
+            () =>
+              emit(4, "run_started", { task_id: "fix-binary-search", idx: 1 }),
+            50,
+          );
+        }, 0);
+      }
+      addEventListener(type: string, listener: (event: Event) => void) {
+        this.listeners.set(type, [
+          ...(this.listeners.get(type) ?? []),
+          listener,
+        ]);
+      }
+      removeEventListener() {
+        /* fixture */
+      }
+      close() {
+        /* fixture */
+      }
+    }
+    window.EventSource = ReplayEventSource as unknown as typeof EventSource;
+  }, history);
+  const running = job("job-resumed", "model-resumed", "running");
+  running.params.repeats = 2;
+  running.counters.total_runs = 2;
+  await page.route(
+    /\/api\/v1\/jobs\/job-resumed(?:\/events.*)?$/,
+    async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.endsWith("/events"))
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({
+            job_id: "job-resumed",
+            events:
+              url.searchParams.get("since") === "0"
+                ? history.map((item) => ({
+                    job_id: "job-resumed",
+                    ts: "2026-09-09 20:00:00",
+                    ...item,
+                  }))
+                : [],
+          }),
+        });
+      else
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify(running),
+        });
+    },
+  );
+  await page.goto("/jobs/job-resumed", { waitUntil: "networkidle" });
+  await page.waitForTimeout(300);
+  // The replayed cancel (seq 2) was already read and precedes the resume, so
+  // it neither closes the stream nor marks the unfinished run interrupted.
+  await expect(page.getByText("Evidence tape closed")).toHaveCount(0);
+  const markers = page.locator(".task-run-grid .run-marker");
+  await expect(markers.nth(0)).toHaveClass(/pending/);
+  await expect(markers.nth(1)).toHaveClass(/running/);
+  await expect(
+    page.locator(".task-run-grid .run-marker.interrupted"),
+  ).toHaveCount(0);
+});

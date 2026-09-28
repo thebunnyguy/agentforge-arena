@@ -18,6 +18,7 @@ const TERMINAL_EVENTS = new Set(["job_done", "job_failed", "job_canceled"]);
 const EVENT_TYPES = [
   "job_started",
   "job_reclaimed",
+  "job_resumed",
   "run_started",
   "run_diff",
   "run_diffed",
@@ -36,7 +37,13 @@ const EVENT_TYPES = [
 
 // The first read is JSON so historical timestamps and pagination are preserved.
 // SSE is then used for tailing; both paths share the same sequence deduplication.
-export function useJobEvents(jobId: string, active: boolean): JobEventStream {
+// `session` restarts the stream for the same job (e.g. after an explicit
+// resume re-queues an evaluation whose earlier stream had already closed).
+export function useJobEvents(
+  jobId: string,
+  active: boolean,
+  session = 0,
+): JobEventStream {
   const [events, setEvents] = useState<JobEvent[]>([]);
   const [transport, setTransport] = useState<Transport>(
     active ? "sse" : "closed",
@@ -55,7 +62,7 @@ export function useJobEvents(jobId: string, active: boolean): JobEventStream {
     setHistoryError(null);
     lastSeqRef.current = 0;
     seenRef.current = new Set();
-  }, [active, jobId]);
+  }, [active, jobId, session]);
 
   useEffect(() => {
     if (!active || !jobId) return;
@@ -88,6 +95,8 @@ export function useJobEvents(jobId: string, active: boolean): JobEventStream {
         lastSeqRef.current = Math.max(lastSeqRef.current, event.seq);
         fresh.push(event);
         if (TERMINAL_EVENTS.has(event.type)) terminalSeen = true;
+        // A resumed evaluation runs again after its earlier terminal event.
+        if (event.type === "job_resumed") terminalSeen = false;
       }
       if (fresh.length > 0 && !stopped) {
         sseFailures = 0;
@@ -168,17 +177,22 @@ export function useJobEvents(jobId: string, active: boolean): JobEventStream {
       } catch {
         payload = { raw: message.data };
       }
+      const seq = Number(message.lastEventId || 0);
+      // SSE replays the whole tape from the start. A terminal event that was
+      // already ingested (a resumed evaluation's earlier end) must not close
+      // the live stream.
+      const replayed = seq > 0 && seenRef.current.has(seq);
       ingest([
         {
           job_id: jobId,
-          seq: Number(message.lastEventId || 0),
+          seq,
           ts: null,
           type: message.type,
           payload,
         },
       ]);
       if (!stopped) setHistoryLoading(false);
-      if (TERMINAL_EVENTS.has(message.type)) {
+      if (TERMINAL_EVENTS.has(message.type) && !replayed) {
         terminalSeen = true;
         stop("closed");
       }
@@ -261,7 +275,7 @@ export function useJobEvents(jobId: string, active: boolean): JobEventStream {
       eventSource?.close();
       eventSource = null;
     };
-  }, [active, jobId]);
+  }, [active, jobId, session]);
 
   return {
     events,

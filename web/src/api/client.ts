@@ -14,6 +14,9 @@ import type {
   CellResponse,
   DomainProfileResponse,
   DomainScore,
+  EvaluationReport,
+  EvaluationResultsResponse,
+  EvaluationTrial,
   EvidenceScope,
   HealthResponse,
   Job,
@@ -268,10 +271,47 @@ export const api = {
       signal,
     }),
 
+  // Explicit same-ID continuation of a failed/canceled evaluation's incomplete
+  // trials. The server refuses (409) legacy, unsnapshotted, succeeded or
+  // live-owned evaluations; completed trials are never re-run.
+  resumeJob: (jobId: string, signal?: AbortSignal) =>
+    request<Job>(`/jobs/${encodeURIComponent(jobId)}/resume`, {
+      method: "POST",
+      signal,
+    }),
+
   // Poll fallback for the live monitor (?since= returns JSON, no SSE).
   jobEvents: (jobId: string, since: number, signal?: AbortSignal) =>
     request<JobEventsResponse>(
       `/jobs/${encodeURIComponent(jobId)}/events?since=${since}`,
+      { signal },
+    ),
+
+  // ----------------------- Evaluation-scoped ------------------------- //
+  // Exactly one evaluation's persisted trial rows. Unlike the aggregate
+  // routes these are never pooled with other evaluations of the same model,
+  // and each trial names its own run_id.
+
+  jobResults: (jobId: string, signal?: AbortSignal) =>
+    request<EvaluationResultsResponse>(
+      `/jobs/${encodeURIComponent(jobId)}/results`,
+      { signal },
+    ),
+
+  jobTrial: (
+    jobId: string,
+    taskId: string,
+    idx: number,
+    signal?: AbortSignal,
+  ) =>
+    request<EvaluationTrial>(
+      `/jobs/${encodeURIComponent(jobId)}/trials/${encodeURIComponent(taskId)}/${idx}`,
+      { signal },
+    ),
+
+  jobReport: (jobId: string, signal?: AbortSignal) =>
+    request<EvaluationReport>(
+      `/jobs/${encodeURIComponent(jobId)}/report.json`,
       { signal },
     ),
 
@@ -312,6 +352,11 @@ export function jobEventsSseUrl(jobId: string): string {
 // Direct download URL for the JSON export (GET /export).
 export function exportUrl(): string {
   return `${API_BASE}${API_PREFIX}/export`;
+}
+
+// Direct download URLs for one evaluation's deterministic report.
+export function jobReportUrl(jobId: string, format: "json" | "md"): string {
+  return `${API_BASE}${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/report.${format}`;
 }
 
 export type { JobEvent };

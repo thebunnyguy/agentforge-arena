@@ -176,6 +176,32 @@ test("mock evaluation launches, streams, retries FRESH (no silent reuse), cancel
     page.getByRole("heading", { name: "Task and repeat outcomes" }),
   ).toBeVisible();
   await expect(page.locator(".task-run-grid")).toBeVisible();
+  // The results come from this evaluation's own report: one trial row.
+  await expect(
+    page.getByRole("table", { name: "Evaluation trials" }).locator("tbody tr"),
+  ).toHaveCount(1);
+  // Two evaluations of the same mock model now share (model, task, idx 0).
+  // The job-scoped run link resolves through this evaluation's trial row, so
+  // it opens its own run instead of an "ambiguous run identity" chooser.
+  const retryId = new URL(page.url()).pathname.split("/")[2];
+  const marker = page.locator(".task-run-grid a.run-marker-link").first();
+  // /jobs/{id}/runs/{task}/{idx}
+  const [, , , , markerTask, markerIdx] = (
+    (await marker.getAttribute("href")) ?? ""
+  ).split("/");
+  await marker.click();
+  await expect(page.getByRole("heading", { name: "Run #0" })).toBeVisible();
+  await expect(page.getByText("Ambiguous run identity")).toHaveCount(0);
+  const trialNotice = page.locator(".inline-notice", {
+    hasText: "Evaluation trial.",
+  });
+  await expect(trialNotice).toContainText(retryId.slice(0, 10));
+  const trial = await (
+    await page.request.get(
+      `/api/v1/jobs/${retryId}/trials/${markerTask}/${markerIdx}`,
+    )
+  ).json();
+  await expect(trialNotice).toContainText(`run id ${trial.run_id}`);
 
   await launchMock(page, 3);
   await expect(
@@ -184,6 +210,65 @@ test("mock evaluation launches, streams, retries FRESH (no silent reuse), cancel
   await page.getByRole("button", { name: "Cancel evaluation" }).click();
   await waitForTerminal(page);
   await expect(page.getByText("Evaluation canceled")).toBeVisible();
+});
+
+test("a canceled evaluation resumes under the same ID and completes only its unfinished trials", async ({
+  page,
+}) => {
+  const created = await page.request.post("/api/v1/jobs", {
+    data: {
+      backend: { kind: "mock", base_url: null },
+      model: "mock",
+      name: "resume smoke",
+      tasks: [task],
+      repeats: 10,
+      base_seed: 42,
+      temperature: 0.8,
+      request_timeout_s: 180,
+    },
+  });
+  expect(created.ok()).toBeTruthy();
+  const jobId = (await created.json()).id as string;
+  await page.request.post(`/api/v1/jobs/${jobId}/cancel`);
+  await page.goto(`/jobs/${jobId}`, { waitUntil: "networkidle" });
+  await waitForTerminal(page);
+  const canceled = await (
+    await page.request.get(`/api/v1/jobs/${jobId}`)
+  ).json();
+  expect(canceled.status).toBe("canceled");
+  expect(canceled.counters.completed_runs).toBeLessThan(10);
+  const kept = (
+    await (await page.request.get(`/api/v1/jobs/${jobId}/results`)).json()
+  ).trials
+    .filter(
+      (trial: { trial_state: string }) => trial.trial_state === "completed",
+    )
+    .map(
+      (trial: { idx: number; run_id: number }) =>
+        `${trial.idx}:${trial.run_id}`,
+    );
+
+  await page.getByRole("button", { name: /Resume evaluation/ }).click();
+  await expect(page.getByText("Evaluation complete")).toBeVisible({
+    timeout: 120_000,
+  });
+  await expect(page).toHaveURL(new RegExp(`/jobs/${jobId}$`));
+  const finished = await (
+    await page.request.get(`/api/v1/jobs/${jobId}`)
+  ).json();
+  expect(finished.status).toBe("succeeded");
+  expect(finished.counters.completed_runs).toBe(10);
+  // Trials completed before the cancel keep their original runs.
+  const after = (
+    await (await page.request.get(`/api/v1/jobs/${jobId}/results`)).json()
+  ).trials.map(
+    (trial: { idx: number; run_id: number }) => `${trial.idx}:${trial.run_id}`,
+  );
+  for (const entry of kept) expect(after).toContain(entry);
+  await expect(page.locator(".task-run-grid .run-marker.pass")).toHaveCount(10);
+  await expect(
+    page.locator(".task-run-grid .run-marker.interrupted"),
+  ).toHaveCount(0);
 });
 
 test("reports regeneration, JSON export, settings round-trip, and unreachable Ollama recovery work", async ({

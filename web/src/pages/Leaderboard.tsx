@@ -419,14 +419,14 @@ export function Leaderboard() {
               ? "Domain capability matrix (current task versions, not benchmark evidence)"
               : "Domain capability matrix (current benchmark)"
           }
-          description="Server-returned domain profiles built from current-version evidence only. Suppressed cells remain suppressed; they are not low scores."
+          description="Server-returned domain profiles built from current-version evidence only."
         />
         {coverage && coverage.withCurrent < coverage.total && (
           <p className="note muted">
             With {coverage.withCurrent}/{coverage.total} tasks covered by
             current evidence, most domains do not reach the minimum of 5 tasks
-            and 25 runs and stay suppressed (—). That reflects coverage, not low
-            scores.
+            and 25 runs, so their values are provisional. That reflects
+            coverage, not settled scores.
           </p>
         )}
         {meta.data?.models ? (

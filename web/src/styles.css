@@ -1662,10 +1662,62 @@ table.matrix {
   color: var(--warn);
   border-style: dotted;
 }
-.run-marker.error {
+.run-marker.error,
+.run-marker.blocked {
   color: var(--bad);
   background: var(--bad-soft);
   border-color: rgba(239, 128, 119, 0.55);
+}
+.run-marker.blocked {
+  border-style: dashed;
+}
+.inline-notice > .btn {
+  flex: none;
+  margin-left: auto;
+}
+.limitation-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.trial-table {
+  margin-top: 16px;
+}
+/* Provisional (below-threshold) domain evidence: shown with its value and
+   label, hatched instead of solid so it never reads as a settled score. */
+.domain-row-provisional .domain-fill {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--warn) 0 3px,
+    transparent 3px 6px
+  );
+}
+/* Anchor the matrix's visually hidden labels to their cell, so they never
+   resolve against the page from inside the scrolled table. */
+table.matrix td.cell {
+  position: relative;
+}
+.matrix-provisional a {
+  color: var(--text-secondary);
+}
+.matrix-prov-tag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 3px;
+  color: var(--warn);
+  border: 1px dashed var(--warn);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 13px;
+  vertical-align: 1px;
+}
+.matrix-legend .matrix-prov-tag {
+  margin-left: 0;
 }
 .run-marker.interrupted,
 .run-marker.not_run,

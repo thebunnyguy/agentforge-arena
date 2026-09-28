@@ -5,12 +5,14 @@ import {
   CircleDot,
   FileText,
   Pause,
+  Play,
   RotateCcw,
   Wifi,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api, ApiRequestError } from "../api/client";
+import { api, ApiRequestError, jobReportUrl } from "../api/client";
 import type { Job, JobEvent } from "../api/types";
+import { useAsync } from "../lib/useAsync";
 import { useJobEvents } from "../lib/useJobEvents";
 import { latestCurrentRun, summarizeEvent } from "../lib/jobView";
 import type { RunView } from "../lib/jobView";
@@ -49,13 +51,17 @@ export function JobDetail() {
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [actioning, setActioning] = useState(false);
+  // Bumped by an explicit resume: the same evaluation runs again, so job
+  // polling and the event stream (both stopped at the earlier end) restart.
+  const [session, setSession] = useState(0);
+  const polledJobRef = useRef("");
   const routeIdRef = useRef(jobId);
   const routeGeneration = useRef(0);
   if (routeIdRef.current !== jobId) {
     routeIdRef.current = jobId;
     routeGeneration.current += 1;
   }
-  const stream = useJobEvents(jobId, true);
+  const stream = useJobEvents(jobId, true, session);
 
   useEffect(() => {
     return () => {
@@ -71,9 +77,14 @@ export function JobDetail() {
     const generation = routeGeneration.current;
     let active = true;
     let timer: number | null = null;
-    setJob(null);
-    setError(null);
-    setActioning(false);
+    // A session restart keeps the resumed job on screen instead of flashing
+    // the loading state; a different job starts from nothing.
+    if (polledJobRef.current !== jobId) {
+      polledJobRef.current = jobId;
+      setJob(null);
+      setError(null);
+      setActioning(false);
+    }
     const tick = async () => {
       try {
         const result = await api.job(jobId, controller.signal);
@@ -105,7 +116,7 @@ export function JobDetail() {
       routeGeneration.current += 1;
       if (routeIdRef.current === jobId) routeIdRef.current = "";
     };
-  }, [jobId]);
+  }, [jobId, session]);
 
   useEffect(() => {
     const generation = routeGeneration.current;
@@ -137,6 +148,23 @@ export function JobDetail() {
     () => latestCurrentRun(stream.events),
     [stream.events],
   );
+  // Once the evaluation has ended, its persisted trial rows are the durable
+  // record: they fill any gap in the event history and give each marker the
+  // exact run it links to. Unverifiable parameters stay fail-closed.
+  const loadedJob = job && job.id === jobId ? job : null;
+  const trialsWanted =
+    loadedJob !== null &&
+    TERMINAL.has(loadedJob.status) &&
+    jobParamsView(loadedJob).available;
+  const trials = useAsync(
+    (signal) =>
+      trialsWanted ? api.jobResults(jobId, signal) : Promise.resolve(null),
+    [jobId, trialsWanted, loadedJob?.finished_at, session],
+  );
+  const persistedTrials =
+    trialsWanted && trials.data?.evaluation_id === jobId
+      ? trials.data.trials
+      : null;
   if (error && (!job || job.id !== jobId))
     return <ErrorState error={error} onRetry={() => navigate(0)} />;
   if (!job || job.id !== jobId) return <Loading label="Loading evaluation…" />;
@@ -154,6 +182,15 @@ export function JobDetail() {
   const evidenceClass = jobEvidenceClass(currentJob);
   // Unverifiable parameters can neither be retried nor resumed.
   const canRetry = terminal && paramsView.available;
+  // Same-ID continuation of the unfinished positions. Legacy or
+  // unsnapshotted evaluations are never resumable; the server still decides
+  // everything else (its refusal is shown).
+  const canResume =
+    paramsView.available &&
+    currentJob.mode !== "legacy" &&
+    currentJob.snapshot !== null &&
+    (currentJob.status === "failed" || currentJob.status === "canceled") &&
+    counters.completed_runs < counters.total_runs;
   const transportLabel =
     stream.transport === "poll"
       ? "Live · fallback polling"
@@ -207,6 +244,33 @@ export function JobDetail() {
     }
   }
 
+  async function resume() {
+    if (!canResume) return;
+    const targetId = currentJob.id;
+    const targetGeneration = routeGeneration.current;
+    const isCurrent = () =>
+      routeGeneration.current === targetGeneration &&
+      routeIdRef.current === targetId;
+    setActioning(true);
+    try {
+      const resumed = await api.resumeJob(targetId);
+      if (isCurrent()) {
+        setError(null);
+        setJob(resumed);
+        setSession((current) => current + 1);
+      }
+    } catch (caught) {
+      if (isCurrent())
+        setError(
+          caught instanceof ApiRequestError
+            ? caught
+            : new Error(String(caught)),
+        );
+    } finally {
+      if (isCurrent()) setActioning(false);
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -234,6 +298,17 @@ export function JobDetail() {
             )}
             {currentJob.cancel_requested && (
               <span className="badge warn">cancel requested</span>
+            )}
+            {canResume && (
+              <button
+                className="btn btn-secondary"
+                type="button"
+                disabled={actioning}
+                onClick={resume}
+                title="Continue the unfinished trials under this evaluation ID; completed trials are kept, not re-run."
+              >
+                <Play size={15} aria-hidden="true" /> Resume evaluation
+              </button>
             )}
             {canRetry && (
               <button
@@ -400,9 +475,16 @@ export function JobDetail() {
               <TaskRunGrid
                 job={currentJob}
                 events={stream.events}
+                trials={persistedTrials}
                 historyLoading={stream.historyLoading}
                 historyError={stream.historyError}
               />
+            )}
+            {persistedTrials && (
+              <p className="note muted">
+                Outcomes come from this evaluation&apos;s persisted trial rows;
+                each linked marker opens exactly the run its trial recorded.
+              </p>
             )}
             <div className="legend">
               <span className="legend-item">
@@ -428,6 +510,9 @@ export function JobDetail() {
               </span>
               <span className="legend-item">
                 <span className="run-marker reused">↺</span> reused
+              </span>
+              <span className="legend-item">
+                <span className="run-marker blocked">!</span> blocked
               </span>
             </div>
           </Panel>
@@ -488,6 +573,11 @@ export function JobDetail() {
               <dt>duration</dt>
               <dd>
                 {jobDuration(currentJob.started_at, currentJob.finished_at)}
+              </dd>
+              <dt>report</dt>
+              <dd>
+                <a href={jobReportUrl(currentJob.id, "json")}>JSON</a> ·{" "}
+                <a href={jobReportUrl(currentJob.id, "md")}>Markdown</a>
               </dd>
             </dl>
           </Panel>

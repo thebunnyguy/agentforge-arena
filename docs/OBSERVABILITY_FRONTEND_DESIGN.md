@@ -19,7 +19,7 @@ A **live local FastAPI is always present** in this delivery: the React SPA is se
 
 Goals, in priority order:
 
-1. **Honesty is the product.** Foreground Wilson confidence intervals, provenance, gate breakdowns, provisional/deterministic/bimodal flags, synthetic baselines as explicit anchors, and the captured-vs-"not captured" data gap. A small sample must *look* uncertain; a suppressed domain must *look* suppressed, not low.
+1. **Honesty is the product.** Foreground Wilson confidence intervals, provenance, gate breakdowns, provisional/deterministic/bimodal flags, synthetic baselines as explicit anchors, and the captured-vs-"not captured" data gap. A small sample must *look* uncertain; a below-threshold domain must *look* provisional, never settled, and a domain without evidence must *look* empty, not low.
 2. **One source of truth for math.** All scoring/aggregation/confidence/ranking lives only in the Python kernel. The web layer never re-implements it — not in TypeScript, not "as an approximation," not for any view.
 3. **One serializer.** A single pure Python module turns the kernel/report layer into JSON; the live FastAPI is its only consumer in this doc. The frontend is a thin projection of that one shape.
 4. **Offline-first.** Zero external network calls, no paid LLM APIs, no LLM-as-judge anywhere in the stack or its tests. The API and SPA run entirely on the local host.
@@ -414,10 +414,11 @@ Caption verbatim from the kernel rule: "Ranked by Wilson lower bound. Agent a ou
 
 | Element | Field | Honesty treatment |
 |---------|-------|-------------------|
-| Cell value | `pooled_pass_rate` | Shown **only when** `displayable` (`n_tasks ≥ 5 AND n_runs ≥ 25`). |
-| Suppressed cell | `displayable == false` | Renders literal **`--`** (grey hatch), never a number. Tooltip: "not displayable: n_tasks=…, n_runs=… (need ≥5 tasks and ≥25 runs)". |
+| Cell value | `pooled_pass_rate` | Shown as a settled value when `displayable` (`n_tasks ≥ 5 AND n_runs ≥ 25`; the server's flag is the only authority). |
+| Provisional cell | `displayable == false`, `n_runs > 0` | Existing below-threshold evidence: the rate is shown with a **`prov.`** tag and no heat shading; the agent profile adds a hatched bar, a `provisional` badge and the Wilson interval. Tooltip / screen-reader text: "provisional: n tasks and n runs; the display threshold is 5 tasks and 25 runs". Never comparable with displayable cells and never in an overall score. |
+| Empty cell | `n_runs == 0` | The kernel's degenerate placeholder (rate 0, interval [0, 1]) is **not** a score: renders **`—`**, "no current evidence", never `0%`. |
 | Cell uncertainty | `wilson_low/high`, `n_eff` | On hover: Wilson interval on `n_eff` (Kish), plus `n_eff`, `n_tasks`, `n_runs`. |
-| Cell shading | `pooled_pass_rate` | Intensity encodes the rate; `--` cells are unshaded so **suppression ≠ low score**. |
+| Cell shading | `pooled_pass_rate` | Intensity encodes the rate of displayable cells only; provisional and empty cells are unshaded so **coverage ≠ low score**. |
 
 ### 6.3 View 2 — Cell drill-down
 
@@ -441,7 +442,7 @@ Static (no DB), quoting `types.py` docstrings to stay in lockstep with the kerne
 
 ### 6.6 Cross-cutting honesty posture
 
-Uncertainty is the hero (wide bars for small `n`); provisional is loud everywhere; suppression is a labeled grey hatch; captured-vs-not-captured is per-row truth from real `patch_text`/`test_results` presence; cherry-pick hazards (`max_s`, `bimodal`) are named; synthetic anchors sit outside the competitive field; provenance (`transcript_hash`, `task_version`, the mixed-version refusal) is one click away. Every rendered value has a checkable origin, and the explorer shows that origin rather than softening it.
+Uncertainty is the hero (wide bars for small `n`); provisional is loud everywhere (below-threshold domains included, as a labelled hatch); an empty domain is a dash, never 0%; captured-vs-not-captured is per-row truth from real `patch_text`/`test_results` presence; cherry-pick hazards (`max_s`, `bimodal`) are named; synthetic anchors sit outside the competitive field; provenance (`transcript_hash`, `task_version`, the mixed-version refusal) is one click away. Every rendered value has a checkable origin, and the explorer shows that origin rather than softening it.
 
 ---
 

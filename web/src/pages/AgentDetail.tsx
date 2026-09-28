@@ -21,6 +21,10 @@ import {
 } from "../components/Badges";
 import { EvidenceScopeBanner } from "../components/EvidenceScopeBanner";
 import { fixed, pct } from "../lib/format";
+import {
+  PROVISIONAL_DOMAIN_NOTE,
+  domainEvidenceState,
+} from "../lib/domainEvidence";
 import { linkQuery, useEvidenceScope } from "../lib/useEvidenceScope";
 
 export function AgentDetail() {
@@ -221,52 +225,69 @@ export function AgentDetail() {
       <Panel>
         <SectionHeader
           title="Domain capability (current benchmark)"
-          description="Only server-marked displayable domain values are shown. Suppression is not a low score."
+          description="Pooled pass rate per domain over current-version evidence, with its Wilson interval. A domain without current evidence shows no value; that is not a zero."
         />
         {noCurrentEvidence ? (
           <MissingCurrentEvidence historicalAvailable={hasHistorical} />
-        ) : coverageNow !== null && coverageNow < coverageTotal ? (
+        ) : profile.data!.domains.some(
+            (domain) => domainEvidenceState(domain) === "provisional",
+          ) ? (
           <p className="note muted">
-            Domains need at least 5 tasks and 25 runs of current evidence. With{" "}
-            {coverageNow}/{coverageTotal} tasks covered, many domains stay
-            suppressed; that reflects coverage, not a low score.
+            {PROVISIONAL_DOMAIN_NOTE}
+            {coverageNow !== null && coverageNow < coverageTotal
+              ? ` With ${coverageNow}/${coverageTotal} tasks covered by current evidence, a provisional domain reflects coverage, not a settled score.`
+              : ""}
           </p>
         ) : null}
         <div className="domain-list">
-          {profile.data!.domains.map((domain) => (
-            <div className="domain-row" key={domain.domain}>
-              <div className="domain-name">
-                <span>{domain.domain}</span>
-                <small>
-                  {domain.n_tasks} current tasks · {domain.n_runs} runs · n_eff{" "}
-                  {domain.displayable ? fixed(domain.n_eff, 1) : "—"}
-                </small>
-              </div>
-              {domain.displayable ? (
-                <>
-                  <div className="domain-track">
-                    <div
-                      className="domain-fill"
-                      style={{ width: `${domain.pooled_pass_rate * 100}%` }}
-                    />
-                  </div>
-                  <span className="domain-value mono">
-                    {pct(domain.pooled_pass_rate, 0)}
+          {profile.data!.domains.map((domain) => {
+            const state = domainEvidenceState(domain);
+            return (
+              <div
+                className={`domain-row${state === "provisional" ? " domain-row-provisional" : ""}`}
+                key={domain.domain}
+              >
+                <div className="domain-name">
+                  <span>
+                    {domain.domain}
+                    {state === "provisional" && (
+                      <>
+                        {" "}
+                        <ProvisionalBadge />
+                      </>
+                    )}
                   </span>
-                  <WilsonBar
-                    pHat={domain.pooled_pass_rate}
-                    low={domain.wilson_low}
-                    high={domain.wilson_high}
-                    width={150}
-                    compact
-                    showLabel={false}
-                  />
-                </>
-              ) : (
-                <span className="badge warn">not displayable</span>
-              )}
-            </div>
-          ))}
+                  <small>
+                    {domain.n_tasks} current tasks · {domain.n_runs} runs ·
+                    n_eff {state === "none" ? "—" : fixed(domain.n_eff, 1)}
+                  </small>
+                </div>
+                {state === "none" ? (
+                  <span className="note muted">no current evidence</span>
+                ) : (
+                  <>
+                    <div className="domain-track">
+                      <div
+                        className="domain-fill"
+                        style={{ width: `${domain.pooled_pass_rate * 100}%` }}
+                      />
+                    </div>
+                    <span className="domain-value mono">
+                      {pct(domain.pooled_pass_rate, 0)}
+                    </span>
+                    <WilsonBar
+                      pHat={domain.pooled_pass_rate}
+                      low={domain.wilson_low}
+                      high={domain.wilson_high}
+                      width={150}
+                      compact
+                      showLabel={false}
+                    />
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
         <details className="supporting-details">
           <summary>Coverage and stability details</summary>
@@ -290,13 +311,17 @@ export function AgentDetail() {
                     <td className="num mono">{domain.n_runs}</td>
                     <td className="num mono">{fixed(domain.n_eff, 1)}</td>
                     <td className="num mono">
-                      {domain.displayable ? fixed(domain.stability) : "—"}
+                      {domainEvidenceState(domain) === "none"
+                        ? "—"
+                        : fixed(domain.stability)}
                     </td>
                     <td>
-                      {domain.displayable ? (
+                      {domainEvidenceState(domain) === "displayable" ? (
                         <span className="badge good">displayable</span>
+                      ) : domainEvidenceState(domain) === "provisional" ? (
+                        <ProvisionalBadge />
                       ) : (
-                        <span className="badge warn">suppressed</span>
+                        <span className="badge neutral">no evidence</span>
                       )}
                     </td>
                   </tr>

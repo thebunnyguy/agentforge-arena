@@ -448,16 +448,25 @@ duration, and actions: **Monitor** (always), **Results** (when runs persisted), 
 (when terminal/failed/has-voids). Client-side sort/filter only; no re-ordering of server
 order beyond the user's chosen sort.
 
-### 7.5 Results (`/jobs/:jobId/results`) — embedded explorer
+### 7.5 Results (`/jobs/:jobId/results`) — evaluation-scoped report
 
-Reuses the read-only explorer views (overview → domain matrix → cell → run drill-down),
-**scoped to this job's runs** via `runs.job_id`, plus a top job-summary strip (the worker's
-`p_hat = c/nv` headline, labeled as the worker's summary). All explorer honesty rules carry
-through unchanged: kernel ranking order (never re-sorted), Wilson bars, the three-state
-capture chip (synthetic / captured / not captured), `q_components={}` (Q=1.0 offline),
-per-gate "not captured," and the mixed-version refusal (a multi-version cell returns
-`409 mixed_version_pool` and the UI shows the refusal, never a blended number). Implemented
-by reusing the explorer view components with a `scope={agent, task_ids}` prop — not a fork.
+As implemented, the results page reads the evaluation's own deterministic report
+(`GET /jobs/{id}/report.json`), never a pooled aggregate: the report's eight counters (with
+the server's counter semantics), a task × repeat grid and a trial table built from the
+persisted `evaluation_trials` rows (trial state, evidence state, outcome, score, artifacts,
+comparability, provenance, exact `run_id`), the persisted provenance (backend, generation
+settings with their provenance labels, task snapshots with digests) and the server's
+limitations. `report.json` / `report.md` are offered as downloads. Global current-benchmark
+cells for the same model are shown separately and labelled as pooled over every evaluation.
+
+Job-scoped run URLs (`/jobs/:jobId/runs/:taskId/:idx`) resolve through
+`GET /jobs/{id}/trials/{task}/{idx}` to the trial's exact `run_id` (then `GET /runs/{id}`),
+so they never hit the `(model, task, idx)` tuple, which is ambiguous once a model has more
+than one evaluation. The monitor overlays the persisted rows (`GET /jobs/{id}/results`) on
+the event tape once an evaluation ends, and a failed or canceled evaluation with unfinished
+trials offers **Resume** (`POST /jobs/{id}/resume`: same ID, completed trials kept). An
+evaluation whose persisted parameters are unverifiable stays fail-closed: no per-trial
+outcomes or run resolution, only its report's limitations.
 
 ---
 

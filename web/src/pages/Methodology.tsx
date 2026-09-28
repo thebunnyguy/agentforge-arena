@@ -109,8 +109,12 @@ export function Methodology() {
             <p>
               Task metadata assigns weighted domain tags. A domain is
               displayable only when it covers at least <strong>5 tasks</strong>{" "}
-              and <strong>25 runs</strong>. Suppressed domains show coverage but
-              no performance value; suppression is not a zero.
+              and <strong>25 runs</strong>. A domain with current evidence below
+              that threshold is shown as <strong>provisional</strong>: its
+              pooled rate and wider Wilson interval are visible for inspection,
+              but it is not comparable with displayable domains and never enters
+              an overall score. A domain with no current evidence shows no
+              value; that is not a zero.
             </p>
           </Panel>
           <Panel>

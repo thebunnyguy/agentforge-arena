@@ -9,7 +9,11 @@ import {
   jobParamsView,
   reasonSentence,
 } from "../lib/jobParams";
-import type { CaptureState, RunDetailResponse } from "../api/types";
+import type {
+  CaptureState,
+  EvaluationTrial,
+  RunDetailResponse,
+} from "../api/types";
 import {
   CaptureBadge,
   EvidenceClassBadge,
@@ -50,17 +54,39 @@ export function RunPage() {
       ? jobView.model
       : ""
     : (agent ?? "");
+  // A job-scoped URL names one evaluation's trial. Its persisted row carries
+  // the exact run_id, so the page never falls back to the (model, task, idx)
+  // tuple, which is ambiguous once a model has more than one evaluation.
+  const trial = useAsync(
+    (signal) =>
+      jobId && jobView?.available
+        ? api.jobTrial(jobId, taskId, runIndex, signal)
+        : Promise.resolve(null),
+    [jobId, jobView?.available, taskId, runIndex],
+  );
+  const trialRunId = trial.data?.run_id ?? null;
   const detail = useAsync(
     (signal) => {
       if (runId) return api.runById(runId, signal);
+      if (jobId)
+        return trialRunId !== null
+          ? api.runById(trialRunId, signal)
+          : Promise.resolve(null);
       return resolvedAgent
         ? api.run(resolvedAgent, taskId, runIndex, { version }, signal)
         : Promise.resolve(null);
     },
-    [runId, resolvedAgent, taskId, runIndex, version],
+    [runId, jobId, trialRunId, resolvedAgent, taskId, runIndex, version],
   );
 
-  if (job.loading || detail.loading)
+  // Between the trial resolving and its run request starting, `detail` still
+  // holds nothing for that run: keep loading rather than flash "not found".
+  const awaitingTrialRun =
+    Boolean(jobId) &&
+    trialRunId !== null &&
+    !detail.error &&
+    detail.data?.run_id !== trialRunId;
+  if (job.loading || trial.loading || detail.loading || awaitingTrialRun)
     return <Loading label="Loading run evidence…" />;
   if (job.error) return <ErrorState error={job.error} onRetry={job.reload} />;
   if (jobId && jobView && !jobView.available)
@@ -79,6 +105,48 @@ export function RunPage() {
         <p>
           This evaluation's persisted parameters are unverifiable, so the run
           cannot be resolved through it. {reasonSentence(jobView.reason)}
+        </p>
+      </EmptyState>
+    );
+  if (jobId && trial.error) {
+    if (trial.error instanceof ApiRequestError && trial.error.status === 404)
+      return (
+        <EmptyState
+          title="Trial not found"
+          action={
+            <Link
+              className="btn btn-secondary btn-small"
+              to={`/jobs/${encodeURIComponent(jobId)}`}
+            >
+              Back to evaluation
+            </Link>
+          }
+        >
+          <p>
+            This evaluation has no trial for {taskId} repeat #{idx}.
+          </p>
+        </EmptyState>
+      );
+    return <ErrorState error={trial.error} onRetry={trial.reload} />;
+  }
+  if (jobId && trial.data && trial.data.run_id === null)
+    return (
+      <EmptyState
+        title="No persisted run for this trial"
+        action={
+          <Link
+            className="btn btn-secondary btn-small"
+            to={`/jobs/${encodeURIComponent(jobId)}`}
+          >
+            Back to evaluation
+          </Link>
+        }
+      >
+        <p>
+          {taskId} repeat #{runIndex} of this evaluation is{" "}
+          <strong>{trial.data.trial_state}</strong> (evidence{" "}
+          {trial.data.evidence_state}); it has no stored run to inspect.
+          {trial.data.error_message ? ` ${trial.data.error_message}` : ""}
         </p>
       </EmptyState>
     );
@@ -118,7 +186,9 @@ export function RunPage() {
         <p>
           {runId
             ? `No run with id ${runId} was returned by the local API.`
-            : `No run for ${resolvedAgent} × ${taskId} #${runIndex} at ${version ? `version ${version}` : "the current task version"} was returned by the local API.`}
+            : jobId && trialRunId !== null
+              ? `This trial names run ${trialRunId}, but the local API returned no run with that id.`
+              : `No run for ${resolvedAgent} × ${taskId} #${runIndex} at ${version ? `version ${version}` : "the current task version"} was returned by the local API.`}
         </p>
         {run?.historical_versions && run.historical_versions.length > 0 && (
           <p>
@@ -164,6 +234,7 @@ export function RunPage() {
         }
       />
       <CaveatBanner />
+      {jobId && trial.data && <TrialContext jobId={jobId} trial={trial.data} />}
       {run.evidence_class === "synthetic" && !run.synthetic && (
         <InlineNotice tone="warn">
           <span>
@@ -583,5 +654,46 @@ function TestEvidence({
         Patch captured, but the grade report recorded no per-test rows.
       </span>
     </InlineNotice>
+  );
+}
+
+/** What this evaluation's persisted trial row says about the run shown. */
+function TrialContext({
+  jobId,
+  trial,
+}: {
+  jobId: string;
+  trial: EvaluationTrial;
+}) {
+  const reused = trial.evidence_state === "reused";
+  return (
+    <>
+      <InlineNotice tone={reused ? "warn" : "info"}>
+        <span>
+          <strong>Evaluation trial.</strong> {trial.task_id} repeat #{trial.idx}{" "}
+          of evaluation{" "}
+          <Link className="mono" to={`/jobs/${encodeURIComponent(jobId)}`}>
+            {jobId.slice(0, 10)}
+          </Link>{" "}
+          · trial {trial.trial_state} · evidence {trial.evidence_state} · run id{" "}
+          <span className="mono">{trial.run_id}</span> · provenance{" "}
+          {trial.provenance} ·{" "}
+          {trial.comparability
+            ? trial.comparability
+            : "no comparability claim (incomplete artifacts or provenance)"}
+          .
+          {reused &&
+            ` This trial reuses prior evidence${trial.source_evaluation_id ? ` from evaluation ${trial.source_evaluation_id.slice(0, 10)}` : ""}; it was not freshly executed.`}
+        </span>
+      </InlineNotice>
+      {trial.integrity_error && (
+        <InlineNotice tone="danger">
+          <span>
+            <strong>Provenance integrity error.</strong> {trial.integrity_error}
+            . This run is not presented as comparable evidence.
+          </span>
+        </InlineNotice>
+      )}
+    </>
   );
 }

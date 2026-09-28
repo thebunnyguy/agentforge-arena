@@ -2,19 +2,27 @@ import { Link } from "react-router-dom";
 import type { Job, JobEvent } from "../api/types";
 import { PARAMS_UNAVAILABLE_TITLE, jobParamsView } from "../lib/jobParams";
 import {
+  mergeRunViews,
   projectEventTape,
+  projectTrials,
   runStateLabel,
   runStateSymbol,
 } from "../lib/jobView";
+import type { PersistedTrial } from "../lib/jobView";
 
 export function TaskRunGrid({
   job,
   events,
+  trials = null,
   historyLoading = false,
   historyError = null,
 }: {
   job: Job;
   events: JobEvent[];
+  /** This evaluation's persisted trial rows (GET /jobs/{id}/results or the
+   * report). When given, they outrank the event tape for every position they
+   * record, so a gap in the event history no longer hides a stored outcome. */
+  trials?: PersistedTrial[] | null;
   historyLoading?: boolean;
   historyError?: Error | null;
 }) {
@@ -28,7 +36,11 @@ export function TaskRunGrid({
     );
   const { tasks, repeats } = view;
   const projection = projectEventTape(events);
-  const historyIncomplete = historyLoading || historyError !== null;
+  const persisted = trials ? projectTrials(trials) : null;
+  // Persisted rows say which positions exist and whether they finished, so a
+  // missing event history only matters when there are no rows to fall back on.
+  const historyIncomplete =
+    persisted === null && (historyLoading || historyError !== null);
   const terminal =
     job.status === "succeeded" ||
     job.status === "failed" ||
@@ -50,16 +62,26 @@ export function TaskRunGrid({
             </span>
             <div className="run-markers">
               {Array.from({ length: repeats }).map((_, idx) => {
-                const run = projection.runs.get(`${taskId}:${idx}`);
+                const key = `${taskId}:${idx}`;
+                const stored = persisted?.get(key);
+                const run = mergeRunViews(stored, projection.runs.get(key));
+                // A stored row still pending/claimed after the evaluation
+                // ended never ran to completion: use the terminal fallback.
+                const unfinishedAfterEnd =
+                  terminal &&
+                  run !== undefined &&
+                  run === stored &&
+                  (run.state === "pending" || run.state === "running");
                 const state =
-                  run?.state ??
-                  (taskError
-                    ? "error"
-                    : historyIncomplete
-                      ? "not_recorded"
-                      : terminal
-                        ? "not_run"
-                        : "pending");
+                  run && !unfinishedAfterEnd
+                    ? run.state
+                    : taskError
+                      ? "error"
+                      : historyIncomplete
+                        ? "not_recorded"
+                        : terminal
+                          ? "not_run"
+                          : "pending";
                 const label = `${taskId} · repeat ${idx} · ${runStateLabel(state)}`;
                 const marker = (
                   <span
@@ -70,9 +92,9 @@ export function TaskRunGrid({
                     {runStateSymbol(state)}
                   </span>
                 );
-                const supportedEvidence = Boolean(
-                  run?.persisted && run?.phase !== "running",
-                );
+                const supportedEvidence =
+                  run?.runId !== undefined ||
+                  Boolean(run?.persisted && run?.phase !== "running");
                 return supportedEvidence ? (
                   <Link
                     className="run-marker-link"

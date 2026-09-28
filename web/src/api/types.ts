@@ -362,6 +362,10 @@ export type JobEvidenceClass = "real" | "synthetic" | "unknown";
 export interface Job {
   id: string;
   status: JobStatus;
+  /** "legacy" rows predate creation snapshots and can never be resumed. */
+  mode?: "fresh" | "reuse" | "legacy";
+  /** The creation snapshot; null when none was persisted. */
+  snapshot?: Record<string, unknown> | null;
   cancel_requested: boolean;
   /** null when the persisted parameters are unverifiable (see params_status). */
   params: JobParams | null;
@@ -392,6 +396,133 @@ export interface JobEvent {
 export interface JobEventsResponse {
   job_id: string;
   events: JobEvent[];
+}
+
+// ---------------------- Evaluation-scoped results ---------------------- //
+// One persisted evaluation_trials row per requested (task, repeat) position of
+// ONE evaluation (afa_api/jobs.py trial_detail, evaluation_report.py). These
+// are never global cell aggregates: a trial names its own run_id.
+
+export type TrialState = "pending" | "claimed" | "completed" | "blocked";
+export type TrialEvidenceState =
+  "missing" | "fresh" | "reused" | "unverifiable";
+/** complete = patch + test rows persisted; partial = one of them missing. */
+export type TrialArtifactState =
+  "absent" | "unavailable" | "partial" | "complete";
+/** The run's own backend vs the evaluation snapshot's backend. */
+export type TrialProvenance = "unknown" | "consistent" | "mismatch";
+
+export interface TrialOutcome {
+  status: string;
+  functional_pass: boolean;
+  voided: boolean;
+  final_score: number;
+}
+
+// GET /jobs/{id}/trials/{task_id}/{idx}; also each row of GET /jobs/{id}/results
+export interface EvaluationTrial {
+  evaluation_id: string;
+  task_id: string;
+  idx: number;
+  task_version: string;
+  trial_state: TrialState;
+  evidence_state: TrialEvidenceState;
+  run_id: number | null;
+  source_evaluation_id: string | null;
+  source_run_id: number | null;
+  origin_evaluation_id: string | null;
+  error_message: string | null;
+  backend_kind: BackendKind | null;
+  provenance: TrialProvenance;
+  /** null while the trial has no usable persisted score. */
+  outcome: TrialOutcome | null;
+  artifact_state: TrialArtifactState;
+  /** Absent when artifacts are incomplete or provenance mismatches. */
+  comparability?: "comparable" | "provisional";
+  integrity_error?: string;
+}
+
+// GET /jobs/{id}/results (stable alias of /jobs/{id}/trials)
+export interface EvaluationResultsResponse {
+  evaluation_id: string;
+  status: JobStatus;
+  mode: string;
+  snapshot: Record<string, unknown> | null;
+  counters: JobCounters;
+  trials: EvaluationTrial[];
+}
+
+export interface EvaluationReportTrial {
+  task_id: string;
+  idx: number;
+  task_version: string;
+  task_digest: string;
+  run_id: number | null;
+  trial_state: TrialState;
+  evidence_state: TrialEvidenceState;
+  source_evaluation_id: string | null;
+  source_run_id: number | null;
+  origin_evaluation_id: string | null;
+  outcome: TrialOutcome | null;
+  artifact_state: TrialArtifactState;
+  comparability: "comparable" | "provisional" | null;
+  backend_kind: BackendKind | null;
+  provenance: TrialProvenance;
+  error_message: string | null;
+  integrity_error?: string;
+}
+
+export interface EvaluationReportCounters {
+  total: number;
+  completed: number;
+  passed: number;
+  failed: number;
+  voided: number;
+  reused: number;
+  incomplete: number;
+  unavailable: number;
+}
+
+// GET /jobs/{id}/report.json (evaluation_report.REPORT_SCHEMA_VERSION = 1).
+// Every provenance field is null when the persisted value is unverifiable;
+// `limitations` says so in words.
+export interface EvaluationReport {
+  schema_version: number;
+  evaluation_id: string;
+  status: JobStatus | null;
+  mode: "fresh" | "reuse" | "legacy" | null;
+  created_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  model: string | null;
+  backend: Backend | null;
+  provider: BackendKind | null;
+  evaluation_parameters: {
+    model: string | null;
+    name: string | null;
+    repeats: number | null;
+    base_seed: number | null;
+    temperature: number | null;
+    request_timeout_s: number | null;
+    backend: Backend | null;
+    source_evaluation_id: string | null;
+  };
+  generation: {
+    base_seed: number | null;
+    temperature: number | null;
+    request_timeout_s: number | null;
+    seed_provenance: string | null;
+    timeout_provenance: string | null;
+  };
+  task_snapshots: Array<{
+    task_id: string;
+    task_version: string;
+    task_digest: string;
+  }>;
+  counters: EvaluationReportCounters;
+  counter_semantics: Record<keyof EvaluationReportCounters, string>;
+  trials: EvaluationReportTrial[];
+  limitations: string[];
 }
 
 export interface BackendVerifyRequest {

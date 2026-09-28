@@ -1,4 +1,4 @@
-import type { JobEvent } from "../api/types";
+import type { EvaluationTrial, JobEvent } from "../api/types";
 
 export type RunViewState =
   | "pending"
@@ -9,6 +9,7 @@ export type RunViewState =
   | "reused"
   | "unknown"
   | "error"
+  | "blocked"
   | "interrupted"
   | "not_run"
   | "not_recorded";
@@ -32,6 +33,8 @@ export interface RunView {
   functionalPass?: boolean;
   persisted: boolean;
   error?: string;
+  /** The exact run a persisted trial row names (evaluation-scoped). */
+  runId?: number;
 }
 
 export interface JobEventProjection {
@@ -115,11 +118,19 @@ function runFor(
   return created;
 }
 
+// A reclaim (crashed worker) or an explicit resume restarts the evaluation's
+// unfinished positions under the same ID: runs without a persisted result go
+// back to pending, and only a terminal event after the last restart ends it.
+const RESTART_EVENTS = new Set(["job_reclaimed", "job_resumed"]);
+
 export function projectEventTape(events: JobEvent[]): JobEventProjection {
   const runs = new Map<string, RunView>();
   const taskErrors = new Map<string, string>();
   for (const event of events) {
-    if (event.type === "job_reclaimed") {
+    if (RESTART_EVENTS.has(event.type)) {
+      // An explicit resume re-verifies the task snapshot and unblocks blocked
+      // positions, so task-level errors from before it no longer apply.
+      if (event.type === "job_resumed") taskErrors.clear();
       for (const [key, run] of runs) {
         if (
           !run.persisted &&
@@ -204,7 +215,7 @@ export function projectEventTape(events: JobEvent[]): JobEventProjection {
     }
   }
   const lastReclaim = events.reduce(
-    (last, event, index) => (event.type === "job_reclaimed" ? index : last),
+    (last, event, index) => (RESTART_EVENTS.has(event.type) ? index : last),
     -1,
   );
   const hasCurrentTerminal = events.some(
@@ -231,6 +242,91 @@ export function projectRuns(events: JobEvent[]): Map<string, RunView> {
   return projectEventTape(events).runs;
 }
 
+/** The fields shared by /jobs/{id}/results rows and report.json trials. */
+export type PersistedTrial = Pick<
+  EvaluationTrial,
+  | "task_id"
+  | "idx"
+  | "trial_state"
+  | "evidence_state"
+  | "run_id"
+  | "outcome"
+  | "error_message"
+>;
+
+/**
+ * One persisted trial row as a grid marker. This is the evaluation's durable
+ * state, so it outranks the event tape wherever it records an outcome; a
+ * pending or claimed row says only "not finished yet" and leaves the live
+ * state to the events.
+ */
+export function trialRunView(trial: PersistedTrial): RunView {
+  const base = {
+    taskId: trial.task_id,
+    idx: trial.idx,
+    runId: trial.run_id ?? undefined,
+    error: trial.error_message ?? undefined,
+  };
+  if (trial.trial_state === "blocked")
+    return { ...base, state: "blocked", phase: "error", persisted: false };
+  if (trial.trial_state === "claimed")
+    return { ...base, state: "running", phase: "running", persisted: false };
+  if (trial.trial_state !== "completed")
+    return { ...base, state: "pending", phase: "pending", persisted: false };
+  const persisted = trial.run_id !== null;
+  // Reused evidence is never counted as a fresh outcome, whatever it scored.
+  if (trial.evidence_state === "reused")
+    return {
+      ...base,
+      state: "reused",
+      phase: "skipped",
+      persisted,
+      status: trial.outcome?.status,
+    };
+  const outcome = trial.outcome;
+  if (!outcome)
+    return { ...base, state: "unknown", phase: "persisted", persisted };
+  return {
+    ...base,
+    state: outcome.voided
+      ? "voided"
+      : outcome.functional_pass
+        ? "pass"
+        : "fail",
+    phase: "persisted",
+    persisted,
+    status: outcome.status,
+    functionalPass: outcome.functional_pass,
+  };
+}
+
+export function projectTrials(trials: PersistedTrial[]): Map<string, RunView> {
+  return new Map(
+    trials.map((trial) => [
+      `${trial.task_id}:${trial.idx}`,
+      trialRunView(trial),
+    ]),
+  );
+}
+
+/**
+ * Pick the marker for one (task, repeat) position. A persisted trial that has
+ * left pending/claimed is authoritative; otherwise the live event tape wins,
+ * then the persisted pending/claimed row, then the grid's own fallback.
+ */
+export function mergeRunViews(
+  persisted: RunView | undefined,
+  live: RunView | undefined,
+): RunView | undefined {
+  if (
+    persisted &&
+    persisted.state !== "pending" &&
+    persisted.state !== "running"
+  )
+    return persisted;
+  return live ?? persisted;
+}
+
 export function runStateLabel(state: RunViewState): string {
   switch (state) {
     case "pass":
@@ -247,6 +343,8 @@ export function runStateLabel(state: RunViewState): string {
       return "recorded · outcome unavailable";
     case "error":
       return "worker error";
+    case "blocked":
+      return "blocked · not executed";
     case "interrupted":
       return "interrupted · no persisted result";
     case "not_run":
@@ -273,6 +371,8 @@ export function runStateSymbol(state: RunViewState): string {
     case "unknown":
       return "?";
     case "error":
+      return "!";
+    case "blocked":
       return "!";
     case "interrupted":
       return "!";
