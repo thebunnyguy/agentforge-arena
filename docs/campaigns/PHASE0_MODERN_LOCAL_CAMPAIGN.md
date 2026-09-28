@@ -20,7 +20,8 @@ not benchmark evidence**: the campaign database and ledger are independent of th
 stays inspectable — and re-validates — after its model has been deleted.
 
 This cohort is a **new baseline**. It is not directly comparable with the historical pre-Phase-0 runs in
-`reports/runs.sqlite` (18 of the 24 tasks changed version since; other runtime, other generation conditions).
+`reports/runs.sqlite` (18 of the 24 task definitions changed version since; the historical runs predate the current evaluation-integrity
+system; other runtime, other generation conditions).
 
 ## 2. Environment
 
@@ -32,7 +33,7 @@ This cohort is a **new baseline**. It is not directly comparable with the histor
 | AgentForge runtime | tag `phase0-integrity-v1` = `7369e67e1ceb4b2a566986f247961f8a63f99567`; `afa_api/`, `runner/`, `kernel/`, `tasks/` checked equal to the tag before every launch |
 | Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced`, checked before the campaign, before every submission, after every model and at the end |
 
-The shell profile exports `OLLAMA_MODEL_PATH=/Volumes/X10 Pro/ollama-cli-models`; that is not an Ollama variable
+The shell profile exports `OLLAMA_MODEL_PATH=<external volume>/ollama-cli-models`; that is not an Ollama variable
 (Ollama reads `OLLAMA_MODELS`) and the drive was not mounted, so every model lived on the internal disk.
 
 ## 3. Storage inventory and cleanup
@@ -199,17 +200,19 @@ Per task (passes / 5): 5/5: fix-binary-search, fix-roman-numerals, implement-lru
 
 Passes per task: paginator 5, top-k-frequent 5, grid-paths 4, mask-secrets 4; 0/5 on the other 20 tasks.
 
-**Why this coding model scores low — an output-format failure in the diagnosed case, not a serving fault.** The frozen AgentForge agent
+**Reading this score — AgentForge v1 output-contract sensitivity, found in a diagnosed case.** The frozen AgentForge agent
 asks every model to answer with `# FILE: <path>` followed by a fenced ```` ```python ```` block holding the complete
 file, and its parser (`runner/afa_runner/agents_ollama.py`) applies only complete fenced blocks. Reproduced with the
 runtime's own prompt builder and request (temperature 0.8, seeds 42/43, outside the campaign database):
-`qwen3-coder:30b` answers `# FILE: <path>`, then the complete file, then a closing fence — **without the opening
-fence** — so no block is parsed and no edit is applied; in the reproduced `fix-binary-search` case the code itself
-was a correct fix. `/api/generate` and `/api/chat` produced identical prompt-token counts (470 / 511) and identical
-output, Ollama reports no output parser or thinking for this model, and every other model got the same prompt and
+`qwen3-coder:30b` answered `# FILE: <path>`, then the complete file, then a closing fence — **without the opening
+fence** — so no block was parsed and no edit was applied; in the reproduced `fix-binary-search` case the code itself
+was a correct fix. `/api/generate` and `/api/chat` produced identical prompt-token counts and identical output,
+Ollama reports no output parser or thinking for this model, and every other model got the same prompt and
 parser. Under the campaign's rules this is a benchmark outcome of the model under the uniform protocol (it ran
-normally and needed no special setting), not `LOCAL_RUNTIME_UNSUPPORTED`; the runtime was not changed. Its score
-measures format compliance with AgentForge's agent contract as much as coding ability, and should be read that way.
+normally and needed no special setting), not `LOCAL_RUNTIME_UNSUPPORTED`; the runtime was not changed.
+Protocol sensitivity was demonstrated in a diagnosed case; the overall result reflects both coding performance and
+compliance with AgentForge v1's output contract. The 15 % pass rate is not a general statement about Qwen3-Coder's
+coding ability.
 The campaign stores no response text, so the cause of each of the 96 empty diffs is not individually verified; the
 missing opening fence is the cause found in the diagnosed case. (The diagnostic ran outside the campaign against the
 then-installed model; its prompts, responses and token counts were not persisted and are not part of the committed
@@ -225,12 +228,16 @@ evidence — only a short operator note was kept outside the repository.)
 | Resources during the batch | memory 13–24 % free throughout, no OOM, no crash; macOS swap grew to ~14–17 GB on the data volume, so an 11.1 GiB LM Studio GGUF was removed (§3) and a watchdog would have stopped the model below 8 GiB free (it never fired; free disk stayed ≥ 11 GiB) — operator monitoring, not persisted; the storage log records 11.3 GiB free at 02:31Z before the LM Studio removal and 22.1 GiB before the final removal |
 | Full batch | 24 fresh evaluations, 120 runs, 01:59 → 07:21 UTC on 2026-09-28 (5 h 22 min) |
 | Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
-| Scores | **11/120 passed — pass rate 0.092, Wilson 95% [0.052, 0.157]**; mean final score 0.122; **105 timeouts** (83 ran the full 180 s request timeout, in 20 evaluations; after each of those 20 evaluations the model answered a one-token generation probe, so they are treated as model behaviour; the other 22 answered within 180 s but exceeded the task's wall-clock limit — it reasons for longer than the uniform time budget allows); 0 agent errors; 83 runs produced no edit |
+| Scores | **11/120 passed — pass rate 0.092, Wilson 95% [0.052, 0.157]**; mean final score 0.122; **105 timeouts** (83 ran the full 180 s request timeout, in 20 evaluations; after each of those 20 evaluations the model answered a one-token generation probe, so they are treated as model behaviour; the other 22 answered within 180 s but exceeded the task's wall-clock limit — its runs took longer than the uniform time budget allows); 0 agent errors; 83 runs produced no edit |
 | Receipt | `reports/phase0-modern-local/receipts/M5-qwen3.6-27b.json` (+ `.md`), sha256 `39f381d6e773…`, recorded in the ledger |
 | Weights | removed after the receipt (16.5 GiB of weights; free disk rose 22.1 → 45.1 GiB as swap also shrank); the whole campaign validated **COMPLETE with no benchmark model installed** |
 
 Passes per task: fix-binary-search 4, fix-list-dedup 3, fix-roman-numerals 1, merge-intervals 1, query-builder 1,
 refactor-order-validation 1; 0/5 on the other 18 tasks (17 of them timed out on all 5 runs).
+
+**Reading this score.** Performance under the fixed local latency budget was heavily constrained. 105 of 120 runs were
+classified as timeouts, 83 of them full 180-second request timeouts, on this machine under the uniform protocol. The
+score is not a general conclusion about Qwen3.6 27B's capability.
 
 ## 7. Final cohort, leaderboard and integrity
 
@@ -265,16 +272,21 @@ The full leaderboard, the 24-task × 5-model matrix, per-model domain profiles a
 `campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.{json,md}` (regenerated after the final
 review from the unchanged database and ledger to add the timeout and agent-error columns); the per-model receipts in
 `results/receipts/`. **Reading the results:** every model got the same prompt, parser, task pins, temperature, seeds
-and 180 s request timeout. Two scores are dominated by that uniform protocol rather than by raw ability:
+and 180 s request timeout. Two scores must be read against that uniform protocol, not as general capability conclusions:
 Qwen3-Coder 30B-A3B's (96/120 runs produced no edit; the missing opening code fence reproduced in §6 M4 is the
 cause found in the diagnosed case — the campaign stores no response text, so the cause of each of the 96 is not
-individually verified) and Qwen3.6 27B's (105/120 runs over the time budget — §6 M5). Quantization and architecture differ naturally
+individually verified) and Qwen3.6 27B's (105/120 runs classified as timeouts, 83 of them full 180 s request timeouts —
+§6 M5). Protocol sensitivity was demonstrated in a diagnosed case; the overall result reflects both coding performance
+and compliance with AgentForge v1's output contract. Performance under the fixed local latency budget was heavily
+constrained. Quantization and architecture differ naturally
 (Q4_K_M ×4, MXFP4 for gpt-oss).
 
 ### Comparability with the historical baseline
 
 Not directly comparable, and never pooled: the 720 pre-Phase-0 runs used older versions of 18 of the 24 tasks, a
-different runtime path and, for some models, other generation settings. Only `qwen3.5:9b` appears in both; its
+different runtime path and, for some models, other generation settings, and they predate the current evaluation-integrity
+system (the historical database records no evaluation trials, task digests or backend provenance). Only `qwen3.5:9b`
+appears in both; its
 historical 40/120 at temperature 0.6 and its new 40/120 at 0.8 are coincidentally equal counts on different
 benchmark definitions.
 
@@ -291,7 +303,7 @@ benchmark definitions.
 | Campaign DB | `reports/phase0-modern-local.sqlite` (gitignored): 120 evaluations, 600 trials, 600 runs, 600 scores, 600 diffs, 8,949 test results; `PRAGMA integrity_check` ok; WAL checkpointed; sha256 `04babe7db1b8bdffbf8f92c3d3859f50c7cb05393ee5c1dd74cc724a43bbe36f` |
 | Ledger | `reports/phase0-modern-local/ledger.json` (gitignored), sha256 `8450e48f91802e92972713e336f4f9ef5eea882f7e84a4a136bfe84dbd98910a` at freezing |
 | Tooling provenance | each model's launches ran at one committed tooling head — M1 `cfa9025`, M2 `7d58623`, M3 `58c8745`, M4 `4955f16`, M5 `b79ea47`; the acceptance code (`launcher.py`, `validate.py`, `ledger.py`, `analysis.py`, `status.py`) is byte-identical from `cfa9025` to the final campaign commit `56daab5` (later commits changed only lifecycle commands, the CLI and a manifest type check). Disclosed gaps: the passing M1 smoke (20:46:36Z) ran on the uncommitted fix later committed as `cfa9025` (20:54:54Z), and the first `remove-weights` (21:38:17Z) ran 12 s before its commit `411e7f7`; smokes and storage actions did not record a tooling revision at the time (they do now) |
-| Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced` — unchanged before the campaign, before every submission, after every model and at the end (the main file and its empty WAL are unchanged; its `-shm` sidecar was touched at 2026-09-27T22:52Z by a non-immutable read-only open) |
+| Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced` — unchanged before the campaign, before every submission, after every model and at the end (the main file and its empty WAL are unchanged; its `-shm` sidecar, which is not evidence, was touched by non-immutable opens at 2026-09-27T22:52Z and again at 2026-09-28T08:01:29Z) |
 
 ### Final review and post-campaign tooling fixes
 
