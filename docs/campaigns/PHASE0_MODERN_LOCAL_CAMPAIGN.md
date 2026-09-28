@@ -1,8 +1,9 @@
 # AgentForge Modern Local Benchmark — `phase0-modern-local-v1`
 
-> **Status: IN PROGRESS.** This document is the campaign's runbook and, as models complete, its report. The
-> original six-model historical replication campaign `phase0-post-integrity-v1` is **cancelled** and was never
-> launched.
+> **Status: COMPLETE (2026-09-28).** All five roster models — the four required ones and the optional Qwen3.6 27B —
+> completed 24 tasks × 5 fresh repetitions: **600 accepted real runs**, validated with **no benchmark model installed**,
+> and an **OFFICIAL** modern local leaderboard. The original six-model historical replication campaign
+> `phase0-post-integrity-v1` is **cancelled** and was never launched.
 
 Plan: [`campaigns/phase0-modern-local-v1/manifest.json`](../../campaigns/phase0-modern-local-v1/manifest.json) ·
 Tooling: `campaigns/afa_campaign` (every terminal: `cd <repo> && export PYTHONPATH=campaigns
@@ -47,6 +48,11 @@ Initial inventory ([`storage-before.json`](#), kept with the campaign outputs; h
 | Hugging Face cache | `openai/clip-vit-base-patch32` | 1.1 GiB | not a benchmark model, never touched |
 | LM Studio | `Ministral-3-14B-Reasoning-2512-GGUF` | 11.1 GiB | model weights, kept (space not needed) |
 
+Totals: 8 removals (6 Ollama models, 2 non-Ollama weight directories), **~112 GiB of model weights removed**; free
+disk went from 4.7 GiB at the start to 45.1 GiB at the end. Kept untouched: `nomic-embed-text:latest` (Ollama),
+`openai/clip-vit-base-patch32` (Hugging Face cache), an empty LM Studio `Qwen2.5-Coder-14B-Instruct-MLX-4bit` directory.
+Every pull and removal is also in the committed audit log `campaigns/phase0-modern-local-v1/results/inventories/storage-log.jsonl`.
+
 Every removal is recorded BEFORE it happens — in `reports/phase0-modern-local/inventories/storage-log.jsonl` and,
 once the ledger exists, in the ledger's `model_deletions` (model, runtime, digest, size, reason, campaign evidence
 status, free space before/after):
@@ -59,6 +65,8 @@ status, free space before/after):
 | after M2's receipt | `gpt-oss:20b` (Ollama, campaign target M2) | 12.8 GiB | M2 complete and frozen; disk needed for M3 with headroom | receipt `M2-gpt-oss-20b.json` frozen with 120 accepted runs, re-validated complete | 32.9 GiB |
 | after M3's receipt | `devstral-small-2:24b` (Ollama, campaign target M3) | 14.1 GiB | M3 complete and frozen; disk needed for M4 with headroom | receipt `M3-devstral-small-2-24b.json` frozen with 120 accepted runs, re-validated complete | 30.6 GiB |
 | after M4's receipt | `qwen3-coder:30b` (Ollama, campaign target M4) | 17.3 GiB | M4 complete and frozen; disk needed for the optional M5 with headroom | receipt `M4-qwen3-coder-30b.json` frozen with 120 accepted runs, re-validated complete | 33.8 GiB |
+| during M5 | `Ministral-3-14B-Reasoning-2512-GGUF` (LM Studio: Q6_K GGUF + F16 projector GGUF) | 11.2 GiB | machine safety: swap grew ~6 GB in 30 min during the 27B batch and free disk fell to 11 GiB; clearly model data | not a campaign model (outside Ollama) | 22.5 GiB |
+| after M5's receipt | `qwen3.6:27b` (Ollama, campaign target M5) | 16.5 GiB | campaign finished; the owner does not require keeping benchmarked weights | receipt `M5-qwen3.6-27b.json` frozen with 120 accepted runs, re-validated complete | 45.1 GiB (swap also shrank) |
 
 ## 4. Campaign configuration (frozen)
 
@@ -190,6 +198,90 @@ parser. Under the campaign's rules this is a benchmark outcome of the model unde
 normally and needed no special setting), not `LOCAL_RUNTIME_UNSUPPORTED`; the runtime was not changed. Its score
 measures format compliance with AgentForge's agent contract as much as coding ability, and should be read that way.
 
+### M5 (optional) — Qwen3.6 27B (`qwen3.6:27b`) — COMPLETE, ranked
+
+| | |
+|---|---|
+| Identity | digest `9d5803d493a991af27b9441c098aa56f2ed7bbd260877f075ec09b575c049bc3` = the pin, at submission and acceptance of all 24 cells; qwen35, 27.3B, Q4_K_M (canonical GGUF tag, not the MLX variant); 17.77 GB; Ollama 0.31.1 |
+| Install | pulled 01:21 → 01:49 UTC on 2026-09-28 (28 min) after M4's weights were removed; digest verified against the pin |
+| Practicality check | smoke passed operationally (4 valid evaluations, 1/4 passed, 2 timeouts); resident model ~20 GB; memory 15–24 % free, swap flat, disk unchanged during the smoke — practical, so the optional batch ran |
+| Resources during the batch | memory 13–24 % free throughout, no OOM, no crash; macOS swap grew to ~14–17 GB on the data volume, so an 11.2 GiB LM Studio GGUF was removed (§3) and a watchdog would have stopped the model below 8 GiB free (it never fired; free disk stayed ≥ 11 GiB) |
+| Full batch | 24 fresh evaluations, 120 runs, 01:59 → 07:21 UTC on 2026-09-28 (5 h 22 min) |
+| Validation | 24/24 cells, **120/120 accepted real runs**, 0 voided, 0 missing, 0 extra, provenance `real` 120 |
+| Scores | **11/120 passed — pass rate 0.092, Wilson 95% [0.052, 0.157]**; mean final score 0.122; **105 timeouts** (83 ran the full 180 s request timeout; after each, the model answered the one-token probe, so they are model behaviour — it reasons for longer than the uniform time budget allows); 0 agent errors |
+| Receipt | `reports/phase0-modern-local/receipts/M5-qwen3.6-27b.json` (+ `.md`), sha256 `39f381d6e773…`, recorded in the ledger |
+| Weights | removed after the receipt; the whole campaign validated **COMPLETE with no benchmark model installed** |
+
+Passes per task: fix-binary-search 4, fix-list-dedup 3, fix-roman-numerals 1, merge-intervals 1, query-builder 1,
+refactor-order-validation 1; 0/5 on the other 18 tasks (17 of them timed out on all 5 runs).
+
 ## 7. Final cohort, leaderboard and integrity
 
-_Filled in at the end of the campaign._
+**Final cohort: all five models completed the full benchmark** — Qwen 3.5 9B, gpt-oss 20B, Devstral Small 2 24B,
+Qwen3-Coder 30B-A3B and (optional) Qwen3.6 27B. No model was classified `LOCAL_RESOURCE_LIMIT` or
+`LOCAL_RUNTIME_UNSUPPORTED`; none was substituted; no hosted or paid service was used.
+
+**Final run count: 600 accepted real runs** (5 × 24 × 5) in 120 campaign-owned fresh evaluations — 480 from the four
+required models (the minimum) + 120 from the optional model.
+
+### OFFICIAL modern local leaderboard (kernel ranking by Wilson 95 % lower bound)
+
+| rank | model | n | pass rate | Wilson 95 % | coverage |
+|---|---|---|---|---|---|
+| 1 | `gpt-oss:20b` | 120 | 0.800 | [0.720, 0.862] | 24/24 |
+| 2 | `devstral-small-2:24b` | 120 | 0.592 | [0.502, 0.675] | 24/24 |
+| 3 | `qwen3.5:9b` | 120 | 0.333 | [0.255, 0.422] | 24/24 |
+| 4 | `qwen3-coder:30b` | 120 | 0.150 | [0.097, 0.225] | 24/24 |
+| 5 | `qwen3.6:27b` | 120 | 0.092 | [0.052, 0.157] | 24/24 |
+
+Domain profiles (pooled pass rate per task domain, weighted by domain membership):
+
+| model | api-design | async-concurrency | backend | performance | security |
+|---|---|---|---|---|---|
+| `gpt-oss:20b` | 0.97 | 0.64 | 0.87 | 0.95 | 0.56 |
+| `devstral-small-2:24b` | 0.75 | 0.24 | 0.69 | 0.68 | 0.44 |
+| `qwen3.5:9b` | 0.17 | 0.08 | 0.37 | 0.42 | 0.48 |
+| `qwen3-coder:30b` | 0.25 | 0.00 | 0.04 | 0.45 | 0.16 |
+| `qwen3.6:27b` | 0.07 | 0.00 | 0.17 | 0.03 | 0.00 |
+
+The full leaderboard, the 24-task × 5-model matrix, per-model domain profiles and the provenance summary are in
+`campaigns/phase0-modern-local-v1/results/outputs/modern-local-leaderboard.{json,md}`; the per-model receipts in
+`results/receipts/`. **Reading the results:** every model got the same prompt, parser, task pins, temperature, seeds
+and 180 s request timeout. Two scores are dominated by that uniform protocol rather than by raw ability:
+Qwen3-Coder 30B-A3B's (96/120 answers without the opening code fence the agent contract requires — §6 M4) and
+Qwen3.6 27B's (105/120 runs over the time budget — §6 M5). Quantization and architecture differ naturally
+(Q4_K_M ×4, MXFP4 for gpt-oss).
+
+### Comparability with the historical baseline
+
+Not directly comparable, and never pooled: the 720 pre-Phase-0 runs used older versions of 18 of the 24 tasks, a
+different runtime path and, for some models, other generation settings. Only `qwen3.5:9b` appears in both; its
+historical 40/120 at temperature 0.6 and its new 40/120 at 0.8 are coincidentally equal counts on different
+benchmark definitions.
+
+### Integrity
+
+| Check | Result |
+|---|---|
+| Accepted runs | 600 / 600 planned; 120 per model; 5 per cell; 0 missing, 0 extra, 0 untracked, 0 disowned, 0 superseded |
+| Provenance | `real` 600; **0 mock / synthetic**, **0 conflicts**, 0 legacy; `backend_kind = ollama` for every run |
+| Task pack | every run at the frozen current version and content digest (checked in every evaluation snapshot, at every submission and by the validator); no drift |
+| Model identity | every cell's digest at submission and at acceptance = its pinned registry digest; Ollama server 0.31.1 for every cell; no identity or concurrency violation |
+| Runtime | `afa_api/`, `runner/`, `kernel/`, `tasks/` equal to `phase0-integrity-v1` at every launch (code check recorded per cell) |
+| Model weights ≠ evidence | each model re-validated COMPLETE after its weights were removed; the final `validate --phase all` ran with none of them installed |
+| Campaign DB | `reports/phase0-modern-local.sqlite` (gitignored): 120 evaluations, 600 trials, 600 runs, 600 scores, 600 diffs, 8,949 test results; `PRAGMA integrity_check` ok; WAL checkpointed; sha256 `04babe7db1b8bdffbf8f92c3d3859f50c7cb05393ee5c1dd74cc724a43bbe36f` |
+| Ledger | `reports/phase0-modern-local/ledger.json` (gitignored), sha256 `8450e48f91802e92972713e336f4f9ef5eea882f7e84a4a136bfe84dbd98910a` at freezing |
+| Historical evidence | `reports/runs.sqlite` sha256 `42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced` — unchanged before the campaign, before every submission, after every model and at the end |
+
+### Committed vs not committed
+
+Committed: the tooling (`campaigns/afa_campaign`), its tests, the frozen plan, this report, and
+`campaigns/phase0-modern-local-v1/results/` — the five model receipts, the completeness receipt, the leaderboard and
+the storage inventories and audit log, path-sanitized (repository path → `<repo>`, home → `~`; `SHA256SUMS` lists
+the runtime originals' and the committed copies' hashes). Never committed: model weights, Ollama or MLX storage, the
+campaign and scratch databases, the ledger, logs.
+
+### Free hosted tier
+
+No primary model failed locally, so no hosted substitute was needed or recorded; a free-hosted campaign
+(`phase0-modern-free-hosted-v1`) remains a separate, future tier.

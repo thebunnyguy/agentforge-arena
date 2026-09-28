@@ -1,0 +1,92 @@
+{
+  "label": "before-M5",
+  "captured_at": "2026-09-28T01:21:29Z",
+  "campaign_id": "phase0-modern-local-v1",
+  "disk": {
+    "volume_of": "~/.ollama/models",
+    "total_bytes": 994631127040,
+    "used_bytes": 958368690176,
+    "free_bytes": 36262436864
+  },
+  "ollama": {
+    "reachable": true,
+    "version": "0.31.1",
+    "models_dir": "~/.ollama/models",
+    "models_dir_bytes": 274309306,
+    "models": [
+      {
+        "name": "nomic-embed-text:latest",
+        "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f",
+        "size_bytes": 274302450,
+        "modified_at": "2026-02-19T23:42:42.630666718+05:30",
+        "format": "gguf",
+        "family": "nomic-bert",
+        "parameter_size": "137M",
+        "quantization": "F16",
+        "campaign_target": null,
+        "mlx": false
+      }
+    ],
+    "total_model_bytes": 274302450
+  },
+  "other_model_weights": [
+    {
+      "runtime": "huggingface-cache",
+      "path": "~/.cache/huggingface/hub/models--openai--clip-vit-base-patch32",
+      "model": "openai/clip-vit-base-patch32",
+      "kind": "safetensors",
+      "bytes": 1214033524
+    },
+    {
+      "runtime": "lm-studio",
+      "path": "~/.lmstudio/models/lmstudio-community/Ministral-3-14B-Reasoning-2512-GGUF",
+      "model": "lmstudio-community/Ministral-3-14B-Reasoning-2512-GGUF",
+      "kind": "gguf",
+      "bytes": 11966461024
+    },
+    {
+      "runtime": "lm-studio",
+      "path": "~/.lmstudio/models/lmstudio-community/Qwen2.5-Coder-14B-Instruct-MLX-4bit",
+      "model": "lmstudio-community/Qwen2.5-Coder-14B-Instruct-MLX-4bit",
+      "kind": "mlx",
+      "bytes": 0
+    }
+  ],
+  "reclaimable_estimate_bytes": {
+    "ollama_non_target_models": 274302450,
+    "mlx_weights_outside_ollama": 0,
+    "note": "authorized removals: Ollama models and MLX weights; other weights only if clearly model data and necessary; never anything else"
+  },
+  "roster": [
+    {
+      "phase": "M1",
+      "model": "qwen3.5:9b",
+      "installed": false,
+      "download_bytes": 6594474236
+    },
+    {
+      "phase": "M2",
+      "model": "gpt-oss:20b",
+      "installed": false,
+      "download_bytes": 13793440755
+    },
+    {
+      "phase": "M3",
+      "model": "devstral-small-2:24b",
+      "installed": false,
+      "download_bytes": 15177373679
+    },
+    {
+      "phase": "M4",
+      "model": "qwen3-coder:30b",
+      "installed": false,
+      "download_bytes": 18556700222
+    },
+    {
+      "phase": "M5",
+      "model": "qwen3.6:27b",
+      "installed": false,
+      "download_bytes": 17769076719
+    }
+  ]
+}

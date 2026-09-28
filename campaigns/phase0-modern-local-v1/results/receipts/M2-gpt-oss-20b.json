@@ -1,0 +1,1015 @@
+{
+  "receipt_kind": "model",
+  "campaign_id": "phase0-modern-local-v1",
+  "manifest_sha256": "sha256:a89bf89f41c54ddb219237882af595a2bfd7109c5733bf59dbae78671b4db6d1",
+  "phase": "M2",
+  "model": "gpt-oss:20b",
+  "logical_name": "gpt-oss 20B",
+  "optional": false,
+  "expected_identity": {
+    "digest": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+    "download_bytes": 13793440755,
+    "format": "gguf",
+    "family": "gptoss",
+    "parameter_size": "20.9B",
+    "quantization": "MXFP4"
+  },
+  "observed_identity": {
+    "digests": [
+      "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7"
+    ],
+    "digest_matches_pin": true,
+    "ollama_versions": [
+      "0.31.1"
+    ],
+    "reference_ollama_version": "0.31.1",
+    "ollama_details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "gptoss",
+      "families": [
+        "gptoss"
+      ],
+      "parameter_size": "20.9B",
+      "quantization_level": "MXFP4",
+      "context_length": 131072,
+      "embedding_length": 2880
+    },
+    "ollama_size_bytes": 13793441244
+  },
+  "agentforge_release": {
+    "tag": "phase0-integrity-v1",
+    "commit": "7369e67e1ceb4b2a566986f247961f8a63f99567"
+  },
+  "tooling_heads": [
+    "7d586235523d9cbc9b5dd132b249f7582016895d"
+  ],
+  "generation": {
+    "temperature": 0.8,
+    "base_seed": 42,
+    "request_timeout_s": 180,
+    "seed_policy": "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx (0..repetitions-1) before each trial (set_run_seed), so position idx of every (model, task) cell uses the same seed and a resumed position re-uses its original seed",
+    "request": "the Phase-0 runtime's OllamaAgent calls /api/generate with only temperature and seed; every other inference setting (context length, thinking) is the Ollama server's default for that model, identical for every model of the campaign"
+  },
+  "tasks": 24,
+  "expected_runs": 120,
+  "accepted_runs": 120,
+  "evaluation_ids": [
+    "afcfbe631dbd44e78ec3e112a74b90d4",
+    "d0ffeed3f7f64cd297756187abb1afea",
+    "29d97226477e4e8ca74a7745d377a09b",
+    "b17c7ffa2f4c471c9e5b90c02ee6d556",
+    "cf9f4a1fd1a44687bb292f1ae0816293",
+    "3a2e535f872048e0a9b2934cea740b61",
+    "bc7b948eaa8c4903ac126999925caff5",
+    "0745d339082c47ccb92af3590bb9f855",
+    "dc8d3be121d74c248e84b54eca921907",
+    "b178da7ee39b4ddc8ab2f1cdece29ff1",
+    "53ffd353d6954e398dae929fabd7da40",
+    "de881f853b2e422d8fb960b46f42e927",
+    "3d9b6d3933394550b065533639165d0f",
+    "f74badacd54047d5b5526d1c75bfc5de",
+    "30f570756c124b188a0d3505c7466635",
+    "8677105c7d054dfd93b5ca4e715558a9",
+    "8e3e92665d964ee186dac136320fa158",
+    "133193e4e1c24fa2b83e92d5b848ee4a",
+    "6aceb644d2d142659c4e5662ef5e090e",
+    "9cb1f6e0cdbe4fd3a6045dc88346eb31",
+    "59a4057de28e4cb29ec8ebfc9e5d443a",
+    "6a59d50d0132469dae57dc4a846c2282",
+    "9777a932aaaf45f2bad2665a2f7b05c1",
+    "3fb7391bbb7d49c7b89eb827253a1de3"
+  ],
+  "totals": {
+    "passed": 96,
+    "valid": 120,
+    "voided": 0,
+    "timeouts": 0,
+    "agent_errors": 0,
+    "request_timeout_hits": 0
+  },
+  "aggregate": {
+    "pass_rate": 0.8,
+    "wilson_low": 0.7196316465662729,
+    "wilson_high": 0.8617561908001696,
+    "mean_final_score": 0.96132337241748,
+    "kernel_leaderboard_entry": {
+      "n": 120,
+      "pass_rate": 0.8,
+      "wilson_low": 0.7196316465662729,
+      "wilson_high": 0.8617561908001696
+    }
+  },
+  "started_at": "2026-09-27T23:09:55Z",
+  "finished_at": "2026-09-27T23:49:23Z",
+  "smoke": [
+    {
+      "phase": "M2",
+      "model": "gpt-oss:20b",
+      "smoke_campaign_id": "phase0-modern-local-v1-smoke-M2-20260927t230820z",
+      "scratch": "reports/phase0-modern-local/smoke/M2-20260927T230820Z",
+      "tasks": [
+        "fix-binary-search",
+        "async-batched",
+        "sanitize-filename",
+        "refactor-order-validation"
+      ],
+      "started_at": "2026-09-27T23:08:20Z",
+      "ollama_version": "0.31.1",
+      "operational_ok": true,
+      "outcome": "ok",
+      "failure": null,
+      "memory_before": {
+        "swap": "total = 8192.00M  used = 7199.75M  free = 992.25M  (encrypted)",
+        "pressure": "The system has 38654705664 (2359296 pages with a page size of 16384).\nSystem-wide memory free percentage: 74%"
+      },
+      "note": "operational check only: a low score is not a smoke failure; never campaign evidence",
+      "ollama_ps": [
+        {
+          "name": "gpt-oss:20b",
+          "size": 12757436988,
+          "size_vram": 12757436988,
+          "digest": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7"
+        }
+      ],
+      "finished_at": "2026-09-27T23:09:45Z",
+      "cells": [
+        {
+          "cell": "gpt-oss:20b|fix-binary-search",
+          "state": "succeeded",
+          "evaluation_id": "aa8d918a4999410fa521cd79ef482122",
+          "summary": {
+            "run_ids": [
+              1
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 1,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "gpt-oss:20b|sanitize-filename",
+          "state": "succeeded",
+          "evaluation_id": "a8ab6f2e477144a9bd23d53bfccde2f5",
+          "summary": {
+            "run_ids": [
+              2
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "gpt-oss:20b|async-batched",
+          "state": "succeeded",
+          "evaluation_id": "60ed3d95aa334b0fb233344959e1b0fe",
+          "summary": {
+            "run_ids": [
+              3
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "gpt-oss:20b|refactor-order-validation",
+          "state": "succeeded",
+          "evaluation_id": "9e6847860ffd4f658bc72674da51401b",
+          "summary": {
+            "run_ids": [
+              4
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 1,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        }
+      ],
+      "digest": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "passed": 2,
+      "valid": 4,
+      "evidence_classes": {
+        "real": 4
+      },
+      "smoke_problems": [],
+      "memory_after": {
+        "swap": "total = 8192.00M  used = 7199.75M  free = 992.25M  (encrypted)",
+        "pressure": "The system has 38654705664 (2359296 pages with a page size of 16384).\nSystem-wide memory free percentage: 34%"
+      }
+    }
+  ],
+  "validation": {
+    "complete": true,
+    "problems": [],
+    "warnings": [],
+    "evidence_classes": {
+      "real": 120
+    },
+    "historical_evidence_sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced"
+  },
+  "cells": [
+    {
+      "cell": "gpt-oss:20b|escape-html",
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:1bfcf38552c595e2f45f0b3e0bf9aecb47846d9d155e36fad71bd552ba265525",
+      "evaluation_id": "afcfbe631dbd44e78ec3e112a74b90d4",
+      "run_ids": [
+        121,
+        122,
+        123,
+        124,
+        125
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:09:55Z",
+      "finished_at": "2026-09-27T23:10:45Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|fix-binary-search",
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:97d42f89f91ca3ba10ee968ac43ec0281bd986ece26f76f6a7bdaef7c13484ce",
+      "evaluation_id": "d0ffeed3f7f64cd297756187abb1afea",
+      "run_ids": [
+        126,
+        127,
+        128,
+        129,
+        130
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:10:46Z",
+      "finished_at": "2026-09-27T23:11:21Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|fix-list-dedup",
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:b8050c0f63f569c72738fdc8ae02ec19f5f52a23373788e1cffec4df0515f38b",
+      "evaluation_id": "29d97226477e4e8ca74a7745d377a09b",
+      "run_ids": [
+        131,
+        132,
+        133,
+        134,
+        135
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:11:21Z",
+      "finished_at": "2026-09-27T23:11:46Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|async-retry",
+      "task_id": "async-retry",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:743f10eb2959463740a4c615a60af402fc9e9c650507bccdb0bba67dc4053897",
+      "evaluation_id": "b17c7ffa2f4c471c9e5b90c02ee6d556",
+      "run_ids": [
+        136,
+        137,
+        138,
+        139,
+        140
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:11:47Z",
+      "finished_at": "2026-09-27T23:14:27Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|async-timeout",
+      "task_id": "async-timeout",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:e2d6c2616c55f1910282e2862a5b7e49709d8d4231f5c97c92bc4c40e7f104fd",
+      "evaluation_id": "cf9f4a1fd1a44687bb292f1ae0816293",
+      "run_ids": [
+        141,
+        142,
+        143,
+        144,
+        145
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.5
+      ],
+      "submitted_at": "2026-09-27T23:14:27Z",
+      "finished_at": "2026-09-27T23:15:47Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|fix-roman-numerals",
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:e58739216d5cced5e441df27d4a629acf69890dddfa111e391a54e4c0ac384e6",
+      "evaluation_id": "3a2e535f872048e0a9b2934cea740b61",
+      "run_ids": [
+        146,
+        147,
+        148,
+        149,
+        150
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:15:48Z",
+      "finished_at": "2026-09-27T23:16:23Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|implement-lru-cache",
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:711a4313f541efaaad7d782730f16ac5bdc09f86babf03e59cb27e4a6ac4cc19",
+      "evaluation_id": "bc7b948eaa8c4903ac126999925caff5",
+      "run_ids": [
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:16:23Z",
+      "finished_at": "2026-09-27T23:17:43Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|mask-secrets",
+      "task_id": "mask-secrets",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:be4619e8f0d6da8b484bc30d130eb1ad95838edb5068c206cd4d66a847293b3d",
+      "evaluation_id": "0745d339082c47ccb92af3590bb9f855",
+      "run_ids": [
+        156,
+        157,
+        158,
+        159,
+        160
+      ],
+      "passed": 3,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        0.7777777777777778,
+        1.0,
+        0.8888888888888888
+      ],
+      "submitted_at": "2026-09-27T23:17:44Z",
+      "finished_at": "2026-09-27T23:19:14Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|merge-intervals",
+      "task_id": "merge-intervals",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:413356d815870ac64bc74876b6f2a29006554e56c5d72d043bd69d154be5ab70",
+      "evaluation_id": "dc8d3be121d74c248e84b54eca921907",
+      "run_ids": [
+        161,
+        162,
+        163,
+        164,
+        165
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:19:14Z",
+      "finished_at": "2026-09-27T23:20:44Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|paginator",
+      "task_id": "paginator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:8455df342ed6e853cadda163e970fb098fa916472fdfe2f9353d5648c75ef4db",
+      "evaluation_id": "b178da7ee39b4ddc8ab2f1cdece29ff1",
+      "run_ids": [
+        166,
+        167,
+        168,
+        169,
+        170
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:20:45Z",
+      "finished_at": "2026-09-27T23:22:05Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|result-type",
+      "task_id": "result-type",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:34098c06cd150ab3166f3c221b8c8ff4685eea2f7cdea204c90fbbd719e820a1",
+      "evaluation_id": "53ffd353d6954e398dae929fabd7da40",
+      "run_ids": [
+        171,
+        172,
+        173,
+        174,
+        175
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:22:05Z",
+      "finished_at": "2026-09-27T23:23:40Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|sanitize-filename",
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:4546131c33d455d531d3388e629ee3257a973c58b15f81ff5ec44ab99d150574",
+      "evaluation_id": "de881f853b2e422d8fb960b46f42e927",
+      "run_ids": [
+        176,
+        177,
+        178,
+        179,
+        180
+      ],
+      "passed": 3,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9230769230769231,
+        1.0,
+        1.0,
+        1.0,
+        0.9230769230769231
+      ],
+      "submitted_at": "2026-09-27T23:23:41Z",
+      "finished_at": "2026-09-27T23:24:56Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|async-batched",
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:663be68e47533cb829a8c5add006bb24dc838d460190dccf231c4105b2520439",
+      "evaluation_id": "3d9b6d3933394550b065533639165d0f",
+      "run_ids": [
+        181,
+        182,
+        183,
+        184,
+        185
+      ],
+      "passed": 3,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9166666666666666,
+        0.9166666666666666,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:24:56Z",
+      "finished_at": "2026-09-27T23:26:01Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|async-first-success",
+      "task_id": "async-first-success",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:d2371fcc477cbf55f47b364925a3719a7122b525cf8ad352aa6bc560cd5e3de6",
+      "evaluation_id": "f74badacd54047d5b5526d1c75bfc5de",
+      "run_ids": [
+        186,
+        187,
+        188,
+        189,
+        190
+      ],
+      "passed": 3,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        0.875,
+        0.875,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:26:02Z",
+      "finished_at": "2026-09-27T23:28:17Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|async-gather-bounded",
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:bdcf2f0d8fc40260fba5672b6b1017d0da70d47a099e761178bbb2221a97dc54",
+      "evaluation_id": "30f570756c124b188a0d3505c7466635",
+      "run_ids": [
+        191,
+        192,
+        193,
+        194,
+        195
+      ],
+      "passed": 1,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.5555555555555556,
+        1.0,
+        0.8888888888888888,
+        0.8888888888888888,
+        0.8888888888888888
+      ],
+      "submitted_at": "2026-09-27T23:28:17Z",
+      "finished_at": "2026-09-27T23:32:53Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|fix-path-traversal",
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:048d526e856035d29278fcc443c99439cacc6aed3e94a28e50c7dbdb0857d8c2",
+      "evaluation_id": "8677105c7d054dfd93b5ca4e715558a9",
+      "run_ids": [
+        196,
+        197,
+        198,
+        199,
+        200
+      ],
+      "passed": 3,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        0.9,
+        0.9,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:32:53Z",
+      "finished_at": "2026-09-27T23:34:48Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|grid-paths",
+      "task_id": "grid-paths",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:8bd8923b24f8f5aa16b3cace88b8139c9ae23a69cbad95f5428f679439ae9276",
+      "evaluation_id": "8e3e92665d964ee186dac136320fa158",
+      "run_ids": [
+        201,
+        202,
+        203,
+        204,
+        205
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:34:49Z",
+      "finished_at": "2026-09-27T23:35:59Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|query-builder",
+      "task_id": "query-builder",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:fe812df540da8bdacbc65432fabbc8f6bf3ae63d4e6ad2abebf0246a544858c6",
+      "evaluation_id": "133193e4e1c24fa2b83e92d5b848ee4a",
+      "run_ids": [
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:35:59Z",
+      "finished_at": "2026-09-27T23:37:14Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|refactor-order-validation",
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:3e2ffe535ab5f3f0ac992e376637a5289a1683ce8e0292b8193b26e2308e3972",
+      "evaluation_id": "6aceb644d2d142659c4e5662ef5e090e",
+      "run_ids": [
+        211,
+        212,
+        213,
+        214,
+        215
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.9565217391304348
+      ],
+      "submitted_at": "2026-09-27T23:37:14Z",
+      "finished_at": "2026-09-27T23:39:35Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|top-k-frequent",
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:c4fb17f874fa701173602d5e8acf50578c7622ad9473baaef1ec5d2e70936d3c",
+      "evaluation_id": "9cb1f6e0cdbe4fd3a6045dc88346eb31",
+      "run_ids": [
+        216,
+        217,
+        218,
+        219,
+        220
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:39:35Z",
+      "finished_at": "2026-09-27T23:40:55Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|toposort",
+      "task_id": "toposort",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:00858816e5473d96413cc1048ca43e569e378c063aa90c419b7871e1ea219251",
+      "evaluation_id": "59a4057de28e4cb29ec8ebfc9e5d443a",
+      "run_ids": [
+        221,
+        222,
+        223,
+        224,
+        225
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        0.46153846153846156,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:40:56Z",
+      "finished_at": "2026-09-27T23:43:21Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|two-sum-indices",
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:c7005cb3b399ea7dd1f762352921e5f3588bd28e5fdfbe08515af96db63e4c7d",
+      "evaluation_id": "6a59d50d0132469dae57dc4a846c2282",
+      "run_ids": [
+        226,
+        227,
+        228,
+        229,
+        230
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:43:21Z",
+      "finished_at": "2026-09-27T23:44:11Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|validate-redirect-url",
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:c7d40bc86203bac8765553e9a2da5f72aad730a2f102cdc36ee0b215aebbac07",
+      "evaluation_id": "9777a932aaaf45f2bad2665a2f7b05c1",
+      "run_ids": [
+        231,
+        232,
+        233,
+        234,
+        235
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9375,
+        0.75,
+        0.9375,
+        0.875,
+        0.875
+      ],
+      "submitted_at": "2026-09-27T23:44:12Z",
+      "finished_at": "2026-09-27T23:46:07Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "gpt-oss:20b|expression-evaluator",
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:164d48bd040cf2c0c16865284fccd4f8b2b9358fc45e65139cf69dd4dc9cfee3",
+      "evaluation_id": "3fb7391bbb7d49c7b89eb827253a1de3",
+      "run_ids": [
+        236,
+        237,
+        238,
+        239,
+        240
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9473684210526315,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-27T23:46:07Z",
+      "finished_at": "2026-09-27T23:49:23Z",
+      "model_digest_at_submit": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "model_digest_at_finalize": "17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7",
+      "ollama_version": "0.31.1"
+    }
+  ],
+  "generated_at": "2026-09-27T23:49:39Z"
+}

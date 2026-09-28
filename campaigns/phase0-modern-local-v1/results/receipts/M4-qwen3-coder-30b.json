@@ -1,0 +1,1015 @@
+{
+  "receipt_kind": "model",
+  "campaign_id": "phase0-modern-local-v1",
+  "manifest_sha256": "sha256:a89bf89f41c54ddb219237882af595a2bfd7109c5733bf59dbae78671b4db6d1",
+  "phase": "M4",
+  "model": "qwen3-coder:30b",
+  "logical_name": "Qwen3-Coder 30B-A3B",
+  "optional": false,
+  "expected_identity": {
+    "digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+    "download_bytes": 18556700222,
+    "format": "gguf",
+    "family": "qwen3moe",
+    "parameter_size": "30.5B",
+    "quantization": "Q4_K_M"
+  },
+  "observed_identity": {
+    "digests": [
+      "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca"
+    ],
+    "digest_matches_pin": true,
+    "ollama_versions": [
+      "0.31.1"
+    ],
+    "reference_ollama_version": "0.31.1",
+    "ollama_details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen3moe",
+      "families": [
+        "qwen3moe"
+      ],
+      "parameter_size": "30.5B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 2048
+    },
+    "ollama_size_bytes": 18556700761
+  },
+  "agentforge_release": {
+    "tag": "phase0-integrity-v1",
+    "commit": "7369e67e1ceb4b2a566986f247961f8a63f99567"
+  },
+  "tooling_heads": [
+    "4955f164912f0313af94eb72467127830541b998"
+  ],
+  "generation": {
+    "temperature": 0.8,
+    "base_seed": 42,
+    "request_timeout_s": 180,
+    "seed_policy": "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx (0..repetitions-1) before each trial (set_run_seed), so position idx of every (model, task) cell uses the same seed and a resumed position re-uses its original seed",
+    "request": "the Phase-0 runtime's OllamaAgent calls /api/generate with only temperature and seed; every other inference setting (context length, thinking) is the Ollama server's default for that model, identical for every model of the campaign"
+  },
+  "tasks": 24,
+  "expected_runs": 120,
+  "accepted_runs": 120,
+  "evaluation_ids": [
+    "506b4955ca5c4967a9758b6ce37b805f",
+    "9da0c8b2d57044da915267a84264df57",
+    "58f409c3a32243198fb2d9fd70e5d0e2",
+    "969bf18d65604cdd85ae23caea1157b6",
+    "168d5faa50244fc99c12d9957cad0b4e",
+    "3e6b8b544ed744819be25ba9927adfe9",
+    "d3744031909c4fbe9dd5caa666a513fb",
+    "493f42c589e34d8e9f752aa4270859ed",
+    "697f7dbd7cc24908b5474e6297e35029",
+    "d58ec5bbb23642c3b1cee400a061574c",
+    "ede929347c6c4bfb93276bde9ec06615",
+    "4b96a48afe20402a9fab8a23110068c1",
+    "95cf0f6e175943f2be51df1ea0d5bc2a",
+    "29be2ea16b7f470aa002fb065b647f54",
+    "c3265526c531475990a2dcc3d8e06d08",
+    "dd5b2ca2c5784646bbf27e2d3ac45e09",
+    "d0bfe28d0f7947f199bfcb4ccb51eed5",
+    "7868180aab0a4678bb9b315a0940e8ce",
+    "c7b80a7ba74642da8a72a3bd4d8c279e",
+    "a35079ce7e9a4448bf33d66a88677314",
+    "36332ac1ec964d5eb30edf18c014c4d0",
+    "bca2471bc6bf4768a2700facb85c2d18",
+    "ba46cf78804046e0b2f243ee3b06470e",
+    "5167442c49d34c30ab336c440dd2bbc4"
+  ],
+  "totals": {
+    "passed": 18,
+    "valid": 120,
+    "voided": 0,
+    "timeouts": 0,
+    "agent_errors": 0,
+    "request_timeout_hits": 0
+  },
+  "aggregate": {
+    "pass_rate": 0.15,
+    "wilson_low": 0.09703734033668816,
+    "wilson_high": 0.22467684940246252,
+    "mean_final_score": 0.18425438596491228,
+    "kernel_leaderboard_entry": {
+      "n": 120,
+      "pass_rate": 0.15,
+      "wilson_low": 0.09703734033668816,
+      "wilson_high": 0.22467684940246252
+    }
+  },
+  "started_at": "2026-09-28T01:08:25Z",
+  "finished_at": "2026-09-28T01:20:51Z",
+  "smoke": [
+    {
+      "phase": "M4",
+      "model": "qwen3-coder:30b",
+      "smoke_campaign_id": "phase0-modern-local-v1-smoke-M4-20260928t010506z",
+      "scratch": "reports/phase0-modern-local/smoke/M4-20260928T010506Z",
+      "tasks": [
+        "fix-binary-search",
+        "async-batched",
+        "sanitize-filename",
+        "refactor-order-validation"
+      ],
+      "started_at": "2026-09-28T01:05:07Z",
+      "ollama_version": "0.31.1",
+      "operational_ok": true,
+      "outcome": "ok",
+      "failure": null,
+      "memory_before": {
+        "swap": "total = 7168.00M  used = 6278.81M  free = 889.19M  (encrypted)",
+        "pressure": "The system has 38654705664 (2359296 pages with a page size of 16384).\nSystem-wide memory free percentage: 86%"
+      },
+      "note": "operational check only: a low score is not a smoke failure; never campaign evidence",
+      "ollama_ps": [
+        {
+          "name": "qwen3-coder:30b",
+          "size": 21826602269,
+          "size_vram": 21826602269,
+          "digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca"
+        }
+      ],
+      "finished_at": "2026-09-28T01:05:43Z",
+      "cells": [
+        {
+          "cell": "qwen3-coder:30b|fix-binary-search",
+          "state": "succeeded",
+          "evaluation_id": "4135e2218ee144c5b6f0aa53c332a4f1",
+          "summary": {
+            "run_ids": [
+              1
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "qwen3-coder:30b|sanitize-filename",
+          "state": "succeeded",
+          "evaluation_id": "74fbe6973ca14ce2a2953635c4d7dfb4",
+          "summary": {
+            "run_ids": [
+              2
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "qwen3-coder:30b|async-batched",
+          "state": "succeeded",
+          "evaluation_id": "95035689557f4de8b15f975dd470c808",
+          "summary": {
+            "run_ids": [
+              3
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "qwen3-coder:30b|refactor-order-validation",
+          "state": "succeeded",
+          "evaluation_id": "9c5662cbf99d41e3b748698b52c332f0",
+          "summary": {
+            "run_ids": [
+              4
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        }
+      ],
+      "digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "passed": 0,
+      "valid": 4,
+      "evidence_classes": {
+        "real": 4
+      },
+      "smoke_problems": [],
+      "memory_after": {
+        "swap": "total = 7168.00M  used = 6278.81M  free = 889.19M  (encrypted)",
+        "pressure": "The system has 38654705664 (2359296 pages with a page size of 16384).\nSystem-wide memory free percentage: 27%"
+      }
+    }
+  ],
+  "validation": {
+    "complete": true,
+    "problems": [],
+    "warnings": [],
+    "evidence_classes": {
+      "real": 120
+    },
+    "historical_evidence_sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced"
+  },
+  "cells": [
+    {
+      "cell": "qwen3-coder:30b|escape-html",
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:1bfcf38552c595e2f45f0b3e0bf9aecb47846d9d155e36fad71bd552ba265525",
+      "evaluation_id": "506b4955ca5c4967a9758b6ce37b805f",
+      "run_ids": [
+        361,
+        362,
+        363,
+        364,
+        365
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:08:25Z",
+      "finished_at": "2026-09-28T01:08:45Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|fix-binary-search",
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:97d42f89f91ca3ba10ee968ac43ec0281bd986ece26f76f6a7bdaef7c13484ce",
+      "evaluation_id": "9da0c8b2d57044da915267a84264df57",
+      "run_ids": [
+        366,
+        367,
+        368,
+        369,
+        370
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:08:45Z",
+      "finished_at": "2026-09-28T01:09:05Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|fix-list-dedup",
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:b8050c0f63f569c72738fdc8ae02ec19f5f52a23373788e1cffec4df0515f38b",
+      "evaluation_id": "58f409c3a32243198fb2d9fd70e5d0e2",
+      "run_ids": [
+        371,
+        372,
+        373,
+        374,
+        375
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:09:05Z",
+      "finished_at": "2026-09-28T01:09:21Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|async-retry",
+      "task_id": "async-retry",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:743f10eb2959463740a4c615a60af402fc9e9c650507bccdb0bba67dc4053897",
+      "evaluation_id": "969bf18d65604cdd85ae23caea1157b6",
+      "run_ids": [
+        376,
+        377,
+        378,
+        379,
+        380
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:09:21Z",
+      "finished_at": "2026-09-28T01:09:46Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|async-timeout",
+      "task_id": "async-timeout",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:e2d6c2616c55f1910282e2862a5b7e49709d8d4231f5c97c92bc4c40e7f104fd",
+      "evaluation_id": "168d5faa50244fc99c12d9957cad0b4e",
+      "run_ids": [
+        381,
+        382,
+        383,
+        384,
+        385
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:09:46Z",
+      "finished_at": "2026-09-28T01:10:11Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|fix-roman-numerals",
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:e58739216d5cced5e441df27d4a629acf69890dddfa111e391a54e4c0ac384e6",
+      "evaluation_id": "3e6b8b544ed744819be25ba9927adfe9",
+      "run_ids": [
+        386,
+        387,
+        388,
+        389,
+        390
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:10:11Z",
+      "finished_at": "2026-09-28T01:10:40Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|implement-lru-cache",
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:711a4313f541efaaad7d782730f16ac5bdc09f86babf03e59cb27e4a6ac4cc19",
+      "evaluation_id": "d3744031909c4fbe9dd5caa666a513fb",
+      "run_ids": [
+        391,
+        392,
+        393,
+        394,
+        395
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:10:41Z",
+      "finished_at": "2026-09-28T01:11:16Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|mask-secrets",
+      "task_id": "mask-secrets",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:be4619e8f0d6da8b484bc30d130eb1ad95838edb5068c206cd4d66a847293b3d",
+      "evaluation_id": "493f42c589e34d8e9f752aa4270859ed",
+      "run_ids": [
+        396,
+        397,
+        398,
+        399,
+        400
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T01:11:16Z",
+      "finished_at": "2026-09-28T01:11:46Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|merge-intervals",
+      "task_id": "merge-intervals",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:413356d815870ac64bc74876b6f2a29006554e56c5d72d043bd69d154be5ab70",
+      "evaluation_id": "697f7dbd7cc24908b5474e6297e35029",
+      "run_ids": [
+        401,
+        402,
+        403,
+        404,
+        405
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:11:46Z",
+      "finished_at": "2026-09-28T01:12:11Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|paginator",
+      "task_id": "paginator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:8455df342ed6e853cadda163e970fb098fa916472fdfe2f9353d5648c75ef4db",
+      "evaluation_id": "d58ec5bbb23642c3b1cee400a061574c",
+      "run_ids": [
+        406,
+        407,
+        408,
+        409,
+        410
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T01:12:12Z",
+      "finished_at": "2026-09-28T01:12:52Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|result-type",
+      "task_id": "result-type",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:34098c06cd150ab3166f3c221b8c8ff4685eea2f7cdea204c90fbbd719e820a1",
+      "evaluation_id": "ede929347c6c4bfb93276bde9ec06615",
+      "run_ids": [
+        411,
+        412,
+        413,
+        414,
+        415
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:12:52Z",
+      "finished_at": "2026-09-28T01:13:22Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|sanitize-filename",
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:4546131c33d455d531d3388e629ee3257a973c58b15f81ff5ec44ab99d150574",
+      "evaluation_id": "4b96a48afe20402a9fab8a23110068c1",
+      "run_ids": [
+        416,
+        417,
+        418,
+        419,
+        420
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:13:22Z",
+      "finished_at": "2026-09-28T01:13:52Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|async-batched",
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:663be68e47533cb829a8c5add006bb24dc838d460190dccf231c4105b2520439",
+      "evaluation_id": "95cf0f6e175943f2be51df1ea0d5bc2a",
+      "run_ids": [
+        421,
+        422,
+        423,
+        424,
+        425
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:13:53Z",
+      "finished_at": "2026-09-28T01:14:18Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|async-first-success",
+      "task_id": "async-first-success",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:d2371fcc477cbf55f47b364925a3719a7122b525cf8ad352aa6bc560cd5e3de6",
+      "evaluation_id": "29be2ea16b7f470aa002fb065b647f54",
+      "run_ids": [
+        426,
+        427,
+        428,
+        429,
+        430
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:14:18Z",
+      "finished_at": "2026-09-28T01:14:58Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|async-gather-bounded",
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:bdcf2f0d8fc40260fba5672b6b1017d0da70d47a099e761178bbb2221a97dc54",
+      "evaluation_id": "c3265526c531475990a2dcc3d8e06d08",
+      "run_ids": [
+        431,
+        432,
+        433,
+        434,
+        435
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:14:58Z",
+      "finished_at": "2026-09-28T01:15:28Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|fix-path-traversal",
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:048d526e856035d29278fcc443c99439cacc6aed3e94a28e50c7dbdb0857d8c2",
+      "evaluation_id": "dd5b2ca2c5784646bbf27e2d3ac45e09",
+      "run_ids": [
+        436,
+        437,
+        438,
+        439,
+        440
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:15:28Z",
+      "finished_at": "2026-09-28T01:15:59Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|grid-paths",
+      "task_id": "grid-paths",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:8bd8923b24f8f5aa16b3cace88b8139c9ae23a69cbad95f5428f679439ae9276",
+      "evaluation_id": "d0bfe28d0f7947f199bfcb4ccb51eed5",
+      "run_ids": [
+        441,
+        442,
+        443,
+        444,
+        445
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T01:15:59Z",
+      "finished_at": "2026-09-28T01:16:34Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|query-builder",
+      "task_id": "query-builder",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:fe812df540da8bdacbc65432fabbc8f6bf3ae63d4e6ad2abebf0246a544858c6",
+      "evaluation_id": "7868180aab0a4678bb9b315a0940e8ce",
+      "run_ids": [
+        446,
+        447,
+        448,
+        449,
+        450
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:16:34Z",
+      "finished_at": "2026-09-28T01:17:09Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|refactor-order-validation",
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:3e2ffe535ab5f3f0ac992e376637a5289a1683ce8e0292b8193b26e2308e3972",
+      "evaluation_id": "c7b80a7ba74642da8a72a3bd4d8c279e",
+      "run_ids": [
+        451,
+        452,
+        453,
+        454,
+        455
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:17:09Z",
+      "finished_at": "2026-09-28T01:17:59Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|top-k-frequent",
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:c4fb17f874fa701173602d5e8acf50578c7622ad9473baaef1ec5d2e70936d3c",
+      "evaluation_id": "a35079ce7e9a4448bf33d66a88677314",
+      "run_ids": [
+        456,
+        457,
+        458,
+        459,
+        460
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T01:18:00Z",
+      "finished_at": "2026-09-28T01:18:30Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|toposort",
+      "task_id": "toposort",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:00858816e5473d96413cc1048ca43e569e378c063aa90c419b7871e1ea219251",
+      "evaluation_id": "36332ac1ec964d5eb30edf18c014c4d0",
+      "run_ids": [
+        461,
+        462,
+        463,
+        464,
+        465
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:18:30Z",
+      "finished_at": "2026-09-28T01:19:05Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|two-sum-indices",
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:c7005cb3b399ea7dd1f762352921e5f3588bd28e5fdfbe08515af96db63e4c7d",
+      "evaluation_id": "bca2471bc6bf4768a2700facb85c2d18",
+      "run_ids": [
+        466,
+        467,
+        468,
+        469,
+        470
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:19:05Z",
+      "finished_at": "2026-09-28T01:19:30Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|validate-redirect-url",
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:c7d40bc86203bac8765553e9a2da5f72aad730a2f102cdc36ee0b215aebbac07",
+      "evaluation_id": "ba46cf78804046e0b2f243ee3b06470e",
+      "run_ids": [
+        471,
+        472,
+        473,
+        474,
+        475
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T01:19:31Z",
+      "finished_at": "2026-09-28T01:20:01Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "qwen3-coder:30b|expression-evaluator",
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:164d48bd040cf2c0c16865284fccd4f8b2b9358fc45e65139cf69dd4dc9cfee3",
+      "evaluation_id": "5167442c49d34c30ab336c440dd2bbc4",
+      "run_ids": [
+        476,
+        477,
+        478,
+        479,
+        480
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.8947368421052632,
+        0.0,
+        0.42105263157894735,
+        0.9473684210526315,
+        0.9473684210526315
+      ],
+      "submitted_at": "2026-09-28T01:20:01Z",
+      "finished_at": "2026-09-28T01:20:51Z",
+      "model_digest_at_submit": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "model_digest_at_finalize": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "ollama_version": "0.31.1"
+    }
+  ],
+  "generated_at": "2026-09-28T01:21:10Z"
+}

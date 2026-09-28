@@ -1,0 +1,1015 @@
+{
+  "receipt_kind": "model",
+  "campaign_id": "phase0-modern-local-v1",
+  "manifest_sha256": "sha256:a89bf89f41c54ddb219237882af595a2bfd7109c5733bf59dbae78671b4db6d1",
+  "phase": "M3",
+  "model": "devstral-small-2:24b",
+  "logical_name": "Devstral Small 2 24B",
+  "optional": false,
+  "expected_identity": {
+    "digest": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+    "download_bytes": 15177373679,
+    "format": "gguf",
+    "family": "mistral3",
+    "parameter_size": "24.0B",
+    "quantization": "Q4_K_M"
+  },
+  "observed_identity": {
+    "digests": [
+      "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8"
+    ],
+    "digest_matches_pin": true,
+    "ollama_versions": [
+      "0.31.1"
+    ],
+    "reference_ollama_version": "0.31.1",
+    "ollama_details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "mistral3",
+      "families": [
+        "mistral3"
+      ],
+      "parameter_size": "24.0B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 393216,
+      "embedding_length": 5120
+    },
+    "ollama_size_bytes": 15177374099
+  },
+  "agentforge_release": {
+    "tag": "phase0-integrity-v1",
+    "commit": "7369e67e1ceb4b2a566986f247961f8a63f99567"
+  },
+  "tooling_heads": [
+    "58c8745413b4e87d114aa60733108e347dc583c6"
+  ],
+  "generation": {
+    "temperature": 0.8,
+    "base_seed": 42,
+    "request_timeout_s": 180,
+    "seed_policy": "ATLAS per-trial seed: the worker sets seed = base_seed + idx for repeat position idx (0..repetitions-1) before each trial (set_run_seed), so position idx of every (model, task) cell uses the same seed and a resumed position re-uses its original seed",
+    "request": "the Phase-0 runtime's OllamaAgent calls /api/generate with only temperature and seed; every other inference setting (context length, thinking) is the Ollama server's default for that model, identical for every model of the campaign"
+  },
+  "tasks": 24,
+  "expected_runs": 120,
+  "accepted_runs": 120,
+  "evaluation_ids": [
+    "e44074b7eec74e26a66c28a27e2806fc",
+    "2c82e6783b3343b085a714ecb0a8854b",
+    "0a5ae9f0b68644f7a4b45d846cfa714f",
+    "5444476b17624948bd9eebecc391a51a",
+    "eaf3d5ebf5834d30882ced865a0c63f7",
+    "8d0f8535b7c445e3928bcc7403d86962",
+    "b4f44d83551a4da6a907900b39ceccc9",
+    "d50f80f5e9624dc9bcc53009bbf14fef",
+    "12c4c6714e144382affb84364b58f1a2",
+    "07801af6cc734e08bedfcf54ed28c475",
+    "0854091dab254c5c906ada6841085826",
+    "911d7945ccac430bbe3802b5cd5e1e32",
+    "672089d6acc1456f9df927d0bd634430",
+    "ee7f0c6d5766463483561ff595068897",
+    "a2e75dd441d84e43b6e29aba02dccb3f",
+    "decc2327b6ed4024988dba67a4da5757",
+    "d5b05599e7cb464399046cadf2ba96d9",
+    "c7c082eac43c4d8cb83fdb415d894a61",
+    "e3a88306e14d406a928eaed1fb4b550d",
+    "c9be1767fbbf4f61bee6af9c3d6f534c",
+    "6f6b39f3c1294f0b9d3b3151f8164ab4",
+    "19269aa3a65544beb722164d54093cb2",
+    "2abbeafb20ab4c1cb95bc2052e36e191",
+    "6c96c4f530b945189e383b2abcca0b76"
+  ],
+  "totals": {
+    "passed": 71,
+    "valid": 120,
+    "voided": 0,
+    "timeouts": 5,
+    "agent_errors": 0,
+    "request_timeout_hits": 0
+  },
+  "aggregate": {
+    "pass_rate": 0.5916666666666667,
+    "wilson_low": 0.5022061864748179,
+    "wilson_high": 0.6754400971649285,
+    "mean_final_score": 0.8291664524559261,
+    "kernel_leaderboard_entry": {
+      "n": 120,
+      "pass_rate": 0.5916666666666667,
+      "wilson_low": 0.5022061864748179,
+      "wilson_high": 0.6754400971649285
+    }
+  },
+  "started_at": "2026-09-28T00:08:38Z",
+  "finished_at": "2026-09-28T00:53:15Z",
+  "smoke": [
+    {
+      "phase": "M3",
+      "model": "devstral-small-2:24b",
+      "smoke_campaign_id": "phase0-modern-local-v1-smoke-M3-20260928t000644z",
+      "scratch": "reports/phase0-modern-local/smoke/M3-20260928T000644Z",
+      "tasks": [
+        "fix-binary-search",
+        "async-batched",
+        "sanitize-filename",
+        "refactor-order-validation"
+      ],
+      "started_at": "2026-09-28T00:06:44Z",
+      "ollama_version": "0.31.1",
+      "operational_ok": true,
+      "outcome": "ok",
+      "failure": null,
+      "memory_before": {
+        "swap": "total = 8192.00M  used = 7079.75M  free = 1112.25M  (encrypted)",
+        "pressure": "The system has 38654705664 (2359296 pages with a page size of 16384).\nSystem-wide memory free percentage: 78%"
+      },
+      "note": "operational check only: a low score is not a smoke failure; never campaign evidence",
+      "ollama_ps": [
+        {
+          "name": "devstral-small-2:24b",
+          "size": 19667898859,
+          "size_vram": 19667898859,
+          "digest": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8"
+        }
+      ],
+      "finished_at": "2026-09-28T00:08:26Z",
+      "cells": [
+        {
+          "cell": "devstral-small-2:24b|fix-binary-search",
+          "state": "succeeded",
+          "evaluation_id": "e2cc578a8fe3422383b4712d65229ba6",
+          "summary": {
+            "run_ids": [
+              1
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 1,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "devstral-small-2:24b|sanitize-filename",
+          "state": "succeeded",
+          "evaluation_id": "e08f659019744d2095341f14c0bcec71",
+          "summary": {
+            "run_ids": [
+              2
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "devstral-small-2:24b|async-batched",
+          "state": "succeeded",
+          "evaluation_id": "a8f8ba6a269d4f3b99e50e3ff3ed0f4d",
+          "summary": {
+            "run_ids": [
+              3
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 0,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        },
+        {
+          "cell": "devstral-small-2:24b|refactor-order-validation",
+          "state": "succeeded",
+          "evaluation_id": "fd29fc8b4ecb40e0b94a33adb985a190",
+          "summary": {
+            "run_ids": [
+              4
+            ],
+            "n_runs": 1,
+            "valid": 1,
+            "passed": 1,
+            "voided": 0,
+            "timeouts": 0,
+            "agent_errors": 0,
+            "request_timeout_hits": 0,
+            "classes": {
+              "real": 1
+            }
+          },
+          "problems": []
+        }
+      ],
+      "digest": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "passed": 2,
+      "valid": 4,
+      "evidence_classes": {
+        "real": 4
+      },
+      "smoke_problems": [],
+      "memory_after": {
+        "swap": "total = 8192.00M  used = 7082.69M  free = 1109.31M  (encrypted)",
+        "pressure": "The system has 38654705664 (2359296 pages with a page size of 16384).\nSystem-wide memory free percentage: 16%"
+      }
+    }
+  ],
+  "validation": {
+    "complete": true,
+    "problems": [],
+    "warnings": [],
+    "evidence_classes": {
+      "real": 120
+    },
+    "historical_evidence_sha256": "42b6dad85ee662d6d5d7f75ffbda5a3b95d50837837f81c875730a8987838ced"
+  },
+  "cells": [
+    {
+      "cell": "devstral-small-2:24b|escape-html",
+      "task_id": "escape-html",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:1bfcf38552c595e2f45f0b3e0bf9aecb47846d9d155e36fad71bd552ba265525",
+      "evaluation_id": "e44074b7eec74e26a66c28a27e2806fc",
+      "run_ids": [
+        241,
+        242,
+        243,
+        244,
+        245
+      ],
+      "passed": 1,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:08:38Z",
+      "finished_at": "2026-09-28T00:09:49Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|fix-binary-search",
+      "task_id": "fix-binary-search",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:97d42f89f91ca3ba10ee968ac43ec0281bd986ece26f76f6a7bdaef7c13484ce",
+      "evaluation_id": "2c82e6783b3343b085a714ecb0a8854b",
+      "run_ids": [
+        246,
+        247,
+        248,
+        249,
+        250
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:09:49Z",
+      "finished_at": "2026-09-28T00:10:59Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|fix-list-dedup",
+      "task_id": "fix-list-dedup",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:b8050c0f63f569c72738fdc8ae02ec19f5f52a23373788e1cffec4df0515f38b",
+      "evaluation_id": "0a5ae9f0b68644f7a4b45d846cfa714f",
+      "run_ids": [
+        251,
+        252,
+        253,
+        254,
+        255
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:10:59Z",
+      "finished_at": "2026-09-28T00:11:29Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|async-retry",
+      "task_id": "async-retry",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:743f10eb2959463740a4c615a60af402fc9e9c650507bccdb0bba67dc4053897",
+      "evaluation_id": "5444476b17624948bd9eebecc391a51a",
+      "run_ids": [
+        256,
+        257,
+        258,
+        259,
+        260
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.8571428571428571,
+        0.8571428571428571,
+        0.8571428571428571,
+        0.8571428571428571,
+        0.8571428571428571
+      ],
+      "submitted_at": "2026-09-28T00:11:30Z",
+      "finished_at": "2026-09-28T00:12:40Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|async-timeout",
+      "task_id": "async-timeout",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:e2d6c2616c55f1910282e2862a5b7e49709d8d4231f5c97c92bc4c40e7f104fd",
+      "evaluation_id": "eaf3d5ebf5834d30882ced865a0c63f7",
+      "run_ids": [
+        261,
+        262,
+        263,
+        264,
+        265
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:12:40Z",
+      "finished_at": "2026-09-28T00:14:05Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|fix-roman-numerals",
+      "task_id": "fix-roman-numerals",
+      "task_version": "1.0.0",
+      "task_digest": "sha256:e58739216d5cced5e441df27d4a629acf69890dddfa111e391a54e4c0ac384e6",
+      "evaluation_id": "8d0f8535b7c445e3928bcc7403d86962",
+      "run_ids": [
+        266,
+        267,
+        268,
+        269,
+        270
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:14:05Z",
+      "finished_at": "2026-09-28T00:15:05Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|implement-lru-cache",
+      "task_id": "implement-lru-cache",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:711a4313f541efaaad7d782730f16ac5bdc09f86babf03e59cb27e4a6ac4cc19",
+      "evaluation_id": "b4f44d83551a4da6a907900b39ceccc9",
+      "run_ids": [
+        271,
+        272,
+        273,
+        274,
+        275
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:15:06Z",
+      "finished_at": "2026-09-28T00:17:11Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|mask-secrets",
+      "task_id": "mask-secrets",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:be4619e8f0d6da8b484bc30d130eb1ad95838edb5068c206cd4d66a847293b3d",
+      "evaluation_id": "d50f80f5e9624dc9bcc53009bbf14fef",
+      "run_ids": [
+        276,
+        277,
+        278,
+        279,
+        280
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:17:11Z",
+      "finished_at": "2026-09-28T00:18:36Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|merge-intervals",
+      "task_id": "merge-intervals",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:413356d815870ac64bc74876b6f2a29006554e56c5d72d043bd69d154be5ab70",
+      "evaluation_id": "12c4c6714e144382affb84364b58f1a2",
+      "run_ids": [
+        281,
+        282,
+        283,
+        284,
+        285
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:18:36Z",
+      "finished_at": "2026-09-28T00:19:42Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|paginator",
+      "task_id": "paginator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:8455df342ed6e853cadda163e970fb098fa916472fdfe2f9353d5648c75ef4db",
+      "evaluation_id": "07801af6cc734e08bedfcf54ed28c475",
+      "run_ids": [
+        286,
+        287,
+        288,
+        289,
+        290
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:19:42Z",
+      "finished_at": "2026-09-28T00:21:57Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|result-type",
+      "task_id": "result-type",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:34098c06cd150ab3166f3c221b8c8ff4685eea2f7cdea204c90fbbd719e820a1",
+      "evaluation_id": "0854091dab254c5c906ada6841085826",
+      "run_ids": [
+        291,
+        292,
+        293,
+        294,
+        295
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9
+      ],
+      "submitted_at": "2026-09-28T00:21:57Z",
+      "finished_at": "2026-09-28T00:23:38Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|sanitize-filename",
+      "task_id": "sanitize-filename",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:4546131c33d455d531d3388e629ee3257a973c58b15f81ff5ec44ab99d150574",
+      "evaluation_id": "911d7945ccac430bbe3802b5cd5e1e32",
+      "run_ids": [
+        296,
+        297,
+        298,
+        299,
+        300
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9230769230769231,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:23:38Z",
+      "finished_at": "2026-09-28T00:24:48Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|async-batched",
+      "task_id": "async-batched",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:663be68e47533cb829a8c5add006bb24dc838d460190dccf231c4105b2520439",
+      "evaluation_id": "672089d6acc1456f9df927d0bd634430",
+      "run_ids": [
+        301,
+        302,
+        303,
+        304,
+        305
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.9166666666666666,
+        0.9166666666666666,
+        0.9166666666666666,
+        0.9166666666666666,
+        0.9166666666666666
+      ],
+      "submitted_at": "2026-09-28T00:24:48Z",
+      "finished_at": "2026-09-28T00:26:14Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|async-first-success",
+      "task_id": "async-first-success",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:d2371fcc477cbf55f47b364925a3719a7122b525cf8ad352aa6bc560cd5e3de6",
+      "evaluation_id": "ee7f0c6d5766463483561ff595068897",
+      "run_ids": [
+        306,
+        307,
+        308,
+        309,
+        310
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.625,
+        0.75,
+        0.0,
+        0.75,
+        0.75
+      ],
+      "submitted_at": "2026-09-28T00:26:14Z",
+      "finished_at": "2026-09-28T00:28:09Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|async-gather-bounded",
+      "task_id": "async-gather-bounded",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:bdcf2f0d8fc40260fba5672b6b1017d0da70d47a099e761178bbb2221a97dc54",
+      "evaluation_id": "a2e75dd441d84e43b6e29aba02dccb3f",
+      "run_ids": [
+        311,
+        312,
+        313,
+        314,
+        315
+      ],
+      "passed": 2,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 2,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        0.0,
+        0.2222222222222222,
+        1.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T00:28:09Z",
+      "finished_at": "2026-09-28T00:34:15Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|fix-path-traversal",
+      "task_id": "fix-path-traversal",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:048d526e856035d29278fcc443c99439cacc6aed3e94a28e50c7dbdb0857d8c2",
+      "evaluation_id": "decc2327b6ed4024988dba67a4da5757",
+      "run_ids": [
+        316,
+        317,
+        318,
+        319,
+        320
+      ],
+      "passed": 1,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.6,
+        0.9,
+        1.0,
+        0.7,
+        0.9
+      ],
+      "submitted_at": "2026-09-28T00:34:15Z",
+      "finished_at": "2026-09-28T00:36:06Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|grid-paths",
+      "task_id": "grid-paths",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:8bd8923b24f8f5aa16b3cace88b8139c9ae23a69cbad95f5428f679439ae9276",
+      "evaluation_id": "d5b05599e7cb464399046cadf2ba96d9",
+      "run_ids": [
+        321,
+        322,
+        323,
+        324,
+        325
+      ],
+      "passed": 4,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        0.5384615384615384,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:36:06Z",
+      "finished_at": "2026-09-28T00:37:26Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|query-builder",
+      "task_id": "query-builder",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:fe812df540da8bdacbc65432fabbc8f6bf3ae63d4e6ad2abebf0246a544858c6",
+      "evaluation_id": "c7c082eac43c4d8cb83fdb415d894a61",
+      "run_ids": [
+        326,
+        327,
+        328,
+        329,
+        330
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:37:26Z",
+      "finished_at": "2026-09-28T00:39:22Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|refactor-order-validation",
+      "task_id": "refactor-order-validation",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:3e2ffe535ab5f3f0ac992e376637a5289a1683ce8e0292b8193b26e2308e3972",
+      "evaluation_id": "e3a88306e14d406a928eaed1fb4b550d",
+      "run_ids": [
+        331,
+        332,
+        333,
+        334,
+        335
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:39:22Z",
+      "finished_at": "2026-09-28T00:42:17Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|top-k-frequent",
+      "task_id": "top-k-frequent",
+      "task_version": "1.0.3",
+      "task_digest": "sha256:c4fb17f874fa701173602d5e8acf50578c7622ad9473baaef1ec5d2e70936d3c",
+      "evaluation_id": "c9be1767fbbf4f61bee6af9c3d6f534c",
+      "run_ids": [
+        336,
+        337,
+        338,
+        339,
+        340
+      ],
+      "passed": 2,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 3,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "submitted_at": "2026-09-28T00:42:18Z",
+      "finished_at": "2026-09-28T00:44:33Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|toposort",
+      "task_id": "toposort",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:00858816e5473d96413cc1048ca43e569e378c063aa90c419b7871e1ea219251",
+      "evaluation_id": "6f6b39f3c1294f0b9d3b3151f8164ab4",
+      "run_ids": [
+        341,
+        342,
+        343,
+        344,
+        345
+      ],
+      "passed": 3,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.38461538461538464,
+        1.0,
+        1.0,
+        1.0,
+        0.9230769230769231
+      ],
+      "submitted_at": "2026-09-28T00:44:33Z",
+      "finished_at": "2026-09-28T00:46:43Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|two-sum-indices",
+      "task_id": "two-sum-indices",
+      "task_version": "1.0.1",
+      "task_digest": "sha256:c7005cb3b399ea7dd1f762352921e5f3588bd28e5fdfbe08515af96db63e4c7d",
+      "evaluation_id": "19269aa3a65544beb722164d54093cb2",
+      "run_ids": [
+        346,
+        347,
+        348,
+        349,
+        350
+      ],
+      "passed": 5,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "submitted_at": "2026-09-28T00:46:44Z",
+      "finished_at": "2026-09-28T00:47:44Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|validate-redirect-url",
+      "task_id": "validate-redirect-url",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:c7d40bc86203bac8765553e9a2da5f72aad730a2f102cdc36ee0b215aebbac07",
+      "evaluation_id": "2abbeafb20ab4c1cb95bc2052e36e191",
+      "run_ids": [
+        351,
+        352,
+        353,
+        354,
+        355
+      ],
+      "passed": 0,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.8125,
+        0.8125,
+        0.75,
+        0.75,
+        0.75
+      ],
+      "submitted_at": "2026-09-28T00:47:44Z",
+      "finished_at": "2026-09-28T00:49:15Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    },
+    {
+      "cell": "devstral-small-2:24b|expression-evaluator",
+      "task_id": "expression-evaluator",
+      "task_version": "1.0.2",
+      "task_digest": "sha256:164d48bd040cf2c0c16865284fccd4f8b2b9358fc45e65139cf69dd4dc9cfee3",
+      "evaluation_id": "6c96c4f530b945189e383b2abcca0b76",
+      "run_ids": [
+        356,
+        357,
+        358,
+        359,
+        360
+      ],
+      "passed": 1,
+      "valid": 5,
+      "voided": 0,
+      "timeouts": 0,
+      "agent_errors": 0,
+      "request_timeout_hits": 0,
+      "final_scores": [
+        0.10526315789473684,
+        0.631578947368421,
+        0.8947368421052632,
+        1.0,
+        0.15789473684210525
+      ],
+      "submitted_at": "2026-09-28T00:49:15Z",
+      "finished_at": "2026-09-28T00:53:15Z",
+      "model_digest_at_submit": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "model_digest_at_finalize": "24277f07f62db8f9cb68e9dfc679ea1818a7fbac47a50eff0a701d3f645b63c8",
+      "ollama_version": "0.31.1"
+    }
+  ],
+  "generated_at": "2026-09-28T00:53:36Z"
+}
