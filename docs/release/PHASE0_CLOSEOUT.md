@@ -2,9 +2,9 @@
 
 > **Phase 0 is closed.** The benchmark runtime (`phase0-integrity-v1`), the evidence-integrity system, the first
 > modern local benchmark release (`phase0-modern-local-v1`: 5 models × 24 tasks × 5 repetitions = 600 accepted real
-> runs) and the data-driven Benchmark Releases UI are frozen, verified and present on `master`. This receipt is the
-> final Phase-0 engineering record. It records only what was checked on 2026-09-28; nothing here re-runs, re-scores or
-> re-ranks a model.
+> runs), the data-driven Benchmark Releases UI and the live UI's connection to the evaluation-scoped API (§H) are
+> frozen, verified and present on `master`. This receipt is the final Phase-0 engineering record. It records only
+> what was checked on 2026-09-28; nothing here re-runs, re-scores or re-ranks a model.
 
 ## A. Phase-0 runtime
 
@@ -144,7 +144,9 @@ None of them changed a tracked file.
 | Ref | Value |
 |---|---|
 | `master` = `origin/master` after the UI merge push (`92a3b0c..3bf3ad1`, no force) | `3bf3ad18f5157a1f8463f533330495d085b395eb` |
-| `master` = `origin/master` after this receipt | the commit that adds this file, parent `3bf3ad1` |
+| `master` = `origin/master` after the first receipt | `8692555eb2eb211489b5d870560a64ed545b57d5` (adds this file, parent `3bf3ad1`) |
+| `master` = `origin/master` after the live-UI merge (§H, `8692555..310ff79`, no force) | `310ff792ff78f7c07551610d6269f92aed462df8` |
+| `master` = `origin/master` at Phase-0 close | the commit that adds §H to this file, parent `310ff79` (documentation only) |
 | `phase0-integrity-v1` | → `7369e67e1ceb4b2a566986f247961f8a63f99567` (unchanged) |
 | `phase0-modern-local-v1` | → `92a3b0c6195d7bc9c5856ad0788e8cfd1fdaf230` (unchanged) |
 
@@ -158,8 +160,51 @@ benchmark route case. **No benchmark-result mutation** (`campaigns/phase0-modern
 runtime-semantic mutation** (`afa_api/`, `runner/`, `kernel/`, `tasks/`, `integrity/`, `db/`, `examples/`,
 `afa_app.py` untouched).
 
+The §H merge adds 22 web and documentation files on top of that; it too leaves `campaigns/phase0-modern-local-v1/`
+and every runtime path untouched.
+
 **Tags.** No new tag was created. `phase0-integrity-v1` identifies the runtime and `phase0-modern-local-v1` the
 benchmark result; the closeout's code state is identified by the `master` commit recorded above.
+
+## H. Live UI — evaluation-scoped results and provisional domains (final Phase-0 change)
+
+| | |
+|---|---|
+| Source | `claude/practical-keller-aej06v` @ **`310ff792ff78f7c07551610d6269f92aed462df8`** — one commit on top of `8692555` |
+| Merge strategy | **fast-forward** (`git merge --ff-only`); the commit is kept as-is |
+| Scope | `web/` (API client and types, results, monitor and run pages, domain matrix and agent profile, styles, tests) and two design docs; no Python, runtime, campaign, evidence or release-dataset change |
+
+What it changes, using only API routes that already existed:
+
+- **Evaluation-scoped results.** `/jobs/:id/results` reads `GET /jobs/{id}/report.json` — the report's counters,
+  a grid and trial table from the persisted `evaluation_trials` rows with exact run ids, persisted provenance, task
+  snapshots and the server's limitations, and `report.json` / `report.md` downloads. Global cells stay separate.
+- **Exact run links.** `/jobs/:id/runs/:task/:idx` resolves through `GET /jobs/{id}/trials/{task}/{idx}` to the
+  trial's `run_id`. The previous `(model, task, idx)` lookup answered `409` ambiguous once a model had two
+  evaluations (reproduced on the real API before the change).
+- **Monitor.** Ended evaluations overlay `GET /jobs/{id}/results` on the event tape; failed or canceled evaluations
+  with unfinished trials offer Resume (`POST /jobs/{id}/resume`, same ID, completed trials kept). The event tape
+  treats `job_resumed` as a restart, and SSE no longer closes on a replayed, already-seen terminal event.
+- **Provisional domains.** A domain the kernel marks not displayable but with current evidence (`n_runs > 0`) shows
+  its value, Wilson interval and a provisional label; a domain with no runs shows no value, never 0%. The server's
+  `displayable` flag stays the only authority on the 5-task / 25-run threshold; nothing enters an overall score.
+- **Unchanged by design.** Evaluations with unverifiable parameters stay fail-closed; the frozen benchmark-release
+  pages are untouched (every Modern Local v1 domain is displayable).
+
+Verification:
+
+| Check | Before merge (session branch `310ff79`) | After merge (`master` = `310ff79`, compact) |
+|---|---|---|
+| `npm run typecheck` / `npm run build` | pass / pass | pass / pass (1925 modules) |
+| `npm run test:focused` | **45 passed** | **45 passed** |
+| Mocked browser specs (`version-evidence`, `routes`, logic specs) | **74 passed**; the 4 new browser tests also run against the previous build and fail there | — |
+| `npm run test:async` | **10 passed** | — |
+| `npm run test:benchmarks` | **34 passed** | — |
+| `npm run test:real` | **27 passed**, 1 skipped (optional Ollama smoke), incl. a real cancel → resume and exact run links across two evaluations of one model | — |
+| `release-data --check` / dataset pytest | exit 0 / **27 passed** | — |
+| Frozen results (`git diff phase0-modern-local-v1 master -- campaigns/phase0-modern-local-v1/`) | empty | empty |
+| Runtime trees `afa_api/`, `runner/`, `kernel/`, `tasks/` | = `phase0-integrity-v1` | = `phase0-integrity-v1` |
+| `reports/runs.sqlite` sha256 | `42b6dad8…838ced` | `42b6dad8…838ced` |
 
 ## Scope boundary
 
