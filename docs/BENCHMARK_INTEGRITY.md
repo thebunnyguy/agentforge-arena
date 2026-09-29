@@ -15,8 +15,8 @@ this engine validates, see
 ## Why this exists
 
 `docs/EVALUATION_FRAMEWORK.md` §8.2 documents seven "activation gates" a task
-must pass before it's trusted, and prior audits (`audit/`, `codex-audit/`,
-`docs/FAILURE_INSPECTION.md`) found real, shipped defects that a benchmark
+must pass before it's trusted. Pre-Phase-0 audits (preserved in Git history) and
+`docs/FAILURE_INSPECTION.md` found real, shipped defects that a benchmark
 that only checks "the reference scores 1.0" would have missed entirely — a
 reference that itself violated its task's security contract
 (`validate-redirect-url`), a hidden suite that rewarded a parser with wrong

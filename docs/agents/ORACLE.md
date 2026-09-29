@@ -10,7 +10,7 @@ coordinate with, read, or edit any ATLAS branch or journal.
 
 Surveyed the existing system (docs/EVALUATION_FRAMEWORK.md +
 docs/evaluation-framework/*, kernel/afa_kernel, runner/afa_runner, all 24 tasks,
-DEVLOG.md, audit/, codex-audit/, docs/FAILURE_INSPECTION.md) with six parallel
+the then-current development log, pre-Phase-0 audit artifacts (now preserved in Git history), and docs/FAILURE_INSPECTION.md) with six parallel
 research agents before writing any code. Key findings that shaped the design:
 
 - **`runner/afa_runner/pipeline.py:validate_task()` already implements the

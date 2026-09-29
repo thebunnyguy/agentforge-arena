@@ -28,12 +28,9 @@ reports/
 *.sqlite-shm
 *.db
 
-# Audit artifacts / scratch not needed in any image
-audit/
-codex-audit/
+# Scratch / documentation not needed in any image
 runpod/
 docs/
-DEVLOG.md
 
 # OS cruft
 .DS_Store
